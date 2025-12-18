@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Crypto Intelligence MVP
 
-## Getting Started
+KI-gestützte Crypto News Intelligence Platform - **100% kostenlos** im Betrieb.
 
-First, run the development server:
+## Features
+
+- **News Aggregation**: 10+ RSS-Feeds von CoinDesk, Cointelegraph, Decrypt, etc.
+- **KI-Analyse**: Sentiment-Erkennung und Marktüberblick via Groq (Llama 3.1)
+- **Market Data**: Top 20 Coins von CoinGecko + Fear & Greed Index
+- **Live Dashboard**: React 18 + TailwindCSS mit Auto-Refresh
+
+## Schnellstart
 
 ```bash
+cd /Users/mg1/Python/crypto-intelligence
+
+# 1. Groq API Key holen (kostenlos): https://console.groq.com
+# 2. .env.local bearbeiten und GROQ_API_KEY eintragen
+
+# 3. Starten
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# 4. Browser öffnen: http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Kostenlose APIs verwendet
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Service        | Zweck                    | Kosten  |
+|----------------|--------------------------|---------|
+| CoinGecko      | Preise, Market Cap       | $0      |
+| Fear & Greed   | Markt-Sentiment          | $0      |
+| Groq           | KI-Analyse (Llama 3.1)   | $0      |
+| RSS Feeds      | Crypto News              | $0      |
+| Vercel         | Hosting (optional)       | $0      |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Projektstruktur
 
-## Learn More
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── news/       # RSS Feed Aggregation
+│   │   ├── market/     # CoinGecko + Fear & Greed
+│   │   └── analyze/    # Groq KI-Analyse
+│   ├── page.tsx        # Dashboard
+│   └── layout.tsx
+├── components/
+│   ├── NewsCard.tsx
+│   └── MarketOverview.tsx
+├── lib/
+│   ├── feeds.ts        # RSS Feed Konfiguration
+│   ├── rss-parser.ts   # RSS Parser
+│   └── groq.ts         # Groq API Client
+└── types/
+    └── news.ts
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Nächste Schritte
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [ ] Supabase für Artikel-Speicherung
+- [ ] Email-Alerts (Resend Free Tier)
+- [ ] Reddit Sentiment Integration
+- [ ] DefiLlama On-Chain Daten
+- [ ] Vercel Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment auf Vercel
 
-## Deploy on Vercel
+```bash
+# 1. Vercel CLI installieren
+npm i -g vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# 2. Deployen
+vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# 3. Environment Variables in Vercel Dashboard setzen
+#    - GROQ_API_KEY
+```
+
+## Lizenz
+
+MIT

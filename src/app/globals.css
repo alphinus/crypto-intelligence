@@ -5,6 +5,18 @@
   --foreground: #171717;
 }
 
+/* Dark mode via class */
+:root.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+/* Light mode via class */
+:root.light {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -12,15 +24,79 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Light mode specific overrides */
+.light {
+  /* Override dark-specific Tailwind classes for light mode */
+  --tw-bg-opacity: 1;
+}
+
+.light .bg-gray-950 {
+  background-color: #f1f5f9 !important;
+}
+
+.light .bg-gray-900\/50,
+.light .bg-gray-900 {
+  background-color: rgba(241, 245, 249, 0.95) !important;
+}
+
+.light .bg-gray-800\/50,
+.light .bg-gray-800 {
+  background-color: #e2e8f0 !important;
+}
+
+.light .border-gray-800 {
+  border-color: #cbd5e1 !important;
+}
+
+.light .border-gray-700 {
+  border-color: #94a3b8 !important;
+}
+
+.light .text-white {
+  color: #0f172a !important;
+}
+
+.light .text-gray-300 {
+  color: #475569 !important;
+}
+
+.light .text-gray-400 {
+  color: #64748b !important;
+}
+
+.light .text-gray-500 {
+  color: #94a3b8 !important;
+}
+
+.light .hover\:bg-gray-700:hover {
+  background-color: #cbd5e1 !important;
+}
+
+.light .hover\:bg-gray-800:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Light mode scrollbar */
+.light ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 4px;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
