@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { MarketData, FearGreedIndex } from '@/types/news';
 
-export const revalidate = 60; // Cache für 1 Minute
+export const revalidate = 300; // Cache für 5 Minuten (reduziert Vercel Invocations)
 
 // Types for new data
 export interface TrendingCoin {

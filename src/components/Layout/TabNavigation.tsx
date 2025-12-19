@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { BarChart2, MessageSquare, Brain, BookOpen } from 'lucide-react';
 
 export type TabId = 'trading' | 'sentiment' | 'reports' | 'resources';
@@ -55,27 +56,39 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
-            <button
+            <motion.button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
+              whileHover={{ backgroundColor: 'rgba(31, 41, 55, 0.5)' }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
               className={`
-                relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors
+                relative flex items-center gap-2 px-4 py-3 text-sm font-medium
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-inset
                 ${isActive
                   ? 'text-blue-400 bg-gray-800/50'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                  : 'text-gray-400 hover:text-white'
                 }
               `}
               aria-current={isActive ? 'page' : undefined}
               title={tab.description}
             >
-              {tab.icon}
+              <motion.span
+                animate={{ scale: isActive ? 1.1 : 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {tab.icon}
+              </motion.span>
               <span className="hidden sm:inline">{tab.label}</span>
               <span className="sm:hidden">{tab.shortLabel}</span>
               {isActive && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
+                <motion.span
+                  layoutId="activeTabIndicator"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
               )}
-            </button>
+            </motion.button>
           );
         })}
       </nav>

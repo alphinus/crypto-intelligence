@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchFuturesOverview } from '@/lib/binance-futures';
 
-export const revalidate = 60; // Cache for 1 minute
+export const revalidate = 300; // Cache for 5 minutes (reduces Vercel invocations)
 
 export async function GET() {
   try {

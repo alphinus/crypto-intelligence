@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, TrendingDown, Clock, Target, CheckCircle2, Loader2, Star, Shield, Scale } from 'lucide-react';
 import type { TimeframeTradeSetup, TradeScore, HedgeRecommendation } from '@/lib/groq';
+import { staggerContainer, staggerItem, fadeInUp, scaleIn } from '@/lib/animations';
 
 interface TimeframeCard {
   timeframe: '1m' | '3m' | '5m' | '15m' | '1h' | '4h' | '1d';
@@ -122,20 +124,39 @@ export function TradeRecommendations({
         )}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-        {TIMEFRAME_CONFIG.filter(c => !c.hidden).map((config) => {
+      <motion.div
+        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        {TIMEFRAME_CONFIG.filter(c => !c.hidden).map((config, index) => {
           const setup = recommendations[config.timeframe];
           const score = scores[config.timeframe];
           const hasConfluence = confluenceMap[config.timeframe] || false;
           const isBestTrade = score?.rank === 1 && setup?.type !== 'wait';
 
           return (
-            <div
+            <motion.div
               key={config.timeframe}
+              variants={staggerItem}
+              whileHover={{
+                scale: 1.02,
+                y: -4,
+                boxShadow: isBestTrade
+                  ? '0 12px 40px rgba(34, 197, 94, 0.3)'
+                  : setup?.type === 'long'
+                    ? '0 12px 40px rgba(34, 197, 94, 0.2)'
+                    : setup?.type === 'short'
+                      ? '0 12px 40px rgba(239, 68, 68, 0.2)'
+                      : '0 12px 40px rgba(0, 0, 0, 0.3)'
+              }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
               role="article"
               aria-label={`${config.label} ${config.style} Trade: ${setup?.type?.toUpperCase() || 'No data'}${hasConfluence ? ', Multi-Timeframe Konfluenz' : ''}${isBestTrade ? ', Best Trade' : ''}`}
               tabIndex={0}
-              className={`relative bg-gray-900/50 border rounded-lg overflow-hidden cursor-pointer transition-all hover:border-blue-500/50 hover:bg-gray-800/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+              className={`relative bg-gray-900/50 border rounded-lg overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                 isBestTrade
                   ? 'border-green-500 ring-2 ring-green-500/30 shadow-lg shadow-green-500/20'
                   : setup && setup.type !== 'wait'
@@ -278,8 +299,14 @@ export function TradeRecommendations({
               )}
 
               {/* Hover Score Breakdown - Enhanced with Technical/Sentiment split */}
+              <AnimatePresence>
               {hoveredCard === config.timeframe && score && setup?.type !== 'wait' && (
-                <div className="absolute inset-0 bg-gray-900/95 p-2 flex flex-col justify-center z-10 overflow-y-auto">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute inset-0 bg-gray-900/95 p-2 flex flex-col justify-center z-10 overflow-y-auto">
                   {/* Score Summary Bar */}
                   <div className="flex items-center justify-between mb-2 pb-1 border-b border-gray-700">
                     <span className="text-[10px] text-gray-400 font-semibold">SCORE BREAKDOWN</span>
@@ -353,16 +380,23 @@ export function TradeRecommendations({
                       {setup.reasoning}
                     </p>
                   )}
-                </div>
+                </motion.div>
               )}
-            </div>
+              </AnimatePresence>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Hedge Recommendation Panel */}
+      <AnimatePresence>
       {hedgeRecommendation && hedgeRecommendation.type !== 'no_hedge' && (
-        <div className="mt-4 bg-gradient-to-r from-amber-900/30 to-orange-900/30 border border-amber-500/30 rounded-lg p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="mt-4 bg-gradient-to-r from-amber-900/30 to-orange-900/30 border border-amber-500/30 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
             <Scale className="w-5 h-5 text-amber-400" />
             <span className="font-semibold text-amber-400">HEDGE-EMPFEHLUNG</span>
@@ -418,11 +452,16 @@ export function TradeRecommendations({
             <span className="text-amber-400">Grund:</span>
             {hedgeRecommendation.reason}
           </p>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-4 mt-3 text-[10px] text-gray-500">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.4 }}
+        className="flex items-center justify-center gap-4 mt-3 text-[10px] text-gray-500">
         <span className="flex items-center gap-1">
           <div className="w-2 h-2 rounded-full bg-green-500" /> LONG
         </span>
@@ -438,7 +477,7 @@ export function TradeRecommendations({
         <span className="flex items-center gap-1">
           <CheckCircle2 className="w-3 h-3 text-purple-400" /> MTF Konfluenz
         </span>
-      </div>
+      </motion.div>
     </div>
   );
 }

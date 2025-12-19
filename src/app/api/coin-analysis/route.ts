@@ -12,9 +12,9 @@ import {
   findConfluenceZones,
 } from '@/lib/technical-levels';
 
-// Caching aktiviert - alle 30 Sekunden revalidieren
-// (force-dynamic entfernt um Performance zu verbessern)
-export const revalidate = 30;
+// Caching aktiviert - alle 5 Minuten revalidieren
+// Erhöht von 30s auf 300s um Vercel Invocations zu reduzieren
+export const revalidate = 300;
 
 export async function GET(request: Request) {
   try {

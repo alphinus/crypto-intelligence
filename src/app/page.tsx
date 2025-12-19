@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { RefreshCw, Brain, AlertCircle, Clock, Sparkles } from 'lucide-react';
 import { NewsTicker } from '@/components/NewsTicker';
 import { TrendingSidebar } from '@/components/TrendingSidebar';
@@ -151,6 +151,15 @@ export default function Home() {
   const [analyzingCoin, setAnalyzingCoin] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('trading');
+
+  // Client-side cache to reduce Vercel invocations
+  const coinAnalysisCache = useRef<Map<string, { data: unknown; timestamp: number }>>(new Map());
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+  // Cooldowns for rate limiting
+  const lastReportTime = useRef<number>(0);
+  const lastCoinReportTime = useRef<number>(0);
+  const REPORT_COOLDOWN = 3 * 60 * 1000; // 3 minutes between reports
 
   // WebSocket for live kline updates
   const handleKlineUpdate = useCallback((kline: Kline, isClosed: boolean) => {
@@ -654,13 +663,27 @@ export default function Home() {
     };
   };
 
-  // Fetch trade recommendations for selected coin
-  const fetchTradeRecommendations = useCallback(async (symbol: string = 'BTC') => {
+  // Fetch trade recommendations for selected coin (with client-side caching)
+  const fetchTradeRecommendations = useCallback(async (symbol: string = 'BTC', forceRefresh = false) => {
+    // Check client-side cache first to reduce API calls
+    const cacheKey = symbol.toUpperCase();
+    const cached = coinAnalysisCache.current.get(cacheKey);
+    const now = Date.now();
+
+    // Skip API call if we have recent cached data (unless force refresh)
+    if (!forceRefresh && cached && (now - cached.timestamp) < CACHE_DURATION) {
+      console.log(`[Cache] Using cached data for ${cacheKey} (${Math.round((now - cached.timestamp) / 1000)}s old)`);
+      return; // Data already loaded from previous fetch
+    }
+
     setLoadingTrades(true);
     try {
       // WICHTIG: full=true für Multi-Timeframe Daten
       const res = await fetch(`/api/coin-analysis?symbol=${symbol}&full=true`);
       const data = await res.json();
+
+      // Cache the result
+      coinAnalysisCache.current.set(cacheKey, { data, timestamp: now });
 
       if (data.success && data.timeframes) {
         // Set multiTimeframe data
@@ -844,7 +867,17 @@ export default function Home() {
 
   // Generate Coin-specific Intelligence Report
   const generateCoinReport = useCallback(async (coin: MarketData) => {
+    // Rate limiting: Check cooldown
+    const now = Date.now();
+    const timeSinceLastReport = now - lastCoinReportTime.current;
+    if (timeSinceLastReport < REPORT_COOLDOWN) {
+      const waitSeconds = Math.ceil((REPORT_COOLDOWN - timeSinceLastReport) / 1000);
+      alert(`Bitte warte noch ${waitSeconds} Sekunden bevor du einen neuen Coin-Report generierst.`);
+      return;
+    }
+
     setAnalyzingCoin(true);
+    lastCoinReportTime.current = now;
     try {
       const symbol = coin.symbol.toUpperCase();
 
@@ -892,7 +925,17 @@ export default function Home() {
   }, [multiTimeframe, allTimeframeLevels, futuresData, bitcoinData, confluenceZones, redditData, marketData]);
 
   const generateIntelligenceReport = async () => {
+    // Rate limiting: Check cooldown
+    const now = Date.now();
+    const timeSinceLastReport = now - lastReportTime.current;
+    if (timeSinceLastReport < REPORT_COOLDOWN) {
+      const waitSeconds = Math.ceil((REPORT_COOLDOWN - timeSinceLastReport) / 1000);
+      alert(`Bitte warte noch ${waitSeconds} Sekunden bevor du einen neuen Market-Report generierst.`);
+      return;
+    }
+
     setAnalyzing(true);
+    lastReportTime.current = now;
     try {
       const klinesRes = await fetch('/api/klines?symbol=BTC');
       const klinesData = await klinesRes.json();
@@ -1021,7 +1064,7 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Separate interval for auto-refresh (every 5 minutes)
+  // Separate interval for auto-refresh (every 15 minutes - reduced from 5 to save Vercel invocations)
   useEffect(() => {
     const interval = setInterval(() => {
       fetchData();
@@ -1033,7 +1076,7 @@ export default function Home() {
         fetchTradeRecommendations(selectedAnalysisCoin.symbol);
       }
       setLastUpdated(new Date());
-    }, 300000);
+    }, 900000); // 15 min (was 300000 = 5 min)
     return () => clearInterval(interval);
   }, [fetchData, fetchReddit, fetchDefi, fetchFutures, fetchBitcoin, fetchTradeRecommendations, selectedAnalysisCoin?.symbol]);
 
