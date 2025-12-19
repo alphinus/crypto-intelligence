@@ -1,6 +1,10 @@
 // Binance Klines API Client (kostenlos, kein API Key)
+// Fallback zu Binance.US wenn internationale API geblockt ist (HTTP 451 in USA)
 
-const BASE_URL = 'https://api.binance.com/api/v3';
+const BINANCE_URLS = [
+  'https://api.binance.com/api/v3',  // International
+  'https://api.binance.us/api/v3',   // US Fallback
+];
 
 export type Interval = '1m' | '3m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d' | '1w';
 
@@ -56,6 +60,39 @@ function parseKline(data: (string | number)[]): Kline {
   };
 }
 
+// Fetch mit Fallback zu Binance.US
+async function fetchWithFallback(
+  endpoint: string,
+  revalidate: number = 60
+): Promise<Response | null> {
+  for (const baseUrl of BINANCE_URLS) {
+    try {
+      const res = await fetch(`${baseUrl}${endpoint}`, {
+        headers: { Accept: 'application/json' },
+        next: { revalidate },
+      });
+
+      // Bei 451 (US Block) oder anderen Client-Fehlern: nächste URL versuchen
+      if (res.status === 451 || res.status === 403) {
+        console.log(`Binance ${baseUrl} blocked (${res.status}), trying fallback...`);
+        continue;
+      }
+
+      if (res.ok) return res;
+
+      // Bei Server-Fehlern auch Fallback versuchen
+      if (res.status >= 500) continue;
+
+      // Bei anderen Fehlern (404 etc.) abbrechen
+      return null;
+    } catch (error) {
+      console.log(`Binance ${baseUrl} failed, trying fallback...`);
+      continue;
+    }
+  }
+  return null;
+}
+
 // Fetch Klines für ein Symbol
 export async function fetchKlines(
   symbol: string,
@@ -63,14 +100,14 @@ export async function fetchKlines(
   limit: number = 100
 ): Promise<Kline[]> {
   try {
-    const url = `${BASE_URL}/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
-    const res = await fetch(url, {
-      headers: { Accept: 'application/json' },
-      next: { revalidate: interval === '1d' ? 300 : 60 }, // 5min cache for daily, 1min for others
-    });
+    const endpoint = `/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+    const revalidate = interval === '1d' ? 300 : 60;
 
-    if (!res.ok) {
-      throw new Error(`Binance API error: ${res.status}`);
+    const res = await fetchWithFallback(endpoint, revalidate);
+
+    if (!res) {
+      console.error(`All Binance endpoints failed for ${symbol} ${interval}`);
+      return [];
     }
 
     const data = await res.json();
