@@ -36,6 +36,8 @@ import { GuruWatcher } from '@/components/GuruWatcher';
 import { AuthButton } from '@/components/AuthButton';
 import { TelegramSentiment } from '@/components/TelegramSentiment';
 import { SettingsButton } from '@/components/SettingsButton';
+import { TabNavigation, type TabId } from '@/components/Layout/TabNavigation';
+import { TabPanel } from '@/components/Layout/TabPanel';
 
 interface MarketResponse {
   success: boolean;
@@ -148,11 +150,21 @@ export default function Home() {
   const [coinReport, setCoinReport] = useState<CoinReport | null>(null);
   const [analyzingCoin, setAnalyzingCoin] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId>('trading');
 
   // WebSocket for live kline updates
   const handleKlineUpdate = useCallback((kline: Kline, isClosed: boolean) => {
     setMultiTimeframe((prev) => {
       if (!prev) return prev;
+
+      // CRITICAL: Validate that the kline belongs to the currently selected coin
+      // This prevents stale data from old WebSocket connections showing in the chart
+      const expectedSymbol = selectedAnalysisCoin?.symbol?.toUpperCase();
+      if (expectedSymbol && prev.symbol !== expectedSymbol) {
+        // Ignore kline updates for different symbols (race condition prevention)
+        return prev;
+      }
+
       const tf = chartTimeframe as keyof typeof prev.timeframes;
       const tfData = prev.timeframes[tf];
       if (!tfData) return prev;
@@ -184,7 +196,7 @@ export default function Home() {
         },
       };
     });
-  }, [chartTimeframe]);
+  }, [chartTimeframe, selectedAnalysisCoin?.symbol]);
 
   const { isConnected, connectionState, error: wsError } = useBinanceWebSocket({
     symbol: selectedAnalysisCoin?.symbol || 'BTC',
@@ -747,7 +759,21 @@ export default function Home() {
 
   // Handle coin selection for analysis
   const handleCoinSelect = useCallback((coin: MarketData) => {
+    // Update selected coin
     setSelectedAnalysisCoin(coin);
+
+    // CRITICAL: Reset all coin-specific state IMMEDIATELY to prevent stale data
+    // This fixes the bug where old coin data appears when switching coins
+    setMultiTimeframe(null);
+    setTechnicalLevels(null);
+    setTradeRecommendations({});
+    setConfluenceZones([]);
+    setAllTimeframeLevels(null);
+    setTradeScores({});
+    setHedgeRecommendation(null);
+    setCoinReport(null);
+
+    // Then fetch new data for the selected coin
     fetchTradeRecommendations(coin.symbol);
   }, [fetchTradeRecommendations]);
 
@@ -1202,289 +1228,391 @@ export default function Home() {
           )}
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 lg:ml-64 p-4">
-          {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-sm">
-              <AlertCircle className="w-4 h-4" />
-              {error}
-            </div>
-          )}
+        {/* Main Content with Tabs */}
+        <main className="flex-1 lg:ml-64">
+          {/* Tab Navigation */}
+          <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-          {/* Market Snapshot */}
-          <MarketSnapshot
-            fundingRate={futuresData?.fundingRates ? {
-              btc: futuresData.fundingRates.btc,
-              eth: futuresData.fundingRates.eth,
-            } : undefined}
-            sentiment={redditData?.overall ? {
-              type: redditData.overall.sentiment,
-              score: redditData.overall.sentimentScore,
-            } : undefined}
-            keyLevels={technicalLevels ? {
-              support: technicalLevels.keySupport,
-              resistance: technicalLevels.keyResistance,
-            } : undefined}
-            btcPrice={btcPrice}
-            loading={loading}
-          />
-
-          {/* Indikator-Preset Selector & Market Sessions */}
-          <div className="mb-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <PresetSelector
-              selectedPreset={selectedPreset}
-              onPresetChange={(preset) => setSelectedPreset(preset)}
-              currentTimeframe={chartTimeframe}
-              autoSwitch={presetAutoSwitch}
-              onAutoSwitchChange={(enabled) => {
-                setPresetAutoSwitch(enabled);
-                if (enabled) {
-                  // Bei Aktivierung sofort das passende Preset setzen
-                  const recommendedId = recommendPreset(chartTimeframe);
-                  const recommended = getPresetById(recommendedId);
-                  if (recommended) setSelectedPreset(recommended);
-                }
-              }}
-            />
-            <MarketSessions />
-          </div>
-
-          {/* Analyse-Gewichtung Panel */}
-          <div className="mb-4 bg-gray-900/50 border border-gray-800 rounded-lg px-4 py-3">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-gray-400 font-medium">Analyse-Gewichtung:</span>
-              <div className="flex items-center gap-2">
-                {/* Quick Preset Buttons */}
-                <button
-                  onClick={() => setAnalysisWeights({ technical: 100, sentiment: 0 })}
-                  className={`px-2 py-1 text-[10px] rounded transition-colors ${
-                    analysisWeights.technical === 100
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                  }`}
-                >
-                  100% Tech
-                </button>
-                <button
-                  onClick={() => setAnalysisWeights({ technical: 70, sentiment: 30 })}
-                  className={`px-2 py-1 text-[10px] rounded transition-colors ${
-                    analysisWeights.technical === 70
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                      : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                  }`}
-                >
-                  70/30
-                </button>
-                <button
-                  onClick={() => setAnalysisWeights({ technical: 50, sentiment: 50 })}
-                  className={`px-2 py-1 text-[10px] rounded transition-colors ${
-                    analysisWeights.technical === 50
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                      : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                  }`}
-                >
-                  50/50
-                </button>
-                <button
-                  onClick={() => setAnalysisWeights({ technical: 0, sentiment: 100 })}
-                  className={`px-2 py-1 text-[10px] rounded transition-colors ${
-                    analysisWeights.sentiment === 100
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                  }`}
-                >
-                  100% Sent
-                </button>
+          {/* Tab Content */}
+          <div className="p-4">
+            {error && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                {error}
               </div>
-            </div>
+            )}
 
-            {/* Visual Weight Bar */}
-            <div className="flex items-center gap-3">
-              {/* Technical Label */}
-              <div className="flex items-center gap-1.5 min-w-[90px]">
-                <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-                <span className="text-xs text-blue-400 font-medium">Technisch</span>
-              </div>
+            {/* TAB 1: Chart & Trading */}
+            <TabPanel id="trading" activeTab={activeTab}>
+              {/* Market Snapshot */}
+              <MarketSnapshot
+                fundingRate={futuresData?.fundingRates ? {
+                  btc: futuresData.fundingRates.btc,
+                  eth: futuresData.fundingRates.eth,
+                } : undefined}
+                sentiment={redditData?.overall ? {
+                  type: redditData.overall.sentiment,
+                  score: redditData.overall.sentimentScore,
+                } : undefined}
+                keyLevels={technicalLevels ? {
+                  support: technicalLevels.keySupport,
+                  resistance: technicalLevels.keyResistance,
+                } : undefined}
+                btcPrice={btcPrice}
+                loading={loading}
+              />
 
-              {/* Slider with visual bar */}
-              <div className="flex-1 relative">
-                {/* Background bar showing split */}
-                <div className="h-3 rounded-full overflow-hidden flex bg-gray-700">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-600 to-blue-500 transition-all duration-200"
-                    style={{ width: `${analysisWeights.technical}%` }}
-                  ></div>
-                  <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-200"
-                    style={{ width: `${analysisWeights.sentiment}%` }}
-                  ></div>
-                </div>
-
-                {/* Slider input overlay */}
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="10"
-                  value={analysisWeights.technical}
-                  onChange={(e) => {
-                    const tech = parseInt(e.target.value);
-                    setAnalysisWeights({ technical: tech, sentiment: 100 - tech });
+              {/* Indikator-Preset Selector & Market Sessions */}
+              <div className="mb-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <PresetSelector
+                  selectedPreset={selectedPreset}
+                  onPresetChange={(preset) => setSelectedPreset(preset)}
+                  currentTimeframe={chartTimeframe}
+                  autoSwitch={presetAutoSwitch}
+                  onAutoSwitchChange={(enabled) => {
+                    setPresetAutoSwitch(enabled);
+                    if (enabled) {
+                      const recommendedId = recommendPreset(chartTimeframe);
+                      const recommended = getPresetById(recommendedId);
+                      if (recommended) setSelectedPreset(recommended);
+                    }
                   }}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
-
-                {/* Percentage labels */}
-                <div className="absolute inset-0 flex items-center justify-between px-2 pointer-events-none">
-                  <span className="text-[10px] font-bold text-white drop-shadow-lg">
-                    {analysisWeights.technical}%
-                  </span>
-                  <span className="text-[10px] font-bold text-white drop-shadow-lg">
-                    {analysisWeights.sentiment}%
-                  </span>
-                </div>
+                <MarketSessions />
               </div>
 
-              {/* Sentiment Label */}
-              <div className="flex items-center gap-1.5 min-w-[80px] justify-end">
-                <span className="text-xs text-purple-400 font-medium">Sentiment</span>
-                <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
-              </div>
-            </div>
-
-            {/* Current Score Breakdown (if scores available) */}
-            {Object.keys(tradeScores).length > 0 && (() => {
-              const bestScore = Object.values(tradeScores).find(s => s.rank === 1);
-              if (!bestScore || bestScore.total === 0) return null;
-              return (
-                <div className="mt-3 pt-3 border-t border-gray-700/50 flex items-center justify-between text-[10px]">
-                  <span className="text-gray-500">Aktueller Best-Trade Score:</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-blue-400">
-                      Tech: {bestScore.technicalScore}/100
-                    </span>
-                    <span className="text-gray-600">|</span>
-                    <span className="text-purple-400">
-                      Sent: {bestScore.sentimentScore}/100
-                    </span>
-                    <span className="text-gray-600">|</span>
-                    <span className="text-white font-bold">
-                      Gewichtet: {bestScore.total}/100
-                    </span>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-
-          {/* Trade Recommendations */}
-          <TradeRecommendations
-            recommendations={tradeRecommendations}
-            scores={tradeScores}
-            hedgeRecommendation={hedgeRecommendation}
-            currentPrice={selectedAnalysisCoin?.price || btcPrice}
-            coinSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
-            coinImage={selectedAnalysisCoin?.image}
-            loading={loadingTrades}
-            onCardClick={(tf) => {
-              // Open modal for selected coin
-              if (selectedAnalysisCoin) {
-                setModalCoin(selectedAnalysisCoin);
-              }
-            }}
-          />
-
-          {/* Inline Chart with EMAs */}
-          {currentKlines.length > 0 && (
-            <div className="mb-6">
-              {/* Chart Header with Coin Analysis Button */}
-              {selectedAnalysisCoin && (
-                <div className="flex items-center justify-between mb-2">
+              {/* Analyse-Gewichtung Panel */}
+              <div className="mb-4 bg-gray-900/50 border border-gray-800 rounded-lg px-4 py-3">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-gray-400 font-medium">Analyse-Gewichtung:</span>
                   <div className="flex items-center gap-2">
-                    {selectedAnalysisCoin.image && (
-                      <img src={selectedAnalysisCoin.image} alt={selectedAnalysisCoin.name} className="w-6 h-6 rounded-full" />
-                    )}
-                    <span className="font-medium">{selectedAnalysisCoin.symbol.toUpperCase()}</span>
-                    <span className={`text-sm ${selectedAnalysisCoin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {selectedAnalysisCoin.change24h >= 0 ? '+' : ''}{selectedAnalysisCoin.change24h.toFixed(2)}%
-                    </span>
+                    <button
+                      onClick={() => setAnalysisWeights({ technical: 100, sentiment: 0 })}
+                      className={`px-2 py-1 text-[10px] rounded transition-colors ${
+                        analysisWeights.technical === 100
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                      }`}
+                    >
+                      100% Tech
+                    </button>
+                    <button
+                      onClick={() => setAnalysisWeights({ technical: 70, sentiment: 30 })}
+                      className={`px-2 py-1 text-[10px] rounded transition-colors ${
+                        analysisWeights.technical === 70
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                          : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                      }`}
+                    >
+                      70/30
+                    </button>
+                    <button
+                      onClick={() => setAnalysisWeights({ technical: 50, sentiment: 50 })}
+                      className={`px-2 py-1 text-[10px] rounded transition-colors ${
+                        analysisWeights.technical === 50
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                          : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                      }`}
+                    >
+                      50/50
+                    </button>
+                    <button
+                      onClick={() => setAnalysisWeights({ technical: 0, sentiment: 100 })}
+                      className={`px-2 py-1 text-[10px] rounded transition-colors ${
+                        analysisWeights.sentiment === 100
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                      }`}
+                    >
+                      100% Sent
+                    </button>
                   </div>
-                  <button
-                    onClick={() => generateCoinReport(selectedAnalysisCoin)}
-                    disabled={analyzingCoin}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors"
-                  >
-                    <Sparkles className={`w-3.5 h-3.5 ${analyzingCoin ? 'animate-pulse' : ''}`} />
-                    {analyzingCoin ? 'Analysiere...' : `${selectedAnalysisCoin.symbol.toUpperCase()} analysieren`}
-                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 min-w-[90px]">
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+                    <span className="text-xs text-blue-400 font-medium">Technisch</span>
+                  </div>
+
+                  <div className="flex-1 relative">
+                    <div className="h-3 rounded-full overflow-hidden flex bg-gray-700">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-600 to-blue-500 transition-all duration-200"
+                        style={{ width: `${analysisWeights.technical}%` }}
+                      ></div>
+                      <div
+                        className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-200"
+                        style={{ width: `${analysisWeights.sentiment}%` }}
+                      ></div>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="10"
+                      value={analysisWeights.technical}
+                      onChange={(e) => {
+                        const tech = parseInt(e.target.value);
+                        setAnalysisWeights({ technical: tech, sentiment: 100 - tech });
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-between px-2 pointer-events-none">
+                      <span className="text-[10px] font-bold text-white drop-shadow-lg">
+                        {analysisWeights.technical}%
+                      </span>
+                      <span className="text-[10px] font-bold text-white drop-shadow-lg">
+                        {analysisWeights.sentiment}%
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 min-w-[80px] justify-end">
+                    <span className="text-xs text-purple-400 font-medium">Sentiment</span>
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
+                  </div>
+                </div>
+
+                {Object.keys(tradeScores).length > 0 && (() => {
+                  const bestScore = Object.values(tradeScores).find(s => s.rank === 1);
+                  if (!bestScore || bestScore.total === 0) return null;
+                  return (
+                    <div className="mt-3 pt-3 border-t border-gray-700/50 flex items-center justify-between text-[10px]">
+                      <span className="text-gray-500">Aktueller Best-Trade Score:</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-blue-400">Tech: {bestScore.technicalScore}/100</span>
+                        <span className="text-gray-600">|</span>
+                        <span className="text-purple-400">Sent: {bestScore.sentimentScore}/100</span>
+                        <span className="text-gray-600">|</span>
+                        <span className="text-white font-bold">Gewichtet: {bestScore.total}/100</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Trade Recommendations */}
+              <TradeRecommendations
+                recommendations={tradeRecommendations}
+                scores={tradeScores}
+                hedgeRecommendation={hedgeRecommendation}
+                currentPrice={selectedAnalysisCoin?.price || btcPrice}
+                coinSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
+                coinImage={selectedAnalysisCoin?.image}
+                loading={loadingTrades}
+                onCardClick={() => {
+                  if (selectedAnalysisCoin) setModalCoin(selectedAnalysisCoin);
+                }}
+              />
+
+              {/* Inline Chart with EMAs */}
+              {currentKlines.length > 0 && (
+                <div className="mb-6">
+                  {selectedAnalysisCoin && (
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {selectedAnalysisCoin.image && (
+                          <img src={selectedAnalysisCoin.image} alt={selectedAnalysisCoin.name} className="w-6 h-6 rounded-full" />
+                        )}
+                        <span className="font-medium">{selectedAnalysisCoin.symbol.toUpperCase()}</span>
+                        <span className={`text-sm ${selectedAnalysisCoin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {selectedAnalysisCoin.change24h >= 0 ? '+' : ''}{selectedAnalysisCoin.change24h.toFixed(2)}%
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => generateCoinReport(selectedAnalysisCoin)}
+                        disabled={analyzingCoin}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors"
+                      >
+                        <Sparkles className={`w-3.5 h-3.5 ${analyzingCoin ? 'animate-pulse' : ''}`} />
+                        {analyzingCoin ? 'Analysiere...' : `${selectedAnalysisCoin.symbol.toUpperCase()} analysieren`}
+                      </button>
+                    </div>
+                  )}
+                  <InlineChart
+                    symbol={selectedAnalysisCoin?.symbol || 'BTC'}
+                    klines={currentKlines}
+                    technicalLevels={currentTechnicalLevels || undefined}
+                    tradeSetup={tradeRecommendations[chartTimeframe] || null}
+                    selectedTimeframe={chartTimeframe}
+                    onTimeframeChange={setChartTimeframe}
+                    height={450}
+                  />
                 </div>
               )}
-              <InlineChart
-                symbol={selectedAnalysisCoin?.symbol || 'BTC'}
-                klines={currentKlines}
-                technicalLevels={currentTechnicalLevels || undefined}
-                tradeSetup={tradeRecommendations[chartTimeframe] || null}
-                selectedTimeframe={chartTimeframe}
-                onTimeframeChange={setChartTimeframe}
-                height={450}
+
+              {/* Confluence Zones */}
+              <ConfluenceZones
+                zones={confluenceZones}
+                currentPrice={selectedAnalysisCoin?.price || btcPrice}
               />
-            </div>
-          )}
 
-          {/* Confluence Zones */}
-          <ConfluenceZones
-            zones={confluenceZones}
-            currentPrice={selectedAnalysisCoin?.price || btcPrice}
-          />
+              {/* Mobile: Show coins in grid */}
+              <div className="lg:hidden mt-6">
+                <h3 className="text-sm font-semibold text-gray-400 mb-3">Top Coins - Tippen für Analyse</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {marketData?.coins.slice(0, 9).map((coin, index) => (
+                    <button
+                      key={coin.id || `coin-${coin.symbol}-${index}`}
+                      onClick={() => handleCoinSelect(coin)}
+                      className={`bg-gray-900/50 border rounded-lg p-2 text-center transition-colors ${
+                        selectedAnalysisCoin?.symbol === coin.symbol
+                          ? 'border-blue-500 bg-blue-500/10'
+                          : 'border-gray-800 hover:bg-gray-800/50'
+                      }`}
+                    >
+                      <img src={coin.image} alt={coin.name} className="w-6 h-6 mx-auto mb-1 rounded-full" />
+                      <div className="text-xs font-medium">{coin.symbol.toUpperCase()}</div>
+                      <div className={`text-[10px] ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(1)}%
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </TabPanel>
 
-          {/* Mini Widgets */}
-          <MiniWidgets
-            reddit={redditData?.overall ? {
-              sentiment: redditData.overall.sentiment,
-              score: redditData.overall.sentimentScore,
-              topTopic: redditData.overall.trendingTopics[0],
-            } : undefined}
-            defi={defiData ? {
-              tvl: defiData.totalTvl,
-              tvlChange24h: defiData.totalTvlChange24h,
-            } : undefined}
-            futures={futuresData ? {
-              openInterest: totalOI,
-              oiChange24h: 0, // TODO: Calculate actual change
-            } : undefined}
-          />
+            {/* TAB 2: Sentiment & On-Chain */}
+            <TabPanel id="sentiment" activeTab={activeTab}>
+              {/* Mini Widgets */}
+              <MiniWidgets
+                reddit={redditData?.overall ? {
+                  sentiment: redditData.overall.sentiment,
+                  score: redditData.overall.sentimentScore,
+                  topTopic: redditData.overall.trendingTopics[0],
+                } : undefined}
+                defi={defiData ? {
+                  tvl: defiData.totalTvl,
+                  tvlChange24h: defiData.totalTvlChange24h,
+                } : undefined}
+                futures={futuresData ? {
+                  openInterest: totalOI,
+                  oiChange24h: 0,
+                } : undefined}
+              />
 
-          {/* YouTube Player Section */}
-          <YouTubeSection />
+              {/* Guru Watcher - Twitter Influencer Sentiment */}
+              <GuruWatcher />
 
-          {/* Guru Watcher - Twitter Influencer Sentiment */}
-          <GuruWatcher />
+              {/* Telegram Sentiment */}
+              <TelegramSentiment />
 
-          {/* Telegram Sentiment */}
-          <TelegramSentiment />
-
-          {/* Mobile: Show coins in grid */}
-          <div className="lg:hidden mt-6">
-            <h3 className="text-sm font-semibold text-gray-400 mb-3">Top Coins - Tippen für Analyse</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {marketData?.coins.slice(0, 9).map((coin, index) => (
-                <button
-                  key={coin.id || `coin-${coin.symbol}-${index}`}
-                  onClick={() => handleCoinSelect(coin)}
-                  className={`bg-gray-900/50 border rounded-lg p-2 text-center transition-colors ${
-                    selectedAnalysisCoin?.symbol === coin.symbol
-                      ? 'border-blue-500 bg-blue-500/10'
-                      : 'border-gray-800 hover:bg-gray-800/50'
-                  }`}
-                >
-                  <img src={coin.image} alt={coin.name} className="w-6 h-6 mx-auto mb-1 rounded-full" />
-                  <div className="text-xs font-medium">{coin.symbol.toUpperCase()}</div>
-                  <div className={`text-[10px] ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(1)}%
+              {/* Bitcoin On-Chain Data (nur wenn BTC ausgewählt) */}
+              {selectedAnalysisCoin?.symbol?.toLowerCase() === 'btc' && bitcoinData && (
+                <div className="mt-6 bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <span className="text-yellow-500">₿</span> Bitcoin On-Chain Daten
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-400">Block Height:</span>
+                      <span className="text-white ml-2">{bitcoinData.blockHeight?.toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Mempool Size:</span>
+                      <span className="text-white ml-2">{bitcoinData.mempool?.count?.toLocaleString()} TXs</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Fast Fee:</span>
+                      <span className="text-white ml-2">{bitcoinData.fees?.fastestFee} sat/vB</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Difficulty Adj:</span>
+                      <span className="text-white ml-2">{bitcoinData.difficulty?.progressPercent?.toFixed(1)}%</span>
+                    </div>
                   </div>
-                </button>
-              ))}
-            </div>
+                </div>
+              )}
+            </TabPanel>
+
+            {/* TAB 3: KI Reports */}
+            <TabPanel id="reports" activeTab={activeTab}>
+              <div className="space-y-6">
+                {/* Report Generation Buttons */}
+                <div className="flex flex-wrap gap-4">
+                  <button
+                    onClick={generateIntelligenceReport}
+                    disabled={analyzing}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <Brain className={`w-4 h-4 ${analyzing ? 'animate-pulse' : ''}`} />
+                    {analyzing ? 'Analysiere Markt...' : 'Markt-Intelligence Report generieren'}
+                  </button>
+
+                  {selectedAnalysisCoin && (
+                    <button
+                      onClick={() => generateCoinReport(selectedAnalysisCoin)}
+                      disabled={analyzingCoin}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <Sparkles className={`w-4 h-4 ${analyzingCoin ? 'animate-pulse' : ''}`} />
+                      {analyzingCoin ? 'Analysiere...' : `${selectedAnalysisCoin.symbol.toUpperCase()} analysieren`}
+                    </button>
+                  )}
+                </div>
+
+                {/* Reports Info */}
+                <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">KI-Reports</h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Generiere detaillierte KI-Analysen für den Gesamtmarkt oder einzelne Coins.
+                    Die Reports nutzen technische Analyse, Sentiment-Daten und On-Chain-Metriken.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="bg-gray-800/50 rounded-lg p-3">
+                      <h4 className="font-medium text-blue-400 mb-2">Markt-Intelligence</h4>
+                      <ul className="text-gray-400 space-y-1 text-xs">
+                        <li>• Gesamtmarkt-Übersicht</li>
+                        <li>• Fear & Greed Analyse</li>
+                        <li>• Top-Mover Analyse</li>
+                        <li>• Trend-Prognosen</li>
+                      </ul>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-3">
+                      <h4 className="font-medium text-purple-400 mb-2">Coin-Intelligence</h4>
+                      <ul className="text-gray-400 space-y-1 text-xs">
+                        <li>• Multi-Timeframe Analyse</li>
+                        <li>• Support/Resistance Levels</li>
+                        <li>• Trade-Empfehlungen</li>
+                        <li>• Risiko-Bewertung</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Show existing reports if available */}
+                {intelligenceReport && (
+                  <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium text-blue-400">Letzter Markt-Report</h4>
+                      <button
+                        onClick={() => setIntelligenceReport(null)}
+                        className="text-xs text-gray-500 hover:text-gray-300"
+                      >
+                        Report öffnen →
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-300">{intelligenceReport.summary?.substring(0, 200)}...</p>
+                  </div>
+                )}
+              </div>
+            </TabPanel>
+
+            {/* TAB 4: Resources */}
+            <TabPanel id="resources" activeTab={activeTab}>
+              {/* YouTube Player Section */}
+              <YouTubeSection />
+
+              {/* News Archive could go here */}
+              <div className="mt-6 bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-3">News & Ressourcen</h3>
+                <p className="text-gray-400 text-sm">
+                  Aktuelle Crypto-News werden im Ticker oben angezeigt.
+                  Weitere Ressourcen und Tools sind in Entwicklung.
+                </p>
+              </div>
+            </TabPanel>
           </div>
         </main>
       </div>

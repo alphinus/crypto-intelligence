@@ -10,6 +10,7 @@ interface TimeframeCard {
   style: string;
   setup: TimeframeTradeSetup | null;
   hasConfluence?: boolean;
+  hidden?: boolean; // Hidden timeframes (kept for potential future use)
 }
 
 interface TradeRecommendationsProps {
@@ -23,9 +24,11 @@ interface TradeRecommendationsProps {
   onCardClick?: (timeframe: string) => void;
 }
 
+// Note: 1m and 3m are hidden due to high latency (250-800ms) making them unsuitable for scalping
+// The API still returns data for these timeframes, but they are not displayed in the UI
 const TIMEFRAME_CONFIG: TimeframeCard[] = [
-  { timeframe: '1m', label: '1min', style: 'Scalping', setup: null },
-  { timeframe: '3m', label: '3min', style: 'Scalping', setup: null },
+  { timeframe: '1m', label: '1min', style: 'Scalping', setup: null, hidden: true },
+  { timeframe: '3m', label: '3min', style: 'Scalping', setup: null, hidden: true },
   { timeframe: '5m', label: '5min', style: 'Scalping', setup: null },
   { timeframe: '15m', label: '15min', style: 'Intraday', setup: null },
   { timeframe: '1h', label: '1H', style: 'Swing', setup: null },
@@ -119,8 +122,8 @@ export function TradeRecommendations({
         )}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        {TIMEFRAME_CONFIG.map((config) => {
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        {TIMEFRAME_CONFIG.filter(c => !c.hidden).map((config) => {
           const setup = recommendations[config.timeframe];
           const score = scores[config.timeframe];
           const hasConfluence = confluenceMap[config.timeframe] || false;

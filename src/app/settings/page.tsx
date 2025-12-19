@@ -92,12 +92,22 @@ const API_KEYS: ApiKeyConfig[] = [
   {
     key: 'groq_api_key',
     label: 'Groq API Key',
-    description: 'API Key für Groq AI (für Intelligence Reports)',
+    description: 'Primary: API Key für Groq AI (schnell & kostengünstig)',
     required: false,
     envVar: 'GROQ_API_KEY',
     docsUrl: 'https://console.groq.com/keys',
     category: 'ai',
     placeholder: 'gsk_...',
+  },
+  {
+    key: 'openai_api_key',
+    label: 'OpenAI API Key',
+    description: 'Fallback: API Key für OpenAI GPT-4 (höhere Qualität, teurer)',
+    required: false,
+    envVar: 'OPENAI_API_KEY',
+    docsUrl: 'https://platform.openai.com/api-keys',
+    category: 'ai',
+    placeholder: 'sk-proj-...',
   },
   // Data APIs
   {

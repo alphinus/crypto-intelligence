@@ -127,9 +127,11 @@ interface InlineChartProps {
   height?: number;
 }
 
-const TIMEFRAMES: { value: Interval; label: string }[] = [
-  { value: '1m', label: '1m' },
-  { value: '3m', label: '3m' },
+// Note: 1m and 3m are hidden due to high latency (250-800ms) making them unsuitable for scalping
+// The data is still available in the API, but the UI buttons are hidden
+const TIMEFRAMES: { value: Interval; label: string; hidden?: boolean }[] = [
+  { value: '1m', label: '1m', hidden: true },
+  { value: '3m', label: '3m', hidden: true },
   { value: '5m', label: '5m' },
   { value: '15m', label: '15m' },
   { value: '1h', label: '1H' },
@@ -729,7 +731,7 @@ export function InlineChart({
         <div className="flex items-center gap-4">
           {/* Timeframe Switcher */}
           <div className="flex gap-1">
-            {TIMEFRAMES.map((tf) => (
+            {TIMEFRAMES.filter(tf => !tf.hidden).map((tf) => (
               <button
                 key={tf.value}
                 onClick={() => onTimeframeChange(tf.value)}
