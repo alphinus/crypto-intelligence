@@ -868,7 +868,19 @@ export function InlineChart({
 
       {/* Chart Container */}
       <div className="relative">
-        <div ref={chartContainerRef} className="w-full" />
+        {/* Loading Skeleton */}
+        {!isReady && (
+          <div
+            className="w-full flex items-center justify-center bg-gray-800/50"
+            style={{ height: `${height}px` }}
+          >
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-gray-400 text-sm">Chart wird geladen...</span>
+            </div>
+          </div>
+        )}
+        <div ref={chartContainerRef} className={`w-full ${!isReady ? 'invisible absolute' : ''}`} />
 
         {/* Legende - only show visible overlays */}
         <div className="absolute top-2 left-2 flex flex-wrap gap-1.5 text-[9px]">

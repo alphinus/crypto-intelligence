@@ -16,6 +16,12 @@ interface MarketSnapshotProps {
     resistance: number | null;
   };
   btcPrice?: number;
+  loading?: boolean;
+}
+
+// Skeleton component for loading state
+function SkeletonBox() {
+  return <div className="h-4 w-16 bg-gray-700 rounded animate-pulse" />;
 }
 
 export function MarketSnapshot({
@@ -23,6 +29,7 @@ export function MarketSnapshot({
   sentiment,
   keyLevels,
   btcPrice,
+  loading = false,
 }: MarketSnapshotProps) {
   const getSentimentColor = (type: string) => {
     switch (type) {
@@ -53,7 +60,9 @@ export function MarketSnapshot({
             <BarChart3 className="w-3.5 h-3.5 text-gray-500" />
             <span className="text-[10px] text-gray-500 uppercase">Funding</span>
           </div>
-          {fundingRate ? (
+          {loading ? (
+            <SkeletonBox />
+          ) : fundingRate ? (
             <div className="flex items-center gap-1">
               <span
                 className={`text-sm font-bold ${
@@ -94,7 +103,9 @@ export function MarketSnapshot({
             )}
             <span className="text-[10px] text-gray-500 uppercase">Sentiment</span>
           </div>
-          {sentiment ? (
+          {loading ? (
+            <SkeletonBox />
+          ) : sentiment ? (
             <span
               className={`px-2 py-0.5 rounded text-xs font-medium ${getSentimentColor(
                 sentiment.type
@@ -120,7 +131,9 @@ export function MarketSnapshot({
             <Target className="w-3.5 h-3.5 text-gray-500" />
             <span className="text-[10px] text-gray-500 uppercase">Levels</span>
           </div>
-          {keyLevels && (keyLevels.support || keyLevels.resistance) ? (
+          {loading ? (
+            <SkeletonBox />
+          ) : keyLevels && (keyLevels.support || keyLevels.resistance) ? (
             <div className="flex items-center gap-2 text-xs">
               {keyLevels.support && (
                 <span>

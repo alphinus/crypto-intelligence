@@ -202,6 +202,14 @@ export default function Home() {
         fetch('/api/market'),
       ]);
 
+      // Check for HTTP errors
+      if (!newsRes.ok || !marketRes.ok) {
+        const failedApis = [];
+        if (!newsRes.ok) failedApis.push(`News (${newsRes.status})`);
+        if (!marketRes.ok) failedApis.push(`Market (${marketRes.status})`);
+        throw new Error(`API-Fehler: ${failedApis.join(', ')}`);
+      }
+
       const newsData: NewsResponse = await newsRes.json();
       const market: MarketResponse = await marketRes.json();
 
@@ -213,8 +221,9 @@ export default function Home() {
         setMarketData(market);
       }
     } catch (err) {
-      setError('Fehler beim Laden der Daten');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Unbekannter Fehler';
+      setError(`Fehler beim Laden: ${errorMessage}`);
+      console.error('[fetchData]', err);
     } finally {
       setLoading(false);
     }
@@ -817,9 +826,10 @@ export default function Home() {
       const levelsData = allTimeframeLevels;
 
       // Funding Rate (nur für BTC/ETH/SOL)
-      const fundingSymbol = symbol.toLowerCase() as 'btc' | 'eth' | 'sol';
-      const funding = ['BTC', 'ETH', 'SOL'].includes(symbol)
-        ? futuresData?.fundingRates?.[fundingSymbol] ?? null
+      const validFundingSymbols = ['BTC', 'ETH', 'SOL'] as const;
+      type FundingSymbol = 'btc' | 'eth' | 'sol';
+      const funding = validFundingSymbols.includes(symbol as typeof validFundingSymbols[number])
+        ? futuresData?.fundingRates?.[symbol.toLowerCase() as FundingSymbol] ?? null
         : null;
 
       // BTC On-Chain (nur für BTC)
@@ -972,7 +982,10 @@ export default function Home() {
     }
   };
 
-  // Initial data fetch and set BTC as default selected coin
+  // State for last update timestamp
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Initial data fetch only on mount
   useEffect(() => {
     fetchData();
     fetchReddit();
@@ -980,20 +993,25 @@ export default function Home() {
     fetchFutures();
     fetchBitcoin();
     fetchTradeRecommendations('BTC');
+    setLastUpdated(new Date());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // Separate interval for auto-refresh (every 5 minutes)
+  useEffect(() => {
     const interval = setInterval(() => {
       fetchData();
       fetchReddit();
       fetchDefi();
       fetchFutures();
       fetchBitcoin();
-      // Only auto-refresh if we have a selected coin
       if (selectedAnalysisCoin) {
         fetchTradeRecommendations(selectedAnalysisCoin.symbol);
       }
+      setLastUpdated(new Date());
     }, 300000);
     return () => clearInterval(interval);
-  }, [fetchData, fetchReddit, fetchDefi, fetchFutures, fetchBitcoin, fetchTradeRecommendations, selectedAnalysisCoin]);
+  }, [fetchData, fetchReddit, fetchDefi, fetchFutures, fetchBitcoin, fetchTradeRecommendations, selectedAnalysisCoin?.symbol]);
 
   // Set default BTC as selected when market data loads
   useEffect(() => {
@@ -1018,18 +1036,24 @@ export default function Home() {
     }
   }, [chartTimeframe, presetAutoSwitch]);
 
-  // Prepare news headlines for ticker
-  const newsHeadlines = articles.slice(0, 20).map((article) => ({
-    id: article.id,
-    title: article.title,
-    source: article.source,
-    sentiment: article.sentiment || 'neutral',
-    url: article.link,
-    publishedAt: article.pubDate,
-  }));
+  // Prepare news headlines for ticker (memoized)
+  const newsHeadlines = useMemo(() =>
+    articles.slice(0, 20).map((article) => ({
+      id: article.id,
+      title: article.title,
+      source: article.source,
+      sentiment: article.sentiment || 'neutral',
+      url: article.link,
+      publishedAt: article.pubDate,
+    })),
+    [articles]
+  );
 
-  // Calculate BTC price from market data
-  const btcPrice = marketData?.coins.find((c) => c.symbol.toLowerCase() === 'btc')?.price || 0;
+  // Calculate BTC price from market data (memoized)
+  const btcPrice = useMemo(() =>
+    marketData?.coins.find((c) => c.symbol.toLowerCase() === 'btc')?.price || 0,
+    [marketData?.coins]
+  );
 
   // Get current klines for selected timeframe
   const currentKlines = useMemo(() => {
@@ -1071,7 +1095,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Global Stats inline */}
+            {/* Global Stats inline - Desktop */}
             {marketData?.global && (
               <div className="hidden md:flex items-center gap-4 text-xs">
                 <div className="text-gray-400">
@@ -1092,6 +1116,19 @@ export default function Home() {
               </div>
             )}
 
+            {/* Global Stats - Mobile (compact) */}
+            {marketData?.global && (
+              <div className="flex md:hidden items-center gap-2 text-[10px]">
+                <span className="text-yellow-400 font-medium">
+                  BTC {marketData.global.btcDominance.toFixed(1)}%
+                </span>
+                <span className="text-gray-600">|</span>
+                <span className="text-white font-medium">
+                  ${(marketData.global.totalMarketCap / 1e12).toFixed(1)}T
+                </span>
+              </div>
+            )}
+
             <div className="flex items-center gap-2">
               {/* WebSocket Status */}
               <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded text-xs" title={`WebSocket: ${connectionState}`}>
@@ -1106,10 +1143,23 @@ export default function Home() {
               {/* System Clock */}
               <SystemClock />
 
+              {/* Last Updated */}
+              {lastUpdated && (
+                <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded text-xs" title={`Aktualisiert: ${lastUpdated.toLocaleTimeString('de-DE')}`}>
+                  <RefreshCw className="w-3 h-3 text-gray-400" />
+                  <span className="text-gray-400 text-[10px]">
+                    {Math.floor((Date.now() - lastUpdated.getTime()) / 60000) < 1
+                      ? 'Jetzt'
+                      : `${Math.floor((Date.now() - lastUpdated.getTime()) / 60000)}m`}
+                  </span>
+                </div>
+              )}
+
               <button
                 onClick={generateIntelligenceReport}
                 disabled={analyzing}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                aria-label="KI-Report generieren"
               >
                 <Brain className={`w-3.5 h-3.5 ${analyzing ? 'animate-pulse' : ''}`} />
                 {analyzing ? 'Analysiere...' : 'Report'}
@@ -1118,9 +1168,11 @@ export default function Home() {
                 onClick={() => {
                   fetchData();
                   fetchTradeRecommendations();
+                  setLastUpdated(new Date());
                 }}
                 disabled={loading}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                aria-label="Daten aktualisieren"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               </button>
@@ -1176,6 +1228,7 @@ export default function Home() {
               resistance: technicalLevels.keyResistance,
             } : undefined}
             btcPrice={btcPrice}
+            loading={loading}
           />
 
           {/* Indikator-Preset Selector & Market Sessions */}

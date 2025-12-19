@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { TrendingUp, TrendingDown, Clock, Target, CheckCircle2, Loader2, Star, Shield, Scale } from 'lucide-react';
 import type { TimeframeTradeSetup, TradeScore, HedgeRecommendation } from '@/lib/groq';
 
@@ -78,14 +78,22 @@ export function TradeRecommendations({
     return 'bg-red-500';
   };
 
-  // Check for confluence (same direction across timeframes)
-  const checkConfluence = (tf: string, type: string) => {
-    if (type === 'wait') return false;
-    const sameDirection = Object.entries(recommendations).filter(
-      ([key, setup]) => key !== tf && setup && setup.type === type
-    );
-    return sameDirection.length >= 2;
-  };
+  // Memoized confluence map for performance
+  const confluenceMap = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    for (const config of TIMEFRAME_CONFIG) {
+      const setup = recommendations[config.timeframe];
+      if (setup?.type && setup.type !== 'wait') {
+        const sameDirection = Object.entries(recommendations).filter(
+          ([key, s]) => key !== config.timeframe && s && s.type === setup.type
+        );
+        map[config.timeframe] = sameDirection.length >= 2;
+      } else {
+        map[config.timeframe] = false;
+      }
+    }
+    return map;
+  }, [recommendations]);
 
   return (
     <div className="mb-6">
@@ -115,13 +123,16 @@ export function TradeRecommendations({
         {TIMEFRAME_CONFIG.map((config) => {
           const setup = recommendations[config.timeframe];
           const score = scores[config.timeframe];
-          const hasConfluence = setup ? checkConfluence(config.timeframe, setup.type) : false;
+          const hasConfluence = confluenceMap[config.timeframe] || false;
           const isBestTrade = score?.rank === 1 && setup?.type !== 'wait';
 
           return (
             <div
               key={config.timeframe}
-              className={`relative bg-gray-900/50 border rounded-lg overflow-hidden cursor-pointer transition-all hover:border-blue-500/50 hover:bg-gray-800/50 ${
+              role="article"
+              aria-label={`${config.label} ${config.style} Trade: ${setup?.type?.toUpperCase() || 'No data'}${hasConfluence ? ', Multi-Timeframe Konfluenz' : ''}${isBestTrade ? ', Best Trade' : ''}`}
+              tabIndex={0}
+              className={`relative bg-gray-900/50 border rounded-lg overflow-hidden cursor-pointer transition-all hover:border-blue-500/50 hover:bg-gray-800/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                 isBestTrade
                   ? 'border-green-500 ring-2 ring-green-500/30 shadow-lg shadow-green-500/20'
                   : setup && setup.type !== 'wait'
@@ -131,6 +142,7 @@ export function TradeRecommendations({
                     : 'border-gray-800'
               }`}
               onClick={() => onCardClick?.(config.timeframe)}
+              onKeyDown={(e) => e.key === 'Enter' && onCardClick?.(config.timeframe)}
               onMouseEnter={() => setHoveredCard(config.timeframe)}
               onMouseLeave={() => setHoveredCard(null)}
             >
