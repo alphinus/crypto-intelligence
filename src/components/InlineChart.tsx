@@ -399,12 +399,11 @@ export function InlineChart({
   useEffect(() => {
     if (!chartRef.current || !isReady) return;
 
-    const unsubscribe = chartRef.current.timeScale().subscribeVisibleLogicalRangeChange(handleVisibleRangeChange);
+    const timeScale = chartRef.current.timeScale();
+    timeScale.subscribeVisibleLogicalRangeChange(handleVisibleRangeChange);
 
     return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe();
-      }
+      timeScale.unsubscribeVisibleLogicalRangeChange(handleVisibleRangeChange);
     };
   }, [isReady, handleVisibleRangeChange]);
 
