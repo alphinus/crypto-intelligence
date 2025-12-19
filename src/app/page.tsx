@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { RefreshCw, Brain, AlertCircle, Clock, Sparkles } from 'lucide-react';
+import { RefreshCw, Brain, AlertCircle, Clock, Sparkles, AlertTriangle, Filter, Blend, Info } from 'lucide-react';
 import { NewsTicker } from '@/components/NewsTicker';
 import { TrendingSidebar } from '@/components/TrendingSidebar';
 import { MarketSnapshot } from '@/components/MarketSnapshot';
@@ -151,6 +151,27 @@ export default function Home() {
   const [analyzingCoin, setAnalyzingCoin] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('trading');
+
+  // Sentiment Mode: how sentiment affects trade direction
+  // - 'filter': Only show trades where sentiment agrees with technical
+  // - 'combined': Weight both signals to determine direction
+  // - 'info': Technical determines direction, sentiment shown as info only
+  const [sentimentMode, setSentimentMode] = useState<'filter' | 'combined' | 'info'>('info');
+
+  // Current sentiment signal (calculated from available data)
+  const [currentSentimentSignal, setCurrentSentimentSignal] = useState<{
+    direction: 'bullish' | 'bearish' | 'neutral';
+    score: number;
+    confidence: 'high' | 'medium' | 'low';
+  } | null>(null);
+
+  // Conflict detection: technical direction vs sentiment direction
+  const [sentimentConflict, setSentimentConflict] = useState<{
+    hasConflict: boolean;
+    technicalDirection: 'long' | 'short' | 'wait';
+    sentimentDirection: 'bullish' | 'bearish' | 'neutral';
+    message: string;
+  } | null>(null);
 
   // Client-side cache to reduce Vercel invocations
   const coinAnalysisCache = useRef<Map<string, { data: unknown; timestamp: number }>>(new Map());
@@ -414,6 +435,119 @@ export default function Home() {
     socialScore: number; // -100 to 100
     fundingRate: number | null; // Can be positive or negative
   }
+
+  // Sentiment Signal Result
+  interface SentimentSignal {
+    direction: 'bullish' | 'bearish' | 'neutral';
+    score: number; // -100 to +100
+    confidence: 'high' | 'medium' | 'low';
+    sources: {
+      fearGreed: { value: number; direction: 'bullish' | 'bearish' | 'neutral' };
+      social: { value: number; direction: 'bullish' | 'bearish' | 'neutral' };
+      funding: { value: number | null; direction: 'bullish' | 'bearish' | 'neutral' };
+    };
+  }
+
+  // Calculate Sentiment Signal from available data
+  const calculateSentimentSignal = (sentimentData: SentimentData | null): SentimentSignal => {
+    const defaultSignal: SentimentSignal = {
+      direction: 'neutral',
+      score: 0,
+      confidence: 'low',
+      sources: {
+        fearGreed: { value: 50, direction: 'neutral' },
+        social: { value: 0, direction: 'neutral' },
+        funding: { value: null, direction: 'neutral' },
+      },
+    };
+
+    if (!sentimentData) return defaultSignal;
+
+    // 1. Fear & Greed Index (0-100) -> -100 to +100
+    // 0-25: Extreme Fear (bearish contrarian = bullish)
+    // 25-45: Fear (bearish)
+    // 45-55: Neutral
+    // 55-75: Greed (bullish)
+    // 75-100: Extreme Greed (bullish contrarian = bearish)
+    let fearGreedScore = 0;
+    let fearGreedDirection: 'bullish' | 'bearish' | 'neutral' = 'neutral';
+    const fg = sentimentData.fearGreedValue;
+
+    if (fg <= 25) {
+      // Extreme Fear -> Contrarian bullish (but less confident)
+      fearGreedScore = 30; // Mild bullish
+      fearGreedDirection = 'bullish';
+    } else if (fg <= 45) {
+      fearGreedScore = -((45 - fg) / 20) * 50; // -50 to 0
+      fearGreedDirection = 'bearish';
+    } else if (fg <= 55) {
+      fearGreedScore = 0;
+      fearGreedDirection = 'neutral';
+    } else if (fg <= 75) {
+      fearGreedScore = ((fg - 55) / 20) * 50; // 0 to +50
+      fearGreedDirection = 'bullish';
+    } else {
+      // Extreme Greed -> Contrarian bearish
+      fearGreedScore = -30; // Mild bearish
+      fearGreedDirection = 'bearish';
+    }
+
+    // 2. Social Sentiment (already -100 to +100)
+    const socialScore = sentimentData.socialScore;
+    const socialDirection = sentimentData.socialSentiment;
+
+    // 3. Funding Rate (negative = shorts pay longs = bullish, positive = longs pay shorts = bearish)
+    let fundingScore = 0;
+    let fundingDirection: 'bullish' | 'bearish' | 'neutral' = 'neutral';
+    if (sentimentData.fundingRate !== null) {
+      const fr = sentimentData.fundingRate;
+      if (fr < -0.01) {
+        fundingScore = 50; // Strong negative funding = bullish
+        fundingDirection = 'bullish';
+      } else if (fr < 0) {
+        fundingScore = 25;
+        fundingDirection = 'bullish';
+      } else if (fr > 0.01) {
+        fundingScore = -50; // Strong positive funding = bearish
+        fundingDirection = 'bearish';
+      } else if (fr > 0) {
+        fundingScore = -25;
+        fundingDirection = 'bearish';
+      }
+    }
+
+    // Weighted combination: Fear&Greed 40%, Social 40%, Funding 20%
+    const combinedScore = fearGreedScore * 0.4 + socialScore * 0.4 + fundingScore * 0.2;
+
+    // Determine direction
+    let direction: 'bullish' | 'bearish' | 'neutral' = 'neutral';
+    if (combinedScore > 20) {
+      direction = 'bullish';
+    } else if (combinedScore < -20) {
+      direction = 'bearish';
+    }
+
+    // Determine confidence based on agreement between sources
+    const directions = [fearGreedDirection, socialDirection, fundingDirection];
+    const bullishCount = directions.filter(d => d === 'bullish').length;
+    const bearishCount = directions.filter(d => d === 'bearish').length;
+
+    let confidence: 'high' | 'medium' | 'low' = 'low';
+    if (bullishCount >= 2 || bearishCount >= 2) {
+      confidence = bullishCount === 3 || bearishCount === 3 ? 'high' : 'medium';
+    }
+
+    return {
+      direction,
+      score: Math.round(combinedScore),
+      confidence,
+      sources: {
+        fearGreed: { value: sentimentData.fearGreedValue, direction: fearGreedDirection },
+        social: { value: sentimentData.socialScore, direction: socialDirection },
+        funding: { value: sentimentData.fundingRate, direction: fundingDirection },
+      },
+    };
+  };
 
   // Calculate Trade Score for ranking (now includes Sentiment)
   const calculateTradeScore = (
@@ -744,6 +878,37 @@ export default function Home() {
           fundingRate: futuresData?.fundingRates?.btc || null,
         } : null;
 
+        // Calculate sentiment signal
+        const sentimentSignal = calculateSentimentSignal(currentSentimentData);
+        setCurrentSentimentSignal({
+          direction: sentimentSignal.direction,
+          score: sentimentSignal.score,
+          confidence: sentimentSignal.confidence,
+        });
+
+        // Determine primary technical direction (from best ranked timeframe)
+        const primaryTf = '1h'; // Default to 1h for conflict detection
+        const primaryRecommendation = recommendations[primaryTf];
+        const techDirection = primaryRecommendation?.type || 'wait';
+
+        // Detect conflict between technical and sentiment
+        const isConflict =
+          (techDirection === 'long' && sentimentSignal.direction === 'bearish') ||
+          (techDirection === 'short' && sentimentSignal.direction === 'bullish');
+
+        if (isConflict && sentimentMode !== 'info') {
+          setSentimentConflict({
+            hasConflict: true,
+            technicalDirection: techDirection,
+            sentimentDirection: sentimentSignal.direction,
+            message: techDirection === 'long'
+              ? `⚠️ Technik signalisiert LONG, aber Sentiment ist bearish (${sentimentSignal.score})`
+              : `⚠️ Technik signalisiert SHORT, aber Sentiment ist bullish (${sentimentSignal.score})`,
+          });
+        } else {
+          setSentimentConflict(null);
+        }
+
         // Calculate scores for each timeframe (now includes sentiment)
         const scores: Record<string, TradeScore> = {};
         for (const tf of timeframeKeys) {
@@ -778,7 +943,7 @@ export default function Home() {
     } finally {
       setLoadingTrades(false);
     }
-  }, [marketData?.fearGreed, redditData?.overall, futuresData?.fundingRates, analysisWeights]);
+  }, [marketData?.fearGreed, redditData?.overall, futuresData?.fundingRates, analysisWeights, sentimentMode]);
 
   // Handle coin selection for analysis
   const handleCoinSelect = useCallback((coin: MarketData) => {
@@ -1433,6 +1598,56 @@ export default function Home() {
                     </div>
                   );
                 })()}
+
+                {/* Sentiment Mode Selector */}
+                <div className="mt-3 pt-3 border-t border-gray-700/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">Sentiment-Modus:</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setSentimentMode('info')}
+                        className={`flex items-center gap-1 px-2 py-1 text-[10px] rounded transition-colors ${
+                          sentimentMode === 'info'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        }`}
+                        title="Technik bestimmt Richtung, Sentiment nur als Info"
+                      >
+                        <Info className="w-3 h-3" />
+                        Info Only
+                      </button>
+                      <button
+                        onClick={() => setSentimentMode('filter')}
+                        className={`flex items-center gap-1 px-2 py-1 text-[10px] rounded transition-colors ${
+                          sentimentMode === 'filter'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        }`}
+                        title="Nur Trades anzeigen wo Sentiment zustimmt"
+                      >
+                        <Filter className="w-3 h-3" />
+                        Filter
+                      </button>
+                      <button
+                        onClick={() => setSentimentMode('combined')}
+                        className={`flex items-center gap-1 px-2 py-1 text-[10px] rounded transition-colors ${
+                          sentimentMode === 'combined'
+                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        }`}
+                        title="Technik + Sentiment kombiniert für Richtung"
+                      >
+                        <Blend className="w-3 h-3" />
+                        Combined
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    {sentimentMode === 'info' && 'Technische Analyse bestimmt die Trade-Richtung. Sentiment wird als zusätzliche Info angezeigt.'}
+                    {sentimentMode === 'filter' && 'Nur Trades anzeigen, bei denen Sentiment mit der technischen Richtung übereinstimmt.'}
+                    {sentimentMode === 'combined' && 'Technik und Sentiment werden kombiniert. Bei Widerspruch: Technik hat Vorrang + Warnung.'}
+                  </p>
+                </div>
               </div>
 
               {/* Trade Recommendations */}
@@ -1447,6 +1662,9 @@ export default function Home() {
                 onCardClick={() => {
                   if (selectedAnalysisCoin) setModalCoin(selectedAnalysisCoin);
                 }}
+                sentimentConflict={sentimentConflict}
+                sentimentSignal={currentSentimentSignal}
+                sentimentMode={sentimentMode}
               />
 
               {/* Inline Chart with EMAs */}

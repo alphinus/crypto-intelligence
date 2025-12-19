@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, TrendingDown, Clock, Target, CheckCircle2, Loader2, Star, Shield, Scale } from 'lucide-react';
+import { TrendingUp, TrendingDown, Clock, Target, CheckCircle2, Loader2, Star, Shield, Scale, AlertTriangle } from 'lucide-react';
 import type { TimeframeTradeSetup, TradeScore, HedgeRecommendation } from '@/lib/groq';
 import { staggerContainer, staggerItem, fadeInUp, scaleIn } from '@/lib/animations';
 
@@ -15,6 +15,19 @@ interface TimeframeCard {
   hidden?: boolean; // Hidden timeframes (kept for potential future use)
 }
 
+interface SentimentConflict {
+  hasConflict: boolean;
+  technicalDirection: 'long' | 'short' | 'wait';
+  sentimentDirection: 'bullish' | 'bearish' | 'neutral';
+  message: string;
+}
+
+interface SentimentSignal {
+  direction: 'bullish' | 'bearish' | 'neutral';
+  score: number;
+  confidence: 'high' | 'medium' | 'low';
+}
+
 interface TradeRecommendationsProps {
   recommendations: Record<string, TimeframeTradeSetup | null>;
   scores: Record<string, TradeScore>;
@@ -24,6 +37,9 @@ interface TradeRecommendationsProps {
   coinImage?: string;
   loading?: boolean;
   onCardClick?: (timeframe: string) => void;
+  sentimentConflict?: SentimentConflict | null;
+  sentimentSignal?: SentimentSignal | null;
+  sentimentMode?: 'filter' | 'combined' | 'info';
 }
 
 // Note: 1m and 3m are hidden due to high latency (250-800ms) making them unsuitable for scalping
@@ -47,6 +63,9 @@ export function TradeRecommendations({
   coinImage,
   loading = false,
   onCardClick,
+  sentimentConflict,
+  sentimentSignal,
+  sentimentMode = 'info',
 }: TradeRecommendationsProps) {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
@@ -123,6 +142,77 @@ export function TradeRecommendations({
           </div>
         )}
       </div>
+
+      {/* Sentiment Conflict Warning Banner */}
+      <AnimatePresence>
+        {sentimentConflict?.hasConflict && sentimentMode !== 'info' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg"
+          >
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="font-medium text-yellow-400 text-sm">Sentiment-Widerspruch erkannt</div>
+                <div className="text-xs text-yellow-300/80 mt-1">
+                  {sentimentConflict.message}
+                </div>
+                <div className="text-[10px] text-gray-400 mt-1.5">
+                  Technik hat Vorrang - Trade-Richtung bleibt {sentimentConflict.technicalDirection.toUpperCase()}.
+                  Vorsicht empfohlen!
+                </div>
+              </div>
+              {sentimentSignal && (
+                <div className="flex flex-col items-end text-[10px]">
+                  <span className={`px-2 py-0.5 rounded ${
+                    sentimentSignal.direction === 'bullish' ? 'bg-green-500/20 text-green-400' :
+                    sentimentSignal.direction === 'bearish' ? 'bg-red-500/20 text-red-400' :
+                    'bg-gray-500/20 text-gray-400'
+                  }`}>
+                    Sent: {sentimentSignal.direction}
+                  </span>
+                  <span className="text-gray-500 mt-0.5">Score: {sentimentSignal.score}</span>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sentiment Info Banner (when no conflict but showing sentiment info) */}
+      <AnimatePresence>
+        {sentimentSignal && !sentimentConflict?.hasConflict && sentimentMode === 'info' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-3 p-2 bg-gray-800/50 border border-gray-700 rounded-lg"
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-400">Sentiment Signal:</span>
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-0.5 rounded font-medium ${
+                  sentimentSignal.direction === 'bullish' ? 'bg-green-500/20 text-green-400' :
+                  sentimentSignal.direction === 'bearish' ? 'bg-red-500/20 text-red-400' :
+                  'bg-gray-500/20 text-gray-400'
+                }`}>
+                  {sentimentSignal.direction.toUpperCase()}
+                </span>
+                <span className="text-gray-500">Score: {sentimentSignal.score > 0 ? '+' : ''}{sentimentSignal.score}</span>
+                <span className={`text-[10px] ${
+                  sentimentSignal.confidence === 'high' ? 'text-green-400' :
+                  sentimentSignal.confidence === 'medium' ? 'text-yellow-400' :
+                  'text-gray-400'
+                }`}>
+                  ({sentimentSignal.confidence})
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.div
         className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"
