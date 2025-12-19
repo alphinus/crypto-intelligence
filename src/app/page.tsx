@@ -147,6 +147,7 @@ export default function Home() {
   const [presetAutoSwitch, setPresetAutoSwitch] = useState(true);
   const [coinReport, setCoinReport] = useState<CoinReport | null>(null);
   const [analyzingCoin, setAnalyzingCoin] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   // WebSocket for live kline updates
   const handleKlineUpdate = useCallback((kline: Kline, isClosed: boolean) => {
@@ -981,9 +982,6 @@ export default function Home() {
       setAnalyzing(false);
     }
   };
-
-  // State for last update timestamp
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   // Initial data fetch only on mount
   useEffect(() => {
