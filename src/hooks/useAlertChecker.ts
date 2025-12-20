@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import type { PriceAlert } from '@/types/alerts';
 import type { TimeframeTradeSetup } from '@/lib/groq';
-import { playAlertSound, playUrgentAlertSound } from '@/lib/alert-sound';
+import { playAlertSound, playUrgentAlertSound, type AlertSoundType } from '@/lib/alert-sound';
 
 interface SentimentSignal {
   direction: 'bullish' | 'bearish' | 'neutral';
@@ -164,10 +164,11 @@ export function useAlertChecker(
 
         // Play sound if enabled
         if (alert.soundEnabled) {
+          const soundType = alert.soundType || 'beep';
           if (alert.type === 'sentiment') {
-            playUrgentAlertSound();
+            playUrgentAlertSound(soundType);
           } else {
-            playAlertSound();
+            playAlertSound(soundType);
           }
         }
 

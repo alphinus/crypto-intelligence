@@ -1,5 +1,7 @@
 // Price Alert Types
 
+import type { AlertSoundType } from '@/lib/alert-sound';
+
 export interface PriceAlert {
   id: string;
   type: 'price' | 'signal' | 'sentiment';
@@ -21,6 +23,7 @@ export interface PriceAlert {
   createdAt: number;
   triggeredAt?: number;
   soundEnabled: boolean;
+  soundType: AlertSoundType;
 
   // For preventing repeated triggers
   lastTriggeredPrice?: number;
@@ -48,6 +51,7 @@ export interface AlertFormState {
   timeframe: string;
   sentimentCondition: 'fear' | 'greed' | 'conflict';
   soundEnabled: boolean;
+  soundType: AlertSoundType;
 }
 
 // Default form values
@@ -60,4 +64,5 @@ export const DEFAULT_ALERT_FORM: AlertFormState = {
   timeframe: '1h',
   sentimentCondition: 'fear',
   soundEnabled: true,
+  soundType: 'beep',
 };

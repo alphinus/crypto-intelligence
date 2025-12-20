@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import type { PriceAlert, NewPriceAlert, AlertFormState } from '@/types/alerts';
 import { DEFAULT_ALERT_FORM } from '@/types/alerts';
+import type { AlertSoundType } from '@/lib/alert-sound';
+import { playAlertSound } from '@/lib/alert-sound';
 
 interface AlertManagerProps {
   alerts: PriceAlert[];
@@ -30,6 +32,11 @@ interface AlertManagerProps {
 
 const TIMEFRAMES = ['5m', '15m', '1h', '4h', '1d'];
 const POPULAR_COINS = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA'];
+const SOUND_OPTIONS: { value: AlertSoundType; label: string }[] = [
+  { value: 'beep', label: 'Beep' },
+  { value: 'chime', label: 'Glocke' },
+  { value: 'alert', label: 'Alarm' },
+];
 
 export function AlertManager({
   alerts,
@@ -54,6 +61,7 @@ export function AlertManager({
       symbol: form.symbol.toUpperCase(),
       enabled: true,
       soundEnabled: form.soundEnabled,
+      soundType: form.soundType,
     };
 
     // Add type-specific fields
@@ -247,8 +255,8 @@ export function AlertManager({
                   </div>
                 )}
 
-                {/* Sound toggle and Submit */}
-                <div className="flex items-center gap-3">
+                {/* Sound toggle, type selection, and Submit */}
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, soundEnabled: !form.soundEnabled })}
@@ -263,8 +271,32 @@ export function AlertManager({
                     ) : (
                       <VolumeX className="w-3.5 h-3.5" />
                     )}
-                    Sound
                   </button>
+
+                  {/* Sound Type Dropdown */}
+                  {form.soundEnabled && (
+                    <div className="flex items-center gap-1">
+                      <select
+                        value={form.soundType}
+                        onChange={(e) => setForm({ ...form, soundType: e.target.value as AlertSoundType })}
+                        className="px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-xs focus:outline-none focus:border-blue-500"
+                      >
+                        {SOUND_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => playAlertSound(form.soundType, 0.3)}
+                        className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-400 hover:text-white transition-colors"
+                        title="Sound testen"
+                      >
+                        ▶
+                      </button>
+                    </div>
+                  )}
 
                   <button
                     type="submit"
