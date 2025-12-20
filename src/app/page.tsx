@@ -40,8 +40,12 @@ import { TabNavigation, type TabId } from '@/components/Layout/TabNavigation';
 import { TabPanel } from '@/components/Layout/TabPanel';
 import { AnimatePresence } from 'framer-motion';
 import { AlertNotificationsContainer, AlertManager } from '@/components/Alerts';
+import { LiquidationFeed, LiquidationStats, LiquidationHeatmap } from '@/components/Liquidations';
 import { usePriceAlerts } from '@/hooks/usePriceAlerts';
 import { useAlertChecker } from '@/hooks/useAlertChecker';
+import { useLiquidationStream } from '@/hooks/useLiquidationStream';
+import { calculateLiquidationLevels } from '@/lib/liquidation-levels';
+import { playAlertSound } from '@/lib/alert-sound';
 
 interface MarketResponse {
   success: boolean;
@@ -203,6 +207,28 @@ export default function Home() {
       addNotification(info.alert, info.currentPrice, info.message);
     }
   );
+
+  // Liquidation Stream
+  const [showLiquidations, setShowLiquidations] = useState(false);
+  const { liquidations, stats: liquidationStats, isConnected: liquidationConnected } = useLiquidationStream({
+    symbols: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
+    enabled: showLiquidations,
+    onLargeLiquidation: (liq) => {
+      // Play sound for large liquidations (>$100k)
+      playAlertSound('alert', 0.3);
+    },
+    largeLiquidationThreshold: 100000,
+  });
+
+  // Calculate liquidation levels based on open interest
+  const liquidationLevels = useMemo(() => {
+    if (!futuresData?.openInterest || !multiTimeframe?.currentPrice) return [];
+    const symbol = selectedAnalysisCoin?.symbol?.toUpperCase() || 'BTC';
+    const oi = symbol === 'BTC' ? futuresData.openInterest.btc :
+               symbol === 'ETH' ? futuresData.openInterest.eth :
+               futuresData.openInterest.sol;
+    return calculateLiquidationLevels(multiTimeframe.currentPrice, oi);
+  }, [futuresData?.openInterest, multiTimeframe?.currentPrice, selectedAnalysisCoin?.symbol]);
 
   // Client-side cache to reduce Vercel invocations
   const coinAnalysisCache = useRef<Map<string, { data: unknown; timestamp: number }>>(new Map());
@@ -1750,6 +1776,58 @@ export default function Home() {
                   currentSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
                   currentPrice={multiTimeframe?.currentPrice || selectedAnalysisCoin?.price || 0}
                 />
+              </div>
+
+              {/* Liquidations Section */}
+              <div className="mt-4 bg-gray-900/50 border border-gray-800 rounded-lg">
+                <button
+                  onClick={() => setShowLiquidations(!showLiquidations)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-gray-800/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-yellow-400">⚡</span>
+                    <span className="font-medium">Liquidations</span>
+                    {showLiquidations && liquidationConnected && (
+                      <span className="flex items-center gap-1 px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                        Live
+                      </span>
+                    )}
+                  </div>
+                  <svg
+                    className={`w-5 h-5 text-gray-400 transition-transform ${showLiquidations ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showLiquidations && (
+                  <div className="p-4 pt-0 border-t border-gray-800 space-y-4">
+                    {/* Stats */}
+                    <LiquidationStats stats={liquidationStats} isConnected={liquidationConnected} />
+
+                    {/* Heatmap */}
+                    {liquidationLevels.length > 0 && (
+                      <div>
+                        <div className="text-xs text-gray-400 mb-2">Liquidation Heatmap</div>
+                        <LiquidationHeatmap
+                          levels={liquidationLevels}
+                          currentPrice={multiTimeframe?.currentPrice || 0}
+                          height={150}
+                        />
+                      </div>
+                    )}
+
+                    {/* Live Feed */}
+                    <div>
+                      <div className="text-xs text-gray-400 mb-2">Live Liquidations</div>
+                      <LiquidationFeed liquidations={liquidations} maxItems={15} />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Mobile: Show coins in grid */}

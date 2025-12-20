@@ -16,6 +16,7 @@ import {
 import type { Kline, Interval } from '@/lib/binance-klines';
 import type { TechnicalLevels, FibLevel, Level } from '@/lib/technical-levels';
 import type { TimeframeTradeSetup } from '@/lib/groq';
+import type { LiquidationLevel } from '@/types/liquidations';
 import type { Time } from 'lightweight-charts';
 
 interface LightweightChartProps {
@@ -24,10 +25,12 @@ interface LightweightChartProps {
   klines: Kline[];
   technicalLevels?: TechnicalLevels;
   tradeSetup?: TimeframeTradeSetup | null;
+  liquidationLevels?: LiquidationLevel[];
   height?: number;
   showLevels?: boolean;
   showFibonacci?: boolean;
   showTradeSetup?: boolean;
+  showLiquidations?: boolean;
   theme?: 'dark' | 'light';
 }
 
@@ -37,10 +40,12 @@ export default function LightweightChart({
   klines,
   technicalLevels,
   tradeSetup,
+  liquidationLevels,
   height = 400,
   showLevels = true,
   showFibonacci = true,
   showTradeSetup = true,
+  showLiquidations = false,
   theme = 'dark',
 }: LightweightChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -272,6 +277,43 @@ export default function LightweightChart({
     });
   }, [tradeSetup, klines, isReady, showTradeSetup, technicalLevels]);
 
+  // Liquidation Levels
+  useEffect(() => {
+    if (!chartRef.current || !isReady || !liquidationLevels || !showLiquidations) return;
+    if (klines.length === 0 || liquidationLevels.length === 0) return;
+
+    const startTime = Math.floor(klines[0].openTime / 1000) as Time;
+    const endTime = Math.floor(klines[klines.length - 1].openTime / 1000) as Time;
+
+    // Draw liquidation levels
+    liquidationLevels.forEach((level) => {
+      // Color based on type: red for long liqs, green for short liqs
+      const color = level.type === 'long' ? '#ef4444' : '#22c55e';
+      // Opacity based on leverage (higher leverage = more transparent)
+      const opacity = Math.max(0.3, 1 - (level.leverage - 10) / 120);
+      const colorWithOpacity = level.type === 'long'
+        ? `rgba(239, 68, 68, ${opacity})`
+        : `rgba(34, 197, 94, ${opacity})`;
+
+      // Line style based on leverage
+      const lineStyle = level.leverage <= 25 ? LineStyle.Dashed : LineStyle.Dotted;
+
+      const series = chartRef.current!.addSeries(LineSeries, {
+        color: colorWithOpacity,
+        lineWidth: level.leverage <= 25 ? 2 : 1,
+        lineStyle,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      });
+
+      series.setData([
+        { time: startTime, value: level.price },
+        { time: endTime, value: level.price },
+      ]);
+    });
+  }, [liquidationLevels, klines, isReady, showLiquidations]);
+
   return (
     <div className="relative">
       <div ref={chartContainerRef} className="w-full" />
@@ -295,6 +337,16 @@ export default function LightweightChart({
           <span className="bg-gray-900/80 px-2 py-1 rounded text-blue-500">
             Fibonacci
           </span>
+        )}
+        {showLiquidations && liquidationLevels && liquidationLevels.length > 0 && (
+          <>
+            <span className="bg-gray-900/80 px-2 py-1 rounded text-red-400">
+              Long Liq
+            </span>
+            <span className="bg-gray-900/80 px-2 py-1 rounded text-green-400">
+              Short Liq
+            </span>
+          </>
         )}
         {showTradeSetup && tradeSetup && tradeSetup.type !== 'wait' && (
           <>
