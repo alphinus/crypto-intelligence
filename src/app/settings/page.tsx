@@ -16,6 +16,10 @@ import {
   Info,
   Save,
   Sliders,
+  HelpCircle,
+  RotateCcw,
+  GraduationCap,
+  Briefcase,
 } from 'lucide-react';
 
 interface ApiKeyConfig {
@@ -526,6 +530,89 @@ export default function SettingsPage() {
                 {(values.sentimentMode || 'info') === 'info' && 'Technische Analyse bestimmt die Trade-Richtung. Sentiment wird als zusätzliche Info angezeigt.'}
                 {values.sentimentMode === 'filter' && 'Nur Trades anzeigen, bei denen Sentiment mit der technischen Richtung übereinstimmt.'}
                 {values.sentimentMode === 'combined' && 'Technik und Sentiment werden kombiniert. Bei Widerspruch: Technik hat Vorrang + Warnung.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Help & Onboarding Section */}
+        <div id="help" className="mb-8 scroll-mt-20">
+          <div className="flex items-center gap-2 mb-4">
+            <HelpCircle className="w-5 h-5 text-gray-400" />
+            <h2 className="text-lg font-semibold">Hilfe & Onboarding</h2>
+          </div>
+
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 space-y-6">
+            {/* Help Level */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-medium">Hilfe-Level</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      try {
+                        const stored = localStorage.getItem('crypto-intelligence-help');
+                        const state = stored ? JSON.parse(stored) : {};
+                        state.level = 'beginner';
+                        localStorage.setItem('crypto-intelligence-help', JSON.stringify(state));
+                        window.location.reload();
+                      } catch (e) {
+                        console.error(e);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded transition-colors bg-gray-700 text-gray-300 hover:bg-green-600 hover:text-white"
+                  >
+                    <GraduationCap className="w-3.5 h-3.5" />
+                    Anfänger
+                  </button>
+                  <button
+                    onClick={() => {
+                      try {
+                        const stored = localStorage.getItem('crypto-intelligence-help');
+                        const state = stored ? JSON.parse(stored) : {};
+                        state.level = 'pro';
+                        localStorage.setItem('crypto-intelligence-help', JSON.stringify(state));
+                        window.location.reload();
+                      } catch (e) {
+                        console.error(e);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded transition-colors bg-gray-700 text-gray-300 hover:bg-blue-600 hover:text-white"
+                  >
+                    <Briefcase className="w-3.5 h-3.5" />
+                    Profi
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">
+                Anfänger: Satoshi erklärt auch Crypto-Grundlagen. Profi: Nur App-Bedienung.
+              </p>
+            </div>
+
+            {/* Reset Tour */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-medium">Onboarding-Tour</span>
+                <button
+                  onClick={() => {
+                    try {
+                      const stored = localStorage.getItem('crypto-intelligence-help');
+                      const state = stored ? JSON.parse(stored) : {};
+                      state.hasCompletedTour = false;
+                      localStorage.setItem('crypto-intelligence-help', JSON.stringify(state));
+                      window.location.href = '/';
+                    } catch (e) {
+                      console.error(e);
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded transition-colors bg-gray-700 text-gray-300 hover:bg-purple-600 hover:text-white"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Tour erneut starten
+                </button>
+              </div>
+              <p className="text-xs text-gray-500">
+                Startet die geführte Tour durch das Dashboard neu. Satoshi zeigt dir alle Features.
               </p>
             </div>
           </div>

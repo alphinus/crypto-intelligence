@@ -43,6 +43,7 @@ import { useAlertChecker } from '@/hooks/useAlertChecker';
 import { useLiquidationStream } from '@/hooks/useLiquidationStream';
 import { calculateLiquidationLevels } from '@/lib/liquidation-levels';
 import { playAlertSound } from '@/lib/alert-sound';
+import { HelpProvider, Avatar, OnboardingTour } from '@/components/Help';
 
 interface MarketResponse {
   success: boolean;
@@ -1370,6 +1371,7 @@ export default function Home() {
     : 0;
 
   return (
+    <HelpProvider>
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Header */}
       <header className="border-b border-gray-800 sticky top-0 bg-gray-950/95 backdrop-blur z-50">
@@ -1448,6 +1450,7 @@ export default function Home() {
                 disabled={analyzing}
                 className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 aria-label="KI-Report generieren"
+                data-tour="report-button"
               >
                 <Brain className={`w-3.5 h-3.5 ${analyzing ? 'animate-pulse' : ''}`} />
                 <span className="hidden sm:inline">{analyzing ? 'Analysiere...' : 'Report'}</span>
@@ -1475,7 +1478,7 @@ export default function Home() {
       {/* Main Layout */}
       <div className="flex">
         {/* Left Sidebar - Fixed */}
-        <aside className="hidden lg:block w-64 fixed left-0 top-[97px] h-[calc(100vh-97px)] overflow-hidden">
+        <aside className="hidden lg:block w-64 fixed left-0 top-[97px] h-[calc(100vh-97px)] overflow-hidden" data-tour="sidebar">
           {marketData && (
             <TrendingSidebar
               coins={marketData.coins}
@@ -1492,7 +1495,9 @@ export default function Home() {
         {/* Main Content with Tabs */}
         <main className="flex-1 lg:ml-64">
           {/* Tab Navigation */}
-          <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+          <div data-tour="tabs">
+            <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+          </div>
 
           {/* Tab Content */}
           <div className="p-4">
@@ -1538,7 +1543,7 @@ export default function Home() {
               </div>
 
               {/* CHART FIRST - Primary Focus */}
-              <div className="mb-6">
+              <div className="mb-6" data-tour="chart">
                 {selectedAnalysisCoin && (
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -1581,7 +1586,7 @@ export default function Home() {
               </div>
 
               {/* Trade Recommendations - Collapsible */}
-              <div className="space-y-4">
+              <div className="space-y-4" data-tour="trade-signals">
                 <CollapsibleSection
                   title="Trade Signale"
                   icon={<TrendingUp className="w-4 h-4" />}
@@ -1656,6 +1661,7 @@ export default function Home() {
 
             {/* TAB 2: Sentiment & On-Chain */}
             <TabPanel id="sentiment" activeTab={activeTab}>
+              <div data-tour="sentiment">
               {/* Mini Widgets */}
               <MiniWidgets
                 reddit={redditData?.overall ? {
@@ -1709,6 +1715,7 @@ export default function Home() {
               {/* YouTube Crypto News */}
               <div className="mt-6">
                 <YouTubeSection />
+              </div>
               </div>
             </TabPanel>
 
@@ -1925,6 +1932,11 @@ export default function Home() {
           onDismiss={dismissNotification}
         />
       </AnimatePresence>
+
+      {/* Satoshi Avatar & Onboarding Tour */}
+      <Avatar />
+      <OnboardingTour />
     </div>
+    </HelpProvider>
   );
 }
