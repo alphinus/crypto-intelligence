@@ -27,12 +27,12 @@ import { findConfluenceZones, type AllTimeframeLevels } from '@/lib/technical-le
 import { calculateMultipleEMAs } from '@/lib/binance-klines';
 import { useBinanceWebSocket } from '@/hooks/useBinanceWebSocket';
 import type { Kline } from '@/lib/binance-klines';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { YouTubeSection } from '@/components/YouTubeSection';
 import { GuruWatcher } from '@/components/GuruWatcher';
-import { AuthButton } from '@/components/AuthButton';
 import { TelegramSentiment } from '@/components/TelegramSentiment';
-import { SettingsButton } from '@/components/SettingsButton';
+import { HeaderMenu } from '@/components/HeaderMenu';
+import { MobileDrawer } from '@/components/MobileDrawer';
+import { CoinSelectorBar } from '@/components/CoinSelectorBar';
 import { TabNavigation, type TabId } from '@/components/Layout/TabNavigation';
 import { TabPanel } from '@/components/Layout/TabPanel';
 import { AnimatePresence } from 'framer-motion';
@@ -156,6 +156,8 @@ export default function Home() {
   const [analyzingCoin, setAnalyzingCoin] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('trading');
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   // Sentiment Mode: how sentiment affects trade direction
   // - 'filter': Only show trades where sentiment agrees with technical
@@ -1416,6 +1418,17 @@ export default function Home() {
             )}
 
             <div className="flex items-center gap-2">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMobileDrawerOpen(true)}
+                className="lg:hidden p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
+                aria-label="Menü öffnen"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+
               {/* WebSocket Status */}
               <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded text-xs" title={`WebSocket: ${connectionState}`}>
                 <div className={`w-2 h-2 rounded-full ${
@@ -1429,18 +1442,7 @@ export default function Home() {
               {/* System Clock */}
               <SystemClock />
 
-              {/* Last Updated */}
-              {lastUpdated && (
-                <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded text-xs" title={`Aktualisiert: ${lastUpdated.toLocaleTimeString('de-DE')}`}>
-                  <RefreshCw className="w-3 h-3 text-gray-400" />
-                  <span className="text-gray-400 text-[10px]">
-                    {Math.floor((Date.now() - lastUpdated.getTime()) / 60000) < 1
-                      ? 'Jetzt'
-                      : `${Math.floor((Date.now() - lastUpdated.getTime()) / 60000)}m`}
-                  </span>
-                </div>
-              )}
-
+              {/* Report Button - Always visible */}
               <button
                 onClick={generateIntelligenceReport}
                 disabled={analyzing}
@@ -1448,23 +1450,20 @@ export default function Home() {
                 aria-label="KI-Report generieren"
               >
                 <Brain className={`w-3.5 h-3.5 ${analyzing ? 'animate-pulse' : ''}`} />
-                {analyzing ? 'Analysiere...' : 'Report'}
+                <span className="hidden sm:inline">{analyzing ? 'Analysiere...' : 'Report'}</span>
               </button>
-              <button
-                onClick={() => {
+
+              {/* Header Menu - Consolidates Refresh, Theme, Settings */}
+              <HeaderMenu
+                onRefresh={() => {
                   fetchData();
                   fetchTradeRecommendations();
                   setLastUpdated(new Date());
                 }}
-                disabled={loading}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-                aria-label="Daten aktualisieren"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              </button>
-              <ThemeToggle />
-              <AuthButton />
-              <SettingsButton />
+                isRefreshing={loading}
+                theme={theme}
+                onThemeToggle={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+              />
             </div>
           </div>
         </div>
@@ -1506,6 +1505,38 @@ export default function Home() {
 
             {/* TAB 1: Trading */}
             <TabPanel id="trading" activeTab={activeTab}>
+              {/* Coin Selector Bar - Desktop only (mobile uses drawer) */}
+              <div className="hidden lg:block mb-4">
+                <CoinSelectorBar
+                  coins={[
+                    ...(marketData?.coins.slice(0, 6).map(c => ({
+                      symbol: c.symbol.toUpperCase() + 'USDT',
+                      name: c.name,
+                      price: c.price,
+                      change24h: c.change24h,
+                    })) || []),
+                    ...customCoins.map(c => ({
+                      symbol: c.symbol.toUpperCase() + 'USDT',
+                      name: c.name,
+                      price: c.price,
+                      change24h: c.change24h,
+                    })),
+                  ]}
+                  selectedSymbol={(selectedAnalysisCoin?.symbol?.toUpperCase() || 'BTC') + 'USDT'}
+                  onSelect={(symbol) => {
+                    const baseSymbol = symbol.replace('USDT', '').toLowerCase();
+                    const coin = marketData?.coins.find(c => c.symbol.toLowerCase() === baseSymbol) ||
+                                 customCoins.find(c => c.symbol.toLowerCase() === baseSymbol);
+                    if (coin) handleCoinSelect(coin);
+                  }}
+                  onAddCustom={(symbol) => handleAddCustomCoin(symbol.replace('USDT', ''))}
+                  onRemove={(symbol) => {
+                    const baseSymbol = symbol.replace('USDT', '').toLowerCase();
+                    setCustomCoins(prev => prev.filter(c => c.symbol.toLowerCase() !== baseSymbol));
+                  }}
+                />
+              </div>
+
               {/* CHART FIRST - Primary Focus */}
               <div className="mb-6">
                 {selectedAnalysisCoin && (
@@ -1621,30 +1652,7 @@ export default function Home() {
                 </CollapsibleSection>
               </div>
 
-              {/* Mobile: Show coins in grid */}
-              <div className="lg:hidden mt-6">
-                <h3 className="text-sm font-semibold text-gray-400 mb-3">Top Coins</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {marketData?.coins.slice(0, 9).map((coin, index) => (
-                    <button
-                      key={coin.id || `coin-${coin.symbol}-${index}`}
-                      onClick={() => handleCoinSelect(coin)}
-                      className={`bg-gray-900/50 border rounded-lg p-2 text-center transition-colors ${
-                        selectedAnalysisCoin?.symbol === coin.symbol
-                          ? 'border-blue-500 bg-blue-500/10'
-                          : 'border-gray-800 hover:bg-gray-800/50'
-                      }`}
-                    >
-                      <img src={coin.image} alt={coin.name} className="w-6 h-6 mx-auto mb-1 rounded-full" />
-                      <div className="text-xs font-medium">{coin.symbol.toUpperCase()}</div>
-                      <div className={`text-[10px] ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(1)}%
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </TabPanel>
+              </TabPanel>
 
             {/* TAB 2: Sentiment & On-Chain */}
             <TabPanel id="sentiment" activeTab={activeTab}>
@@ -1780,6 +1788,81 @@ export default function Home() {
           </div>
         </main>
       </div>
+
+      {/* Mobile Drawer - Sidebar on mobile */}
+      <MobileDrawer
+        open={mobileDrawerOpen}
+        onClose={() => setMobileDrawerOpen(false)}
+        title="Navigation"
+      >
+        <div className="space-y-4">
+          {/* Fear & Greed Index */}
+          {marketData?.fearGreed && (
+            <div className="bg-gray-800/50 rounded-lg p-4">
+              <div className="text-sm text-gray-400 mb-2">Fear & Greed</div>
+              <div className="flex items-center gap-3">
+                <div className={`text-3xl font-bold ${
+                  marketData.fearGreed.value <= 25 ? 'text-red-500' :
+                  marketData.fearGreed.value <= 45 ? 'text-orange-500' :
+                  marketData.fearGreed.value <= 55 ? 'text-yellow-500' :
+                  marketData.fearGreed.value <= 75 ? 'text-lime-500' :
+                  'text-green-500'
+                }`}>
+                  {marketData.fearGreed.value}
+                </div>
+                <div className="text-sm text-gray-300">{marketData.fearGreed.label}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Coin List */}
+          <div>
+            <div className="text-sm text-gray-400 mb-3">Top Coins</div>
+            <div className="space-y-2">
+              {marketData?.coins.slice(0, 10).map((coin, index) => (
+                <button
+                  key={coin.id || `drawer-coin-${coin.symbol}-${index}`}
+                  onClick={() => {
+                    handleCoinSelect(coin);
+                    setMobileDrawerOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                    selectedAnalysisCoin?.symbol === coin.symbol
+                      ? 'bg-blue-600/20 border border-blue-500/50'
+                      : 'bg-gray-800/50 hover:bg-gray-700/50'
+                  }`}
+                >
+                  <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />
+                  <div className="flex-1 text-left">
+                    <div className="font-medium text-white">{coin.symbol.toUpperCase()}</div>
+                    <div className="text-xs text-gray-400">${coin.price?.toLocaleString()}</div>
+                  </div>
+                  <div className={`text-sm font-medium ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(1)}%
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Add Custom Coin */}
+          <button
+            onClick={() => {
+              const symbol = prompt('Coin Symbol eingeben (z.B. DOGE):');
+              if (symbol) {
+                handleAddCustomCoin(symbol);
+                setMobileDrawerOpen(false);
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Coin hinzufügen
+          </button>
+        </div>
+      </MobileDrawer>
 
       {/* Footer */}
       <footer className="border-t border-gray-800 mt-12 lg:ml-64">
