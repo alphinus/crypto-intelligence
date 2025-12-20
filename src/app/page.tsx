@@ -38,6 +38,10 @@ import { TelegramSentiment } from '@/components/TelegramSentiment';
 import { SettingsButton } from '@/components/SettingsButton';
 import { TabNavigation, type TabId } from '@/components/Layout/TabNavigation';
 import { TabPanel } from '@/components/Layout/TabPanel';
+import { AnimatePresence } from 'framer-motion';
+import { AlertNotificationsContainer, AlertManager } from '@/components/Alerts';
+import { usePriceAlerts } from '@/hooks/usePriceAlerts';
+import { useAlertChecker } from '@/hooks/useAlertChecker';
 
 interface MarketResponse {
   success: boolean;
@@ -172,6 +176,33 @@ export default function Home() {
     sentimentDirection: 'bullish' | 'bearish' | 'neutral';
     message: string;
   } | null>(null);
+
+  // Price Alerts
+  const {
+    alerts,
+    notifications,
+    addAlert,
+    removeAlert,
+    toggleAlert,
+    markTriggered,
+    addNotification,
+    dismissNotification,
+  } = usePriceAlerts();
+
+  // Alert Checker - monitors price changes and triggers alerts
+  useAlertChecker(
+    alerts,
+    multiTimeframe?.currentPrice || 0,
+    selectedAnalysisCoin?.symbol || 'BTC',
+    tradeRecommendations,
+    currentSentimentSignal,
+    (info) => {
+      // Mark the alert as triggered
+      markTriggered(info.alert.id, info.currentPrice);
+      // Show notification
+      addNotification(info.alert, info.currentPrice, info.message);
+    }
+  );
 
   // Client-side cache to reduce Vercel invocations
   const coinAnalysisCache = useRef<Map<string, { data: unknown; timestamp: number }>>(new Map());
@@ -1709,6 +1740,18 @@ export default function Home() {
                 currentPrice={selectedAnalysisCoin?.price || btcPrice}
               />
 
+              {/* Price Alerts Manager */}
+              <div className="mt-4">
+                <AlertManager
+                  alerts={alerts}
+                  onAddAlert={addAlert}
+                  onRemoveAlert={removeAlert}
+                  onToggleAlert={toggleAlert}
+                  currentSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
+                  currentPrice={multiTimeframe?.currentPrice || selectedAnalysisCoin?.price || 0}
+                />
+              </div>
+
               {/* Mobile: Show coins in grid */}
               <div className="lg:hidden mt-6">
                 <h3 className="text-sm font-semibold text-gray-400 mb-3">Top Coins - Tippen für Analyse</h3>
@@ -1931,6 +1974,14 @@ export default function Home() {
           onClose={() => setCoinReport(null)}
         />
       )}
+
+      {/* Alert Notifications (Toast) */}
+      <AnimatePresence>
+        <AlertNotificationsContainer
+          notifications={notifications}
+          onDismiss={dismissNotification}
+        />
+      </AnimatePresence>
     </div>
   );
 }
