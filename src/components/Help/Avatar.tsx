@@ -11,13 +11,13 @@ interface AvatarProps {
 }
 
 export function Avatar({ message, onMessageDismiss }: AvatarProps) {
-  const { isMinimized, setIsMinimized, startTour, hasCompletedTour } = useHelp();
+  const { isMinimized, setIsMinimized, startTour, hasCompletedTour, showTour } = useHelp();
   const [isBlinking, setIsBlinking] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
   // Random blinking animation
   useEffect(() => {
-    if (isMinimized) return;
+    if (isMinimized || showTour) return;
 
     const blink = () => {
       setIsBlinking(true);
@@ -31,7 +31,12 @@ export function Avatar({ message, onMessageDismiss }: AvatarProps) {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [isMinimized]);
+  }, [isMinimized, showTour]);
+
+  // Hide avatar during tour to avoid overlap
+  if (showTour) {
+    return null;
+  }
 
   if (isMinimized) {
     return (

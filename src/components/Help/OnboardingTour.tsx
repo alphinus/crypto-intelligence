@@ -81,8 +81,15 @@ export function OnboardingTour() {
 
   if (!showTour || !step) return null;
 
-  // Calculate popup position
+  // Calculate popup position - always visible in viewport
   const getPopupStyle = (): React.CSSProperties => {
+    const popupWidth = 340;
+    const popupHeight = 280; // Estimated max height
+    const padding = 20;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+
+    // Center position for steps without target
     if (!targetRect || step.position === 'center') {
       return {
         position: 'fixed',
@@ -92,49 +99,48 @@ export function OnboardingTour() {
       };
     }
 
-    const padding = 16;
-    const popupWidth = 320;
-    const popupHeight = 200;
+    // Calculate ideal position based on step.position
+    let top: number;
+    let left: number;
 
     switch (step.position) {
       case 'top':
-        return {
-          position: 'fixed',
-          top: targetRect.top - popupHeight - padding,
-          left: Math.min(
-            Math.max(targetRect.left + targetRect.width / 2 - popupWidth / 2, padding),
-            window.innerWidth - popupWidth - padding
-          ),
-        };
+        top = targetRect.top - popupHeight - padding;
+        left = targetRect.left + targetRect.width / 2 - popupWidth / 2;
+        break;
       case 'bottom':
-        return {
-          position: 'fixed',
-          top: targetRect.bottom + padding,
-          left: Math.min(
-            Math.max(targetRect.left + targetRect.width / 2 - popupWidth / 2, padding),
-            window.innerWidth - popupWidth - padding
-          ),
-        };
+        top = targetRect.bottom + padding;
+        left = targetRect.left + targetRect.width / 2 - popupWidth / 2;
+        break;
       case 'left':
-        return {
-          position: 'fixed',
-          top: targetRect.top + targetRect.height / 2 - popupHeight / 2,
-          left: targetRect.left - popupWidth - padding,
-        };
+        top = targetRect.top + targetRect.height / 2 - popupHeight / 2;
+        left = targetRect.left - popupWidth - padding;
+        break;
       case 'right':
-        return {
-          position: 'fixed',
-          top: targetRect.top + targetRect.height / 2 - popupHeight / 2,
-          left: targetRect.right + padding,
-        };
+        top = targetRect.top + targetRect.height / 2 - popupHeight / 2;
+        left = targetRect.right + padding;
+        break;
       default:
-        return {
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-        };
+        top = viewportHeight / 2 - popupHeight / 2;
+        left = viewportWidth / 2 - popupWidth / 2;
     }
+
+    // CLAMP: Ensure popup stays within viewport bounds
+    // Bottom boundary (leave space for avatar at bottom)
+    const maxTop = viewportHeight - popupHeight - 100; // 100px buffer for avatar
+    const minTop = padding;
+    top = Math.max(minTop, Math.min(top, maxTop));
+
+    // Horizontal boundaries
+    const maxLeft = viewportWidth - popupWidth - padding;
+    const minLeft = padding;
+    left = Math.max(minLeft, Math.min(left, maxLeft));
+
+    return {
+      position: 'fixed',
+      top,
+      left,
+    };
   };
 
   return (

@@ -7,20 +7,23 @@ export interface TourStep {
   position: 'top' | 'bottom' | 'left' | 'right' | 'center';
 }
 
+// Personalisierung für den ersten User
+const USER_NAME = 'Elvis';
+
 export const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
     target: null,
-    title: 'Konnichiwa! Ich bin Satoshi',
-    content: 'Willkommen beim Crypto Intelligence Dashboard! Ich zeige dir die wichtigsten Features.',
+    title: `Konnichiwa, ${USER_NAME}!`,
+    content: `Hey ${USER_NAME}! Ich bin Satoshi, dein persoenlicher Crypto-Assistent. Lass mich dir das Dashboard zeigen!`,
     beginnerContent: 'Keine Sorge, ich erklaere dir alles Schritt fuer Schritt - auch wenn du neu bei Crypto bist!',
     position: 'center',
   },
   {
     id: 'level-select',
     target: null,
-    title: 'Waehle dein Level',
-    content: 'Bist du neu bei Crypto oder schon erfahren?',
+    title: `${USER_NAME}, waehle dein Level`,
+    content: 'Bist du neu bei Crypto oder schon ein alter Hase?',
     position: 'center',
   },
   {
@@ -73,8 +76,8 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'goodbye',
     target: null,
-    title: 'Das war es!',
-    content: 'Klick auf mich wenn du Hilfe brauchst. Viel Erfolg beim Trading!',
+    title: `Viel Erfolg, ${USER_NAME}!`,
+    content: `Das war's, ${USER_NAME}! Klick jederzeit auf mich wenn du Hilfe brauchst. Ich drueck dir die Daumen beim Trading! 🚀`,
     position: 'center',
   },
 ];
