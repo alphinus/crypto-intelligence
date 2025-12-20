@@ -1,9 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { BarChart2, MessageSquare, Brain, BookOpen } from 'lucide-react';
+import { BarChart2, MessageSquare, Brain } from 'lucide-react';
 
-export type TabId = 'trading' | 'sentiment' | 'reports' | 'resources';
+export type TabId = 'trading' | 'sentiment' | 'reports';
 
 interface Tab {
   id: TabId;
@@ -16,31 +16,24 @@ interface Tab {
 const TABS: Tab[] = [
   {
     id: 'trading',
-    label: 'Chart & Trading',
+    label: 'Trading',
     shortLabel: 'Trading',
     icon: <BarChart2 className="w-4 h-4" />,
-    description: 'Live-Chart, Trade-Empfehlungen, Confluence Zones',
+    description: 'Chart, Signale, Liquidations, Alerts',
   },
   {
     id: 'sentiment',
-    label: 'Sentiment & On-Chain',
+    label: 'Sentiment',
     shortLabel: 'Sentiment',
     icon: <MessageSquare className="w-4 h-4" />,
-    description: 'Reddit, Twitter, Telegram, DeFi, Futures, Bitcoin On-Chain',
+    description: 'Markt-Stimmung, On-Chain, Social, YouTube',
   },
   {
     id: 'reports',
-    label: 'KI Reports',
+    label: 'Reports',
     shortLabel: 'Reports',
     icon: <Brain className="w-4 h-4" />,
-    description: 'Markt- und Coin-Intelligence Reports',
-  },
-  {
-    id: 'resources',
-    label: 'Resources',
-    shortLabel: 'Resources',
-    icon: <BookOpen className="w-4 h-4" />,
-    description: 'YouTube, News Archive',
+    description: 'KI-generierte Markt- und Coin-Reports',
   },
 ];
 

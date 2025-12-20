@@ -15,6 +15,7 @@ import {
   CheckCircle,
   Info,
   Save,
+  Sliders,
 } from 'lucide-react';
 
 interface ApiKeyConfig {
@@ -364,6 +365,171 @@ export default function SettingsPage() {
             </div>
           );
         })}
+
+        {/* Analysis Settings Section */}
+        <div id="analysis" className="mb-8 scroll-mt-20">
+          <div className="flex items-center gap-2 mb-4">
+            <Sliders className="w-5 h-5 text-gray-400" />
+            <h2 className="text-lg font-semibold">Analyse-Einstellungen</h2>
+          </div>
+
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 space-y-6">
+            {/* Analysis Weighting */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-medium">Analyse-Gewichtung</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const newWeights = { technical: 100, sentiment: 0 };
+                      setValues(prev => ({ ...prev, analysisWeights: JSON.stringify(newWeights) }));
+                    }}
+                    className={`px-2 py-1 text-[10px] rounded transition-colors ${
+                      JSON.parse(values.analysisWeights || '{"technical":70}').technical === 100
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    }`}
+                  >
+                    100% Tech
+                  </button>
+                  <button
+                    onClick={() => {
+                      const newWeights = { technical: 70, sentiment: 30 };
+                      setValues(prev => ({ ...prev, analysisWeights: JSON.stringify(newWeights) }));
+                    }}
+                    className={`px-2 py-1 text-[10px] rounded transition-colors ${
+                      JSON.parse(values.analysisWeights || '{"technical":70}').technical === 70
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    }`}
+                  >
+                    70/30
+                  </button>
+                  <button
+                    onClick={() => {
+                      const newWeights = { technical: 50, sentiment: 50 };
+                      setValues(prev => ({ ...prev, analysisWeights: JSON.stringify(newWeights) }));
+                    }}
+                    className={`px-2 py-1 text-[10px] rounded transition-colors ${
+                      JSON.parse(values.analysisWeights || '{"technical":70}').technical === 50
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    }`}
+                  >
+                    50/50
+                  </button>
+                  <button
+                    onClick={() => {
+                      const newWeights = { technical: 0, sentiment: 100 };
+                      setValues(prev => ({ ...prev, analysisWeights: JSON.stringify(newWeights) }));
+                    }}
+                    className={`px-2 py-1 text-[10px] rounded transition-colors ${
+                      JSON.parse(values.analysisWeights || '{"technical":70}').sentiment === 100
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    }`}
+                  >
+                    100% Sent
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500 mb-3">
+                Bestimmt, wie stark technische Analyse vs. Sentiment-Daten den Trade-Score beeinflussen.
+              </p>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 min-w-[90px]">
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+                  <span className="text-xs text-blue-400 font-medium">Technisch</span>
+                </div>
+
+                <div className="flex-1 relative">
+                  <div className="h-4 rounded-full overflow-hidden flex bg-gray-700">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-600 to-blue-500 transition-all duration-200"
+                      style={{ width: `${JSON.parse(values.analysisWeights || '{"technical":70}').technical}%` }}
+                    ></div>
+                    <div
+                      className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-200"
+                      style={{ width: `${100 - JSON.parse(values.analysisWeights || '{"technical":70}').technical}%` }}
+                    ></div>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="10"
+                    value={JSON.parse(values.analysisWeights || '{"technical":70}').technical}
+                    onChange={(e) => {
+                      const tech = parseInt(e.target.value);
+                      const newWeights = { technical: tech, sentiment: 100 - tech };
+                      setValues(prev => ({ ...prev, analysisWeights: JSON.stringify(newWeights) }));
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-between px-3 pointer-events-none">
+                    <span className="text-xs font-bold text-white drop-shadow-lg">
+                      {JSON.parse(values.analysisWeights || '{"technical":70}').technical}%
+                    </span>
+                    <span className="text-xs font-bold text-white drop-shadow-lg">
+                      {100 - JSON.parse(values.analysisWeights || '{"technical":70}').technical}%
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 min-w-[80px] justify-end">
+                  <span className="text-xs text-purple-400 font-medium">Sentiment</span>
+                  <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sentiment Mode */}
+            <div className="pt-4 border-t border-gray-700">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-medium">Sentiment-Modus</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setValues(prev => ({ ...prev, sentimentMode: 'info' }))}
+                    className={`px-2.5 py-1.5 text-xs rounded transition-colors ${
+                      (values.sentimentMode || 'info') === 'info'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    }`}
+                  >
+                    Info Only
+                  </button>
+                  <button
+                    onClick={() => setValues(prev => ({ ...prev, sentimentMode: 'filter' }))}
+                    className={`px-2.5 py-1.5 text-xs rounded transition-colors ${
+                      values.sentimentMode === 'filter'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    }`}
+                  >
+                    Filter
+                  </button>
+                  <button
+                    onClick={() => setValues(prev => ({ ...prev, sentimentMode: 'combined' }))}
+                    className={`px-2.5 py-1.5 text-xs rounded transition-colors ${
+                      values.sentimentMode === 'combined'
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    }`}
+                  >
+                    Combined
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">
+                {(values.sentimentMode || 'info') === 'info' && 'Technische Analyse bestimmt die Trade-Richtung. Sentiment wird als zusätzliche Info angezeigt.'}
+                {values.sentimentMode === 'filter' && 'Nur Trades anzeigen, bei denen Sentiment mit der technischen Richtung übereinstimmt.'}
+                {values.sentimentMode === 'combined' && 'Technik und Sentiment werden kombiniert. Bei Widerspruch: Technik hat Vorrang + Warnung.'}
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* .env.local Template */}
         <div className="mt-8 mb-8">
