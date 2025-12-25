@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { MarketData, FearGreedIndex } from '@/types/news';
+import { fetchMarketData, getActiveProvider } from '@/lib/market-data-provider';
 
-export const revalidate = 300; // Cache für 5 Minuten (reduziert Vercel Invocations)
+export const revalidate = 60; // Cache für 1 Minute (schnellere Updates mit Fallback)
 
 // Types for new data
 export interface TrendingCoin {
@@ -22,30 +23,26 @@ export interface GlobalData {
   activeCryptos: number;
 }
 
-// CoinGecko Free API (kein API Key nötig)
-async function fetchTopCoins(): Promise<MarketData[]> {
+// Market Data mit Binance/CoinGecko Fallback
+async function fetchTopCoins(): Promise<{ coins: MarketData[]; provider: string }> {
   try {
-    const response = await fetch(
-      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false&price_change_percentage=24h',
-      { next: { revalidate: 60 } }
-    );
+    const result = await fetchMarketData();
 
-    if (!response.ok) throw new Error('CoinGecko API error');
-
-    const data = await response.json();
-
-    return data.map((coin: Record<string, unknown>) => ({
-      symbol: coin.symbol as string,
-      name: coin.name as string,
-      price: coin.current_price as number,
-      change24h: coin.price_change_percentage_24h as number,
-      marketCap: coin.market_cap as number,
-      volume24h: coin.total_volume as number,
-      image: coin.image as string,
+    const coins: MarketData[] = result.coins.map((coin) => ({
+      id: coin.symbol.toLowerCase(),
+      symbol: coin.symbol,
+      name: coin.name,
+      price: coin.price,
+      change24h: coin.change24h,
+      marketCap: coin.marketCap,
+      volume24h: coin.volume24h,
+      image: coin.image || '',
     }));
+
+    return { coins, provider: result.provider };
   } catch (error) {
-    console.error('CoinGecko error:', error);
-    return [];
+    console.error('Market data error:', error);
+    return { coins: [], provider: 'none' };
   }
 }
 
@@ -129,7 +126,7 @@ async function fetchFearGreedIndex(): Promise<FearGreedIndex | null> {
 
 export async function GET() {
   try {
-    const [coins, fearGreed, trending, global] = await Promise.all([
+    const [coinData, fearGreed, trending, global] = await Promise.all([
       fetchTopCoins(),
       fetchFearGreedIndex(),
       fetchTrendingCoins(),
@@ -138,10 +135,12 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      coins,
+      coins: coinData.coins,
       fearGreed,
       trending,
       global,
+      dataProvider: coinData.provider,
+      activeProvider: getActiveProvider(),
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

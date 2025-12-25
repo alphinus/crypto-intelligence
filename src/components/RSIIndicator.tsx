@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { createChart, LineSeries, ColorType, LineStyle, type IChartApi, type Time, type LogicalRange } from 'lightweight-charts';
+import { useEffect, useRef, useMemo } from 'react';
+import { createChart, LineSeries, ColorType, LineStyle, type IChartApi, type ISeriesApi, type Time, type LogicalRange } from 'lightweight-charts';
 import { calculateRSI } from '@/lib/indicators';
 import { X } from 'lucide-react';
 
@@ -11,6 +11,7 @@ interface RSIIndicatorProps {
   onClose?: () => void;
   onVisibleRangeChange?: (range: LogicalRange | null) => void;
   visibleRange?: LogicalRange | null;
+  theme?: 'dark' | 'light';
 }
 
 export function RSIIndicator({
@@ -19,48 +20,62 @@ export function RSIIndicator({
   onClose,
   onVisibleRangeChange,
   visibleRange,
+  theme = 'dark',
 }: RSIIndicatorProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const [currentRSI, setCurrentRSI] = useState<number | null>(null);
+  const rsiSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const overboughtSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const oversoldSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const middleSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const isReadyRef = useRef(false);
 
+  const isDark = theme === 'dark';
+
+  // Calculate current RSI from klines (derived state, not useState)
+  const currentRSI = useMemo(() => {
+    if (klines.length === 0) return null;
+    const closes = klines.map((k) => k.close);
+    const rsiResult = calculateRSI(closes, 14);
+    const validValues = rsiResult.values.filter((v) => !isNaN(v));
+    return validValues.length > 0 ? validValues[validValues.length - 1] : null;
+  }, [klines]);
+
+  // Create chart ONCE (only depends on height and theme)
   useEffect(() => {
-    if (!chartContainerRef.current || klines.length === 0) return;
+    if (!chartContainerRef.current) return;
 
-    // Create chart
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#111827' },
-        textColor: '#9ca3af',
+        background: { type: ColorType.Solid, color: isDark ? '#111827' : '#ffffff' },
+        textColor: isDark ? '#9ca3af' : '#374151',
       },
       grid: {
-        vertLines: { color: '#1f2937' },
-        horzLines: { color: '#1f2937' },
+        vertLines: { color: isDark ? '#1f2937' : '#e5e7eb' },
+        horzLines: { color: isDark ? '#1f2937' : '#e5e7eb' },
       },
       rightPriceScale: {
-        borderColor: '#1f2937',
+        borderColor: isDark ? '#1f2937' : '#e5e7eb',
         scaleMargins: { top: 0.1, bottom: 0.1 },
       },
       timeScale: {
-        borderColor: '#1f2937',
+        borderColor: isDark ? '#1f2937' : '#e5e7eb',
         timeVisible: true,
         secondsVisible: false,
         visible: false, // Hide time scale - synced with main chart
+        rightOffset: 15, // Space between last candle and right edge
+        barSpacing: 6,
       },
       width: chartContainerRef.current.clientWidth,
       height,
       crosshair: {
         mode: 0, // Normal
-        horzLine: { color: '#6b7280', style: LineStyle.Dashed },
-        vertLine: { color: '#6b7280', style: LineStyle.Dashed },
+        horzLine: { color: isDark ? '#6b7280' : '#9ca3af', style: LineStyle.Dashed },
+        vertLine: { color: isDark ? '#6b7280' : '#9ca3af', style: LineStyle.Dashed },
       },
     });
 
     chartRef.current = chart;
-
-    // Calculate RSI
-    const closes = klines.map((k) => k.close);
-    const rsiResult = calculateRSI(closes, 14);
 
     // RSI Line Series
     const rsiSeries = chart.addSeries(LineSeries, {
@@ -69,21 +84,7 @@ export function RSIIndicator({
       priceLineVisible: false,
       lastValueVisible: true,
     });
-
-    // Map RSI values to chart data
-    const rsiData = rsiResult.values
-      .map((value, i) => ({
-        time: Math.floor(klines[i].openTime / 1000) as Time,
-        value: isNaN(value) ? undefined : value,
-      }))
-      .filter((d) => d.value !== undefined) as { time: Time; value: number }[];
-
-    rsiSeries.setData(rsiData);
-
-    // Set current RSI value
-    if (rsiData.length > 0) {
-      setCurrentRSI(rsiData[rsiData.length - 1].value);
-    }
+    rsiSeriesRef.current = rsiSeries;
 
     // Overbought line (70)
     const overboughtSeries = chart.addSeries(LineSeries, {
@@ -94,12 +95,7 @@ export function RSIIndicator({
       lastValueVisible: false,
       crosshairMarkerVisible: false,
     });
-
-    const overboughtData = klines.map((k) => ({
-      time: Math.floor(k.openTime / 1000) as Time,
-      value: 70,
-    }));
-    overboughtSeries.setData(overboughtData);
+    overboughtSeriesRef.current = overboughtSeries;
 
     // Oversold line (30)
     const oversoldSeries = chart.addSeries(LineSeries, {
@@ -110,12 +106,7 @@ export function RSIIndicator({
       lastValueVisible: false,
       crosshairMarkerVisible: false,
     });
-
-    const oversoldData = klines.map((k) => ({
-      time: Math.floor(k.openTime / 1000) as Time,
-      value: 30,
-    }));
-    oversoldSeries.setData(oversoldData);
+    oversoldSeriesRef.current = oversoldSeries;
 
     // Middle line (50)
     const middleSeries = chart.addSeries(LineSeries, {
@@ -126,17 +117,7 @@ export function RSIIndicator({
       lastValueVisible: false,
       crosshairMarkerVisible: false,
     });
-
-    const middleData = klines.map((k) => ({
-      time: Math.floor(k.openTime / 1000) as Time,
-      value: 50,
-    }));
-    middleSeries.setData(middleData);
-
-    // Subscribe to visible range changes
-    if (onVisibleRangeChange) {
-      chart.timeScale().subscribeVisibleLogicalRangeChange(onVisibleRangeChange);
-    }
+    middleSeriesRef.current = middleSeries;
 
     // Handle resize
     const handleResize = () => {
@@ -146,12 +127,59 @@ export function RSIIndicator({
     };
 
     window.addEventListener('resize', handleResize);
+    isReadyRef.current = true;
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      isReadyRef.current = false;
+      rsiSeriesRef.current = null;
+      overboughtSeriesRef.current = null;
+      oversoldSeriesRef.current = null;
+      middleSeriesRef.current = null;
       chart.remove();
+      chartRef.current = null;
     };
-  }, [klines, height, onVisibleRangeChange]);
+  }, [height, isDark]);
+
+  // Subscribe to visible range changes - SEPARATE effect to avoid chart recreation
+  useEffect(() => {
+    if (!chartRef.current || !onVisibleRangeChange) return;
+
+    const chart = chartRef.current;
+    chart.timeScale().subscribeVisibleLogicalRangeChange(onVisibleRangeChange);
+
+    return () => {
+      // Unsubscribe is handled by chart.remove() in the main effect
+    };
+  }, [onVisibleRangeChange]);
+
+  // Update series data when klines change (INCREMENTAL - no chart recreation)
+  useEffect(() => {
+    if (!isReadyRef.current || klines.length === 0) return;
+    if (!rsiSeriesRef.current || !overboughtSeriesRef.current || !oversoldSeriesRef.current || !middleSeriesRef.current) return;
+
+    // Calculate RSI
+    const closes = klines.map((k) => k.close);
+    const rsiResult = calculateRSI(closes, 14);
+
+    // Map RSI values to chart data
+    const rsiData = rsiResult.values
+      .map((value, i) => ({
+        time: Math.floor(klines[i].openTime / 1000) as Time,
+        value: isNaN(value) ? undefined : value,
+      }))
+      .filter((d) => d.value !== undefined) as { time: Time; value: number }[];
+
+    // Update RSI series
+    rsiSeriesRef.current.setData(rsiData);
+
+    // Update reference lines
+    const timeData = klines.map((k) => ({ time: Math.floor(k.openTime / 1000) as Time }));
+
+    overboughtSeriesRef.current.setData(timeData.map((t) => ({ ...t, value: 70 })));
+    oversoldSeriesRef.current.setData(timeData.map((t) => ({ ...t, value: 30 })));
+    middleSeriesRef.current.setData(timeData.map((t) => ({ ...t, value: 50 })));
+  }, [klines]);
 
   // Sync visible range from parent
   useEffect(() => {

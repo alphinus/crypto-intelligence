@@ -262,6 +262,25 @@ export function OnboardingTour() {
                       📚 {step.beginnerContent}
                     </p>
                   )}
+                  {/* Chat Demo Preview */}
+                  {step.showChatDemo && (
+                    <div className="mt-4 bg-gray-900 rounded-lg p-3 border border-gray-700">
+                      <div className="text-xs text-gray-500 mb-2">Beispiel-Konversation:</div>
+                      <div className="space-y-2">
+                        <div className="flex justify-end">
+                          <div className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg max-w-[80%]">
+                            Welchen Trade wuerdest du nehmen?
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-sm">🤖</span>
+                          <div className="bg-gray-800 text-gray-200 text-xs px-3 py-1.5 rounded-lg max-w-[80%]">
+                            <strong className="text-white">BTC Long (4h)</strong> sieht gut aus! Score 78/100, Entry bei $98.500
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>

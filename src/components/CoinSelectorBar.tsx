@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, X, Search } from 'lucide-react';
+import { Plus, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Coin {
   symbol: string;
@@ -30,7 +30,41 @@ export function CoinSelectorBar({
 }: CoinSelectorBarProps) {
   const [showAddInput, setShowAddInput] = useState(false);
   const [customSymbol, setCustomSymbol] = useState('');
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Check scroll state
+  const updateScrollState = useCallback(() => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    updateScrollState();
+    const container = scrollRef.current;
+    if (container) {
+      container.addEventListener('scroll', updateScrollState);
+      window.addEventListener('resize', updateScrollState);
+    }
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', updateScrollState);
+      }
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [updateScrollState, coins]);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    const scrollAmount = 200;
+    scrollRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
+  };
 
   const handleAddCustom = () => {
     if (customSymbol.trim() && onAddCustom) {
@@ -50,10 +84,20 @@ export function CoinSelectorBar({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative max-w-full ${className}`}>
+      {/* Left scroll arrow */}
+      {canScrollLeft && (
+        <button
+          onClick={() => scroll('left')}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-gray-800 hover:bg-gray-700 rounded-full shadow-lg transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4 text-gray-300" />
+        </button>
+      )}
+
       <div
         ref={scrollRef}
-        className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1"
+        className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 px-6"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {coins.map((coin) => {
@@ -93,15 +137,23 @@ export function CoinSelectorBar({
               )}
 
               {onRemove && !isSelected && coins.length > 1 && (
-                <button
+                <span
                   onClick={(e) => {
                     e.stopPropagation();
                     onRemove(coin.symbol);
                   }}
-                  className="ml-1 p-0.5 rounded hover:bg-gray-600 opacity-50 hover:opacity-100 transition-opacity"
+                  className="ml-1 p-0.5 rounded hover:bg-gray-600 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.stopPropagation();
+                      onRemove(coin.symbol);
+                    }
+                  }}
                 >
                   <X className="w-3 h-3" />
-                </button>
+                </span>
               )}
             </motion.button>
           );
@@ -153,8 +205,23 @@ export function CoinSelectorBar({
         )}
       </div>
 
+      {/* Right scroll arrow */}
+      {canScrollRight && (
+        <button
+          onClick={() => scroll('right')}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-gray-800 hover:bg-gray-700 rounded-full shadow-lg transition-colors"
+        >
+          <ChevronRight className="w-4 h-4 text-gray-300" />
+        </button>
+      )}
+
       {/* Fade edges for scroll indication */}
-      <div className="absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-gray-900 to-transparent pointer-events-none" />
+      {canScrollLeft && (
+        <div className="absolute top-0 left-6 h-full w-4 bg-gradient-to-r from-gray-900 to-transparent pointer-events-none" />
+      )}
+      {canScrollRight && (
+        <div className="absolute top-0 right-6 h-full w-4 bg-gradient-to-l from-gray-900 to-transparent pointer-events-none" />
+      )}
     </div>
   );
 }

@@ -14,6 +14,9 @@ interface HelpContextValue {
   setHasCompletedTour: (completed: boolean) => void;
   isMinimized: boolean;
   setIsMinimized: (minimized: boolean) => void;
+  // Neue States für Welcome-Back
+  showWelcomeBack: boolean;
+  dismissWelcomeBack: () => void;
 }
 
 const HelpContext = createContext<HelpContextValue | null>(null);
@@ -24,6 +27,7 @@ interface StoredHelpState {
   level: HelpLevel;
   hasCompletedTour: boolean;
   isMinimized: boolean;
+  lastVisit: string | null; // ISO Date string
 }
 
 interface HelpProviderProps {
@@ -36,6 +40,8 @@ export function HelpProvider({ children }: HelpProviderProps) {
   const [hasCompletedTour, setHasCompletedTourState] = useState(false);
   const [isMinimized, setIsMinimizedState] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [lastVisit, setLastVisit] = useState<string | null>(null);
+  const [showWelcomeBack, setShowWelcomeBack] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -46,6 +52,7 @@ export function HelpProvider({ children }: HelpProviderProps) {
         setLevelState(parsed.level || 'beginner');
         setHasCompletedTourState(parsed.hasCompletedTour || false);
         setIsMinimizedState(parsed.isMinimized || false);
+        setLastVisit(parsed.lastVisit || null);
       }
     } catch (e) {
       console.error('Failed to load help state:', e);
@@ -64,6 +71,33 @@ export function HelpProvider({ children }: HelpProviderProps) {
     }
   }, [isHydrated, hasCompletedTour]);
 
+  // Welcome-back logic for returning users
+  useEffect(() => {
+    if (isHydrated && hasCompletedTour && !isMinimized && !showTour) {
+      const now = new Date();
+
+      // Check if last visit was > 1 hour ago
+      const hoursSinceLastVisit = lastVisit
+        ? (now.getTime() - new Date(lastVisit).getTime()) / (1000 * 60 * 60)
+        : Infinity;
+
+      if (hoursSinceLastVisit > 1) {
+        // Show welcome-back message
+        setShowWelcomeBack(true);
+
+        // Auto-hide after 5 seconds
+        const timer = setTimeout(() => {
+          setShowWelcomeBack(false);
+        }, 5000);
+
+        return () => clearTimeout(timer);
+      }
+
+      // Update lastVisit timestamp
+      setLastVisit(now.toISOString());
+    }
+  }, [isHydrated, hasCompletedTour, isMinimized, showTour]); // Don't include lastVisit to prevent loop
+
   // Save to localStorage when state changes
   useEffect(() => {
     if (!isHydrated) return;
@@ -73,12 +107,13 @@ export function HelpProvider({ children }: HelpProviderProps) {
         level,
         hasCompletedTour,
         isMinimized,
+        lastVisit,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
       console.error('Failed to save help state:', e);
     }
-  }, [level, hasCompletedTour, isMinimized, isHydrated]);
+  }, [level, hasCompletedTour, isMinimized, lastVisit, isHydrated]);
 
   const setLevel = useCallback((newLevel: HelpLevel) => {
     setLevelState(newLevel);
@@ -102,6 +137,10 @@ export function HelpProvider({ children }: HelpProviderProps) {
     setIsMinimizedState(minimized);
   }, []);
 
+  const dismissWelcomeBack = useCallback(() => {
+    setShowWelcomeBack(false);
+  }, []);
+
   const value: HelpContextValue = {
     level,
     setLevel,
@@ -112,6 +151,8 @@ export function HelpProvider({ children }: HelpProviderProps) {
     setHasCompletedTour,
     isMinimized,
     setIsMinimized,
+    showWelcomeBack,
+    dismissWelcomeBack,
   };
 
   return (

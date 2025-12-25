@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { createChart, LineSeries, HistogramSeries, ColorType, LineStyle, type IChartApi, type Time, type LogicalRange } from 'lightweight-charts';
+import { useEffect, useRef, useMemo } from 'react';
+import { createChart, LineSeries, HistogramSeries, ColorType, LineStyle, type IChartApi, type ISeriesApi, type Time, type LogicalRange } from 'lightweight-charts';
 import { calculateMACD } from '@/lib/indicators';
 import { X } from 'lucide-react';
 
@@ -11,6 +11,7 @@ interface MACDIndicatorProps {
   onClose?: () => void;
   onVisibleRangeChange?: (range: LogicalRange | null) => void;
   visibleRange?: LogicalRange | null;
+  theme?: 'dark' | 'light';
 }
 
 export function MACDIndicator({
@@ -19,59 +20,152 @@ export function MACDIndicator({
   onClose,
   onVisibleRangeChange,
   visibleRange,
+  theme = 'dark',
 }: MACDIndicatorProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const [currentValues, setCurrentValues] = useState<{
-    macd: number | null;
-    signal: number | null;
-    histogram: number | null;
-  }>({ macd: null, signal: null, histogram: null });
+  const histogramSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
+  const macdSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const signalSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const zeroSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const isReadyRef = useRef(false);
 
+  const isDark = theme === 'dark';
+
+  // Calculate current MACD values (derived state, not useState)
+  const currentValues = useMemo(() => {
+    if (klines.length === 0) return { macd: null, signal: null, histogram: null };
+
+    const closes = klines.map((k) => k.close);
+    const macdResult = calculateMACD(closes, 12, 26, 9);
+
+    const validMacd = macdResult.macd.filter((v) => !isNaN(v));
+    const validSignal = macdResult.signal.filter((v) => !isNaN(v));
+    const validHistogram = macdResult.histogram.filter((v) => !isNaN(v));
+
+    return {
+      macd: validMacd.length > 0 ? validMacd[validMacd.length - 1] : null,
+      signal: validSignal.length > 0 ? validSignal[validSignal.length - 1] : null,
+      histogram: validHistogram.length > 0 ? validHistogram[validHistogram.length - 1] : null,
+    };
+  }, [klines]);
+
+  // Create chart ONCE (only depends on height and theme)
   useEffect(() => {
-    if (!chartContainerRef.current || klines.length === 0) return;
+    if (!chartContainerRef.current) return;
 
-    // Create chart
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#111827' },
-        textColor: '#9ca3af',
+        background: { type: ColorType.Solid, color: isDark ? '#111827' : '#ffffff' },
+        textColor: isDark ? '#9ca3af' : '#374151',
       },
       grid: {
-        vertLines: { color: '#1f2937' },
-        horzLines: { color: '#1f2937' },
+        vertLines: { color: isDark ? '#1f2937' : '#e5e7eb' },
+        horzLines: { color: isDark ? '#1f2937' : '#e5e7eb' },
       },
       rightPriceScale: {
-        borderColor: '#1f2937',
+        borderColor: isDark ? '#1f2937' : '#e5e7eb',
         scaleMargins: { top: 0.1, bottom: 0.1 },
       },
       timeScale: {
-        borderColor: '#1f2937',
+        borderColor: isDark ? '#1f2937' : '#e5e7eb',
         timeVisible: true,
         secondsVisible: false,
         visible: false, // Hide time scale - synced with main chart
+        rightOffset: 15, // Space between last candle and right edge
+        barSpacing: 6,
       },
       width: chartContainerRef.current.clientWidth,
       height,
       crosshair: {
         mode: 0,
-        horzLine: { color: '#6b7280', style: LineStyle.Dashed },
-        vertLine: { color: '#6b7280', style: LineStyle.Dashed },
+        horzLine: { color: isDark ? '#6b7280' : '#9ca3af', style: LineStyle.Dashed },
+        vertLine: { color: isDark ? '#6b7280' : '#9ca3af', style: LineStyle.Dashed },
       },
     });
 
     chartRef.current = chart;
-
-    // Calculate MACD
-    const closes = klines.map((k) => k.close);
-    const macdResult = calculateMACD(closes, 12, 26, 9);
 
     // Histogram Series (must be added first so it's behind the lines)
     const histogramSeries = chart.addSeries(HistogramSeries, {
       priceLineVisible: false,
       lastValueVisible: false,
     });
+    histogramSeriesRef.current = histogramSeries;
 
+    // MACD Line Series
+    const macdSeries = chart.addSeries(LineSeries, {
+      color: '#3b82f6',
+      lineWidth: 2,
+      priceLineVisible: false,
+      lastValueVisible: true,
+    });
+    macdSeriesRef.current = macdSeries;
+
+    // Signal Line Series
+    const signalSeries = chart.addSeries(LineSeries, {
+      color: '#f97316',
+      lineWidth: 2,
+      priceLineVisible: false,
+      lastValueVisible: true,
+    });
+    signalSeriesRef.current = signalSeries;
+
+    // Zero line
+    const zeroSeries = chart.addSeries(LineSeries, {
+      color: '#6b7280',
+      lineWidth: 1,
+      lineStyle: LineStyle.Dotted,
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
+    });
+    zeroSeriesRef.current = zeroSeries;
+
+    // Handle resize
+    const handleResize = () => {
+      if (chartContainerRef.current) {
+        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    isReadyRef.current = true;
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      isReadyRef.current = false;
+      histogramSeriesRef.current = null;
+      macdSeriesRef.current = null;
+      signalSeriesRef.current = null;
+      zeroSeriesRef.current = null;
+      chart.remove();
+      chartRef.current = null;
+    };
+  }, [height, isDark]);
+
+  // Subscribe to visible range changes - SEPARATE effect to avoid chart recreation
+  useEffect(() => {
+    if (!chartRef.current || !onVisibleRangeChange) return;
+
+    const chart = chartRef.current;
+    chart.timeScale().subscribeVisibleLogicalRangeChange(onVisibleRangeChange);
+
+    return () => {
+      // Unsubscribe is handled by chart.remove() in the main effect
+    };
+  }, [onVisibleRangeChange]);
+
+  // Update series data when klines change (INCREMENTAL - no chart recreation)
+  useEffect(() => {
+    if (!isReadyRef.current || klines.length === 0) return;
+    if (!histogramSeriesRef.current || !macdSeriesRef.current || !signalSeriesRef.current || !zeroSeriesRef.current) return;
+
+    // Calculate MACD
+    const closes = klines.map((k) => k.close);
+    const macdResult = calculateMACD(closes, 12, 26, 9);
+
+    // Histogram data with colors
     const histogramData = macdResult.histogram
       .map((value, i) => ({
         time: Math.floor(klines[i].openTime / 1000) as Time,
@@ -88,16 +182,9 @@ export function MACDIndicator({
       }))
       .filter((d) => d.value !== undefined) as { time: Time; value: number; color: string }[];
 
-    histogramSeries.setData(histogramData);
+    histogramSeriesRef.current.setData(histogramData);
 
-    // MACD Line Series
-    const macdSeries = chart.addSeries(LineSeries, {
-      color: '#3b82f6',
-      lineWidth: 2,
-      priceLineVisible: false,
-      lastValueVisible: true,
-    });
-
+    // MACD line data
     const macdData = macdResult.macd
       .map((value, i) => ({
         time: Math.floor(klines[i].openTime / 1000) as Time,
@@ -105,16 +192,9 @@ export function MACDIndicator({
       }))
       .filter((d) => d.value !== undefined) as { time: Time; value: number }[];
 
-    macdSeries.setData(macdData);
+    macdSeriesRef.current.setData(macdData);
 
-    // Signal Line Series
-    const signalSeries = chart.addSeries(LineSeries, {
-      color: '#f97316',
-      lineWidth: 2,
-      priceLineVisible: false,
-      lastValueVisible: true,
-    });
-
+    // Signal line data
     const signalData = macdResult.signal
       .map((value, i) => ({
         time: Math.floor(klines[i].openTime / 1000) as Time,
@@ -122,52 +202,15 @@ export function MACDIndicator({
       }))
       .filter((d) => d.value !== undefined) as { time: Time; value: number }[];
 
-    signalSeries.setData(signalData);
+    signalSeriesRef.current.setData(signalData);
 
-    // Zero line
-    const zeroSeries = chart.addSeries(LineSeries, {
-      color: '#6b7280',
-      lineWidth: 1,
-      lineStyle: LineStyle.Dotted,
-      priceLineVisible: false,
-      lastValueVisible: false,
-      crosshairMarkerVisible: false,
-    });
-
+    // Zero line data
     const zeroData = klines.map((k) => ({
       time: Math.floor(k.openTime / 1000) as Time,
       value: 0,
     }));
-    zeroSeries.setData(zeroData);
-
-    // Set current values
-    if (macdData.length > 0 && signalData.length > 0 && histogramData.length > 0) {
-      setCurrentValues({
-        macd: macdData[macdData.length - 1].value,
-        signal: signalData[signalData.length - 1].value,
-        histogram: histogramData[histogramData.length - 1].value,
-      });
-    }
-
-    // Subscribe to visible range changes
-    if (onVisibleRangeChange) {
-      chart.timeScale().subscribeVisibleLogicalRangeChange(onVisibleRangeChange);
-    }
-
-    // Handle resize
-    const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
-    };
-  }, [klines, height, onVisibleRangeChange]);
+    zeroSeriesRef.current.setData(zeroData);
+  }, [klines]);
 
   // Sync visible range from parent
   useEffect(() => {

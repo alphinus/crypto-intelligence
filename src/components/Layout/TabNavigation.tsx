@@ -1,9 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { BarChart2, MessageSquare, Brain } from 'lucide-react';
+import { BarChart2, MessageSquare, Brain, Rocket } from 'lucide-react';
 
-export type TabId = 'trading' | 'sentiment' | 'reports';
+export type TabId = 'trading' | 'sentiment' | 'reports' | 'memecoins';
 
 interface Tab {
   id: TabId;
@@ -29,6 +29,13 @@ const TABS: Tab[] = [
     description: 'Markt-Stimmung, On-Chain, Social, YouTube',
   },
   {
+    id: 'memecoins',
+    label: 'Meme Coins',
+    shortLabel: 'Memes',
+    icon: <Rocket className="w-4 h-4" />,
+    description: 'Meme Coins: DOGE, SHIB, PEPE, BONK, WIF',
+  },
+  {
     id: 'reports',
     label: 'Reports',
     shortLabel: 'Reports',
@@ -44,7 +51,7 @@ interface TabNavigationProps {
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   return (
-    <div className="border-b border-gray-800 bg-gray-900/50 sticky top-[97px] z-40">
+    <div className="border-b border-gray-800 bg-gray-900 sticky top-[130px] z-40 backdrop-blur-sm">
       <nav className="flex" aria-label="Tabs">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;

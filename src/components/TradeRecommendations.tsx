@@ -40,6 +40,7 @@ interface TradeRecommendationsProps {
   sentimentConflict?: SentimentConflict | null;
   sentimentSignal?: SentimentSignal | null;
   sentimentMode?: 'filter' | 'combined' | 'info';
+  layout?: 'grid' | 'stacked'; // NEU: stacked für Sidebar-Modus (volle Breite pro Widget)
 }
 
 // Note: 1m and 3m are hidden due to high latency (250-800ms) making them unsuitable for scalping
@@ -66,6 +67,7 @@ export function TradeRecommendations({
   sentimentConflict,
   sentimentSignal,
   sentimentMode = 'info',
+  layout = 'grid',
 }: TradeRecommendationsProps) {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
@@ -215,7 +217,10 @@ export function TradeRecommendations({
       </AnimatePresence>
 
       <motion.div
-        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"
+        className={layout === 'stacked'
+          ? 'flex flex-col gap-3'
+          : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3'
+        }
         variants={staggerContainer}
         initial="hidden"
         animate="visible"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import { RSIIndicator } from './RSIIndicator';
 import { MACDIndicator } from './MACDIndicator';
 import type { LogicalRange } from 'lightweight-charts';
@@ -13,6 +13,7 @@ interface IndicatorPanelProps {
   onRemoveIndicator: (indicator: IndicatorType) => void;
   visibleRange?: LogicalRange | null;
   onVisibleRangeChange?: (range: LogicalRange | null) => void;
+  theme?: 'dark' | 'light';
 }
 
 export function IndicatorPanel({
@@ -21,18 +22,23 @@ export function IndicatorPanel({
   onRemoveIndicator,
   visibleRange,
   onVisibleRangeChange,
+  theme = 'dark',
 }: IndicatorPanelProps) {
   // Track if any indicator is updating the range to prevent feedback loops
-  const [isUpdating, setIsUpdating] = useState(false);
+  // Using useRef instead of useState to avoid re-renders and callback recreation
+  const isUpdatingRef = useRef(false);
 
   const handleVisibleRangeChange = useCallback(
     (range: LogicalRange | null) => {
-      if (isUpdating) return;
-      setIsUpdating(true);
+      if (isUpdatingRef.current) return;
+      isUpdatingRef.current = true;
       onVisibleRangeChange?.(range);
-      setTimeout(() => setIsUpdating(false), 50);
+      // Use requestAnimationFrame for better timing than setTimeout
+      requestAnimationFrame(() => {
+        isUpdatingRef.current = false;
+      });
     },
-    [isUpdating, onVisibleRangeChange]
+    [onVisibleRangeChange]
   );
 
   if (activeIndicators.length === 0 || klines.length === 0) {
@@ -48,6 +54,7 @@ export function IndicatorPanel({
           onClose={() => onRemoveIndicator('rsi')}
           visibleRange={visibleRange}
           onVisibleRangeChange={handleVisibleRangeChange}
+          theme={theme}
         />
       )}
       {activeIndicators.includes('macd') && (
@@ -57,6 +64,7 @@ export function IndicatorPanel({
           onClose={() => onRemoveIndicator('macd')}
           visibleRange={visibleRange}
           onVisibleRangeChange={handleVisibleRangeChange}
+          theme={theme}
         />
       )}
     </div>

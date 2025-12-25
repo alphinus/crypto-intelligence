@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { RefreshCw, Brain, AlertCircle, Clock, Sparkles, AlertTriangle, TrendingUp, Zap, Bell } from 'lucide-react';
+import { RefreshCw, Brain, AlertCircle, Clock, Sparkles, AlertTriangle, TrendingUp, Zap, Bell, LayoutList, PanelRight } from 'lucide-react';
 import { NewsTicker } from '@/components/NewsTicker';
 import { TrendingSidebar } from '@/components/TrendingSidebar';
 import { TradeRecommendations } from '@/components/TradeRecommendations';
@@ -32,18 +32,22 @@ import { GuruWatcher } from '@/components/GuruWatcher';
 import { TelegramSentiment } from '@/components/TelegramSentiment';
 import { HeaderMenu } from '@/components/HeaderMenu';
 import { MobileDrawer } from '@/components/MobileDrawer';
+import { MemeCoinsPanel } from '@/components/MemeCoinsPanel';
 import { CoinSelectorBar } from '@/components/CoinSelectorBar';
 import { TabNavigation, type TabId } from '@/components/Layout/TabNavigation';
 import { TabPanel } from '@/components/Layout/TabPanel';
 import { AnimatePresence } from 'framer-motion';
 import { AlertNotificationsContainer, AlertManager } from '@/components/Alerts';
-import { LiquidationFeed, LiquidationStats, LiquidationHeatmap } from '@/components/Liquidations';
+import { LiquidationFeed, LiquidationStats, LiquidationHeatmap, LiquidationMini } from '@/components/Liquidations';
+import { ConfluenceWidget } from '@/components/ConfluenceWidget';
+import { GainerLoserTicker } from '@/components/GainerLoserTicker';
 import { usePriceAlerts } from '@/hooks/usePriceAlerts';
 import { useAlertChecker } from '@/hooks/useAlertChecker';
 import { useLiquidationStream } from '@/hooks/useLiquidationStream';
 import { calculateLiquidationLevels } from '@/lib/liquidation-levels';
 import { playAlertSound } from '@/lib/alert-sound';
 import { HelpProvider, Avatar, OnboardingTour } from '@/components/Help';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface MarketResponse {
   success: boolean;
@@ -126,6 +130,7 @@ function SystemClock() {
 }
 
 export default function Home() {
+  const { theme } = useTheme();
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [marketData, setMarketData] = useState<MarketResponse | null>(null);
   const [redditData, setRedditData] = useState<RedditResponse | null>(null);
@@ -158,7 +163,7 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('trading');
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [tradeSignalsLayout, setTradeSignalsLayout] = useState<'below' | 'sidebar'>('below');
 
   // Sentiment Mode: how sentiment affects trade direction
   // - 'filter': Only show trades where sentiment agrees with technical
@@ -229,6 +234,25 @@ export default function Home() {
                futuresData.openInterest.sol;
     return calculateLiquidationLevels(multiTimeframe.currentPrice, oi);
   }, [futuresData?.openInterest, multiTimeframe?.currentPrice, selectedAnalysisCoin?.symbol]);
+
+  // Satoshi Chat Context - provides live data to Satoshi AI
+  const satoshiContext = useMemo(() => ({
+    selectedCoin: selectedAnalysisCoin ? {
+      symbol: (selectedAnalysisCoin.symbol?.toUpperCase() || 'BTC') + 'USDT',
+      name: selectedAnalysisCoin.name,
+      price: selectedAnalysisCoin.price || 0,
+      change24h: selectedAnalysisCoin.change24h || 0,
+    } : null,
+    tradeRecommendations: tradeRecommendations as Record<string, TimeframeTradeSetup> | null,
+    tradeScores,
+    fearGreed: marketData?.fearGreed || null,
+    futuresData: futuresData ? {
+      fundingRates: futuresData.fundingRates,
+      longShortRatio: futuresData.longShortRatio,
+    } : null,
+    topCoins: marketData?.coins || null,
+    allCoins: marketData?.coins || null, // Alle Coins für Kursabfragen
+  }), [selectedAnalysisCoin, tradeRecommendations, tradeScores, marketData?.fearGreed, marketData?.coins, futuresData]);
 
   // Client-side cache to reduce Vercel invocations
   const coinAnalysisCache = useRef<Map<string, { data: unknown; timestamp: number }>>(new Map());
@@ -1025,20 +1049,23 @@ export default function Home() {
   // Add custom coin by symbol (fetches from Binance)
   const handleAddCustomCoin = useCallback(async (symbol: string): Promise<MarketData | null> => {
     try {
+      // Normalize symbol: strip trailing USDT if present to avoid double-USDT bug
+      const normalizedSymbol = symbol.toUpperCase().replace(/USDT$/, '');
+
       // Check if already exists in coins or customCoins
       const existsInCoins = marketData?.coins.some(
-        (c) => c.symbol.toLowerCase() === symbol.toLowerCase()
+        (c) => c.symbol.toLowerCase() === normalizedSymbol.toLowerCase()
       );
       const existsInCustom = customCoins.some(
-        (c) => c.symbol.toLowerCase() === symbol.toLowerCase()
+        (c) => c.symbol.toLowerCase() === normalizedSymbol.toLowerCase()
       );
 
       if (existsInCoins || existsInCustom) {
         // Already exists, just select it
         const existing = marketData?.coins.find(
-          (c) => c.symbol.toLowerCase() === symbol.toLowerCase()
+          (c) => c.symbol.toLowerCase() === normalizedSymbol.toLowerCase()
         ) || customCoins.find(
-          (c) => c.symbol.toLowerCase() === symbol.toLowerCase()
+          (c) => c.symbol.toLowerCase() === normalizedSymbol.toLowerCase()
         );
         if (existing) {
           handleCoinSelect(existing);
@@ -1047,7 +1074,7 @@ export default function Home() {
       }
 
       // Fetch price from Binance
-      const binanceSymbol = symbol.toUpperCase() + 'USDT';
+      const binanceSymbol = normalizedSymbol + 'USDT';
       const response = await fetch(
         `https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`
       );
@@ -1059,9 +1086,9 @@ export default function Home() {
       const data = await response.json();
 
       const newCoin: MarketData = {
-        id: `custom-${symbol.toLowerCase()}`,
-        symbol: symbol.toLowerCase(),
-        name: symbol.toUpperCase(),
+        id: `custom-${normalizedSymbol.toLowerCase()}`,
+        symbol: normalizedSymbol.toLowerCase(),
+        name: normalizedSymbol.toUpperCase(),
         price: parseFloat(data.lastPrice),
         change24h: parseFloat(data.priceChangePercent),
         marketCap: 0,
@@ -1071,7 +1098,7 @@ export default function Home() {
 
       setCustomCoins((prev) => {
         // Prevent duplicates
-        if (prev.some((c) => c.symbol.toLowerCase() === symbol.toLowerCase())) {
+        if (prev.some((c) => c.symbol.toLowerCase() === normalizedSymbol.toLowerCase())) {
           return prev;
         }
         return [...prev, newCoin];
@@ -1457,16 +1484,16 @@ export default function Home() {
               </button>
 
               {/* Header Menu - Consolidates Refresh, Theme, Settings */}
-              <HeaderMenu
-                onRefresh={() => {
-                  fetchData();
-                  fetchTradeRecommendations();
-                  setLastUpdated(new Date());
-                }}
-                isRefreshing={loading}
-                theme={theme}
-                onThemeToggle={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-              />
+              <div data-tour="header-menu">
+                <HeaderMenu
+                  onRefresh={() => {
+                    fetchData();
+                    fetchTradeRecommendations();
+                    setLastUpdated(new Date());
+                  }}
+                  isRefreshing={loading}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1475,10 +1502,29 @@ export default function Home() {
       {/* News Ticker */}
       <NewsTicker headlines={newsHeadlines} />
 
+      {/* Gainer/Loser Ticker */}
+      {marketData?.coins && marketData.coins.length > 0 && (
+        <div data-tour="gainer-ticker">
+          <GainerLoserTicker
+            coins={marketData.coins.map(c => ({
+              symbol: c.symbol,
+              name: c.name,
+              price: c.price,
+              change24h: c.change24h,
+              image: c.image,
+            }))}
+            onCoinClick={(symbol) => {
+              const coin = marketData.coins.find(c => c.symbol.toLowerCase() === symbol.toLowerCase());
+              if (coin) handleCoinSelect(coin);
+            }}
+          />
+        </div>
+      )}
+
       {/* Main Layout */}
       <div className="flex">
-        {/* Left Sidebar - Fixed */}
-        <aside className="hidden lg:block w-64 fixed left-0 top-[97px] h-[calc(100vh-97px)] overflow-hidden" data-tour="sidebar">
+        {/* Left Sidebar - Fixed (top offset includes header + 2 tickers = 97px + 80px) */}
+        <aside className="hidden lg:block w-64 fixed left-0 top-[177px] h-[calc(100vh-177px)] overflow-hidden" data-tour="sidebar">
           {marketData && (
             <TrendingSidebar
               coins={marketData.coins}
@@ -1542,51 +1588,136 @@ export default function Home() {
                 />
               </div>
 
-              {/* CHART FIRST - Primary Focus */}
-              <div className="mb-6" data-tour="chart">
-                {selectedAnalysisCoin && (
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      {selectedAnalysisCoin.image && (
-                        <img src={selectedAnalysisCoin.image} alt={selectedAnalysisCoin.name} className="w-8 h-8 rounded-full" />
-                      )}
-                      <div>
-                        <span className="font-semibold text-lg">{selectedAnalysisCoin.symbol.toUpperCase()}</span>
-                        <span className="text-gray-400 ml-2">${selectedAnalysisCoin.price?.toLocaleString()}</span>
+              {/* Trade Signals Layout Switch Header */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-400" />
+                  Trade Signale
+                  {Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length > 0 && (
+                    <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded">
+                      {Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length}
+                    </span>
+                  )}
+                </h3>
+                <div className="hidden lg:flex items-center gap-1 bg-gray-800/50 rounded-lg p-1">
+                  <button
+                    onClick={() => setTradeSignalsLayout('below')}
+                    className={`p-1.5 rounded transition-colors ${
+                      tradeSignalsLayout === 'below'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                    }`}
+                    title="Signale unterhalb vom Chart"
+                  >
+                    <LayoutList className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setTradeSignalsLayout('sidebar')}
+                    className={`p-1.5 rounded transition-colors ${
+                      tradeSignalsLayout === 'sidebar'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                    }`}
+                    title="Signale als rechte Spalte"
+                  >
+                    <PanelRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Chart + Trade Signals Flex Container */}
+              <div className={`flex gap-4 ${tradeSignalsLayout === 'sidebar' ? 'flex-row' : 'flex-col'}`}>
+                {/* CHART FIRST - Primary Focus */}
+                <div className={`min-h-[520px] ${tradeSignalsLayout === 'sidebar' ? 'flex-1 min-w-0' : 'w-full'}`} data-tour="chart">
+                  {selectedAnalysisCoin && (
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        {selectedAnalysisCoin.image && (
+                          <img src={selectedAnalysisCoin.image} alt={selectedAnalysisCoin.name} className="w-8 h-8 rounded-full" />
+                        )}
+                        <div>
+                          <span className="font-semibold text-lg">{selectedAnalysisCoin.symbol.toUpperCase()}</span>
+                          <span className="text-gray-400 ml-2">${selectedAnalysisCoin.price?.toLocaleString()}</span>
+                        </div>
+                        <span className={`text-sm px-2 py-0.5 rounded ${selectedAnalysisCoin.change24h >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                          {selectedAnalysisCoin.change24h >= 0 ? '+' : ''}{selectedAnalysisCoin.change24h.toFixed(2)}%
+                        </span>
                       </div>
-                      <span className={`text-sm px-2 py-0.5 rounded ${selectedAnalysisCoin.change24h >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                        {selectedAnalysisCoin.change24h >= 0 ? '+' : ''}{selectedAnalysisCoin.change24h.toFixed(2)}%
-                      </span>
+                      <button
+                        onClick={() => generateCoinReport(selectedAnalysisCoin)}
+                        disabled={analyzingCoin}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors"
+                      >
+                        <Sparkles className={`w-3.5 h-3.5 ${analyzingCoin ? 'animate-pulse' : ''}`} />
+                        {analyzingCoin ? 'Analysiere...' : 'KI Analyse'}
+                      </button>
                     </div>
-                    <button
-                      onClick={() => generateCoinReport(selectedAnalysisCoin)}
-                      disabled={analyzingCoin}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors"
-                    >
-                      <Sparkles className={`w-3.5 h-3.5 ${analyzingCoin ? 'animate-pulse' : ''}`} />
-                      {analyzingCoin ? 'Analysiere...' : 'KI Analyse'}
-                    </button>
-                  </div>
-                )}
-                {currentKlines.length > 0 ? (
-                  <InlineChart
-                    symbol={selectedAnalysisCoin?.symbol || 'BTC'}
-                    klines={currentKlines}
-                    technicalLevels={currentTechnicalLevels || undefined}
-                    tradeSetup={tradeRecommendations[chartTimeframe] || null}
-                    selectedTimeframe={chartTimeframe}
-                    onTimeframeChange={setChartTimeframe}
-                    height={500}
-                  />
-                ) : (
-                  <div className="h-[500px] bg-gray-900/50 rounded-lg flex items-center justify-center">
-                    <div className="text-gray-500">Chart loading...</div>
+                  )}
+                  {currentKlines.length > 0 ? (
+                    <InlineChart
+                      symbol={selectedAnalysisCoin?.symbol || 'BTC'}
+                      klines={currentKlines}
+                      technicalLevels={currentTechnicalLevels || undefined}
+                      tradeSetup={tradeRecommendations[chartTimeframe] || null}
+                      selectedTimeframe={chartTimeframe}
+                      onTimeframeChange={setChartTimeframe}
+                      height={500}
+                      theme={theme}
+                      confluenceZones={confluenceZones}
+                    />
+                  ) : (
+                    <div className="h-[500px] bg-gray-900/50 rounded-lg flex items-center justify-center">
+                      <div className="text-gray-500">Chart loading...</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Trade Recommendations - Sidebar Mode */}
+                {tradeSignalsLayout === 'sidebar' && (
+                  <div className="w-80 flex-shrink-0 border-l border-gray-800 pl-4 overflow-y-auto max-h-[calc(100vh-200px)] space-y-4" data-tour="trade-signals">
+                    <TradeRecommendations
+                      recommendations={tradeRecommendations}
+                      scores={tradeScores}
+                      hedgeRecommendation={hedgeRecommendation}
+                      currentPrice={selectedAnalysisCoin?.price || btcPrice}
+                      coinSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
+                      coinImage={selectedAnalysisCoin?.image}
+                      loading={loadingTrades}
+                      onCardClick={() => {
+                        if (selectedAnalysisCoin) setModalCoin(selectedAnalysisCoin);
+                      }}
+                      sentimentConflict={sentimentConflict}
+                      sentimentSignal={currentSentimentSignal}
+                      sentimentMode={sentimentMode}
+                      layout="stacked"
+                    />
+
+                    {/* Confluence Zones in Sidebar */}
+                    {confluenceZones.length > 0 && (
+                      <div data-tour="confluence">
+                        <ConfluenceWidget
+                          zones={confluenceZones}
+                          currentPrice={multiTimeframe?.currentPrice || selectedAnalysisCoin?.price || 0}
+                        />
+                      </div>
+                    )}
+
+                    {/* Liquidations Mini in Sidebar */}
+                    <div data-tour="liquidations">
+                    <LiquidationMini
+                      stats={liquidationStats}
+                      levels={liquidationLevels}
+                      currentPrice={multiTimeframe?.currentPrice || 0}
+                      isConnected={liquidationConnected}
+                    />
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Trade Recommendations - Collapsible */}
-              <div className="space-y-4" data-tour="trade-signals">
+              {/* Trade Recommendations - Below Mode (Collapsible) */}
+              {tradeSignalsLayout === 'below' && (
+              <div className="space-y-4 mt-6" data-tour="trade-signals">
                 <CollapsibleSection
                   title="Trade Signale"
                   icon={<TrendingUp className="w-4 h-4" />}
@@ -1656,6 +1787,7 @@ export default function Home() {
                   />
                 </CollapsibleSection>
               </div>
+              )}
 
               </TabPanel>
 
@@ -1719,7 +1851,27 @@ export default function Home() {
               </div>
             </TabPanel>
 
-            {/* TAB 3: KI Reports */}
+            {/* TAB 3: Meme Coins */}
+            <TabPanel id="memecoins" activeTab={activeTab}>
+              <div data-tour="memecoins-tab">
+              <MemeCoinsPanel
+                onCoinSelect={(symbol) => {
+                  // Find or create the coin in our list and select it
+                  const existingCoin = marketData?.coins.find(c => c.symbol === symbol);
+                  if (existingCoin) {
+                    handleCoinSelect(existingCoin);
+                    setActiveTab('trading');
+                  } else {
+                    // Add as custom coin
+                    handleAddCustomCoin(symbol);
+                    setActiveTab('trading');
+                  }
+                }}
+              />
+              </div>
+            </TabPanel>
+
+            {/* TAB 4: KI Reports */}
             <TabPanel id="reports" activeTab={activeTab}>
               <div className="space-y-6">
                 {/* Report Generation Buttons */}
@@ -1805,7 +1957,7 @@ export default function Home() {
         <div className="space-y-4">
           {/* Fear & Greed Index */}
           {marketData?.fearGreed && (
-            <div className="bg-gray-800/50 rounded-lg p-4">
+            <div className="bg-gray-800/50 rounded-lg p-4" data-tour="fear-greed">
               <div className="text-sm text-gray-400 mb-2">Fear & Greed</div>
               <div className="flex items-center gap-3">
                 <div className={`text-3xl font-bold ${
@@ -1934,7 +2086,7 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Satoshi Avatar & Onboarding Tour */}
-      <Avatar />
+      <Avatar context={satoshiContext} />
       <OnboardingTour />
     </div>
     </HelpProvider>

@@ -14,12 +14,11 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface HeaderMenuProps {
   onRefresh?: () => void;
   isRefreshing?: boolean;
-  theme?: 'dark' | 'light';
-  onThemeToggle?: () => void;
   user?: { name?: string; email?: string } | null;
   onLogout?: () => void;
 }
@@ -27,11 +26,10 @@ interface HeaderMenuProps {
 export function HeaderMenu({
   onRefresh,
   isRefreshing = false,
-  theme = 'dark',
-  onThemeToggle,
   user,
   onLogout,
 }: HeaderMenuProps) {
+  const { theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -83,7 +81,7 @@ export function HeaderMenu({
       icon: theme === 'dark' ? Sun : Moon,
       label: theme === 'dark' ? 'Light Mode' : 'Dark Mode',
       onClick: () => {
-        onThemeToggle?.();
+        toggleTheme();
         setIsOpen(false);
       },
     },

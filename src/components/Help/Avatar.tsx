@@ -1,23 +1,60 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, HelpCircle, MessageCircle } from 'lucide-react';
+import { X, HelpCircle, MessageCircle, MessagesSquare, RotateCcw } from 'lucide-react';
 import { useHelp } from './HelpProvider';
+import { SatoshiChat } from './SatoshiChat';
+import { WelcomeSplash } from './WelcomeSplash';
+import { useSatoshiChat } from '@/hooks/useSatoshiChat';
+import { useSpeech } from '@/hooks/useSpeech';
+import type { SatoshiContext } from '@/lib/satoshi-responder';
 
 interface AvatarProps {
   message?: string;
   onMessageDismiss?: () => void;
+  context?: SatoshiContext;
 }
 
-export function Avatar({ message, onMessageDismiss }: AvatarProps) {
-  const { isMinimized, setIsMinimized, startTour, hasCompletedTour, showTour } = useHelp();
+export function Avatar({ message, onMessageDismiss, context }: AvatarProps) {
+  const { isMinimized, setIsMinimized, startTour, hasCompletedTour, showTour, showWelcomeBack, dismissWelcomeBack } = useHelp();
   const [isBlinking, setIsBlinking] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  // Default context wenn keiner übergeben wird
+  const defaultContext: SatoshiContext = {
+    selectedCoin: null,
+    tradeRecommendations: null,
+    tradeScores: null,
+    fearGreed: null,
+    futuresData: null,
+    topCoins: null,
+    allCoins: null,
+  };
+
+  // Chat Hook HIER aufrufen - bleibt persistent weil Avatar immer gemountet ist
+  const chatState = useSatoshiChat(context || defaultContext);
+
+  // TTS Hook
+  const { speak, isSpeaking, isEnabled: speechEnabled, toggleEnabled: toggleSpeech } = useSpeech();
+  const lastMessageCountRef = useRef(chatState.messages.length);
+
+  // Auto-speak neue Satoshi-Nachrichten
+  useEffect(() => {
+    const messages = chatState.messages;
+    if (messages.length > lastMessageCountRef.current) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage?.role === 'satoshi') {
+        speak(lastMessage.content);
+      }
+    }
+    lastMessageCountRef.current = messages.length;
+  }, [chatState.messages, speak]);
 
   // Random blinking animation
   useEffect(() => {
-    if (isMinimized || showTour) return;
+    if (isMinimized || showTour || chatOpen) return;
 
     const blink = () => {
       setIsBlinking(true);
@@ -31,12 +68,104 @@ export function Avatar({ message, onMessageDismiss }: AvatarProps) {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [isMinimized, showTour]);
+  }, [isMinimized, showTour, chatOpen]);
 
-  // Hide avatar during tour to avoid overlap
+  // During tour: Show avatar on LEFT side with speaking animation
   if (showTour) {
-    return null;
+    return (
+      <motion.div
+        initial={{ scale: 0, x: -50 }}
+        animate={{ scale: 1, x: 0 }}
+        exit={{ scale: 0, x: -50 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="fixed bottom-4 left-4 z-[60]"
+      >
+        <div className="relative w-16 h-20">
+          <svg viewBox="0 0 64 80" className="w-full h-full">
+            {/* Antenna - pulsing during tour */}
+            <motion.circle
+              cx="32"
+              cy="6"
+              r="4"
+              fill="#fbbf24"
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            />
+            <line x1="32" y1="10" x2="32" y2="18" stroke="#6b7280" strokeWidth="2" />
+
+            {/* Head */}
+            <rect x="12" y="18" width="40" height="30" rx="6" fill="#374151" stroke="#4b5563" strokeWidth="2" />
+
+            {/* Eyes - wider/excited during tour */}
+            <circle cx="22" cy="30" r="6" fill="#1f2937" />
+            <circle cx="42" cy="30" r="6" fill="#1f2937" />
+            <motion.circle
+              cx="22"
+              cy="30"
+              r="5"
+              fill="#60a5fa"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 0.8, repeat: Infinity }}
+            />
+            <motion.circle
+              cx="42"
+              cy="30"
+              r="5"
+              fill="#60a5fa"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 0.8, repeat: Infinity, delay: 0.2 }}
+            />
+            <circle cx="20" cy="28" r="1.5" fill="white" opacity="0.8" />
+            <circle cx="40" cy="28" r="1.5" fill="white" opacity="0.8" />
+
+            {/* Mouth - speaking animation during tour */}
+            <motion.path
+              d="M 24 40 Q 32 46 40 40"
+              stroke="#60a5fa"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+              animate={{ d: ['M 24 40 Q 32 46 40 40', 'M 24 40 Q 32 42 40 40', 'M 24 40 Q 32 46 40 40'] }}
+              transition={{ duration: 0.3, repeat: Infinity }}
+            />
+
+            {/* Body */}
+            <rect x="16" y="50" width="32" height="24" rx="4" fill="#374151" stroke="#4b5563" strokeWidth="2" />
+
+            {/* Body light - tour mode indicator */}
+            <motion.circle
+              cx="32"
+              cy="62"
+              r="6"
+              fill="#fbbf24"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            />
+            <text x="32" y="66" textAnchor="middle" fill="#1f2937" fontSize="10" fontWeight="bold">
+              💡
+            </text>
+          </svg>
+
+          {/* Glow effect */}
+          <div className="absolute inset-0 rounded-full bg-yellow-500/30 blur-xl -z-10" />
+        </div>
+      </motion.div>
+    );
   }
+
+  const handleAvatarClick = () => {
+    // Direkter Klick öffnet Chat
+    if (!showMenu) {
+      setChatOpen(true);
+    } else {
+      setShowMenu(false);
+    }
+  };
+
+  const handleRightClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowMenu(!showMenu);
+  };
 
   if (isMinimized) {
     return (
@@ -56,154 +185,180 @@ export function Avatar({ message, onMessageDismiss }: AvatarProps) {
   }
 
   return (
-    <motion.div
-      initial={{ scale: 0, y: 50 }}
-      animate={{ scale: 1, y: 0 }}
-      exit={{ scale: 0, y: 50 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="fixed bottom-4 right-4 z-50"
-    >
-      {/* Message Bubble */}
-      <AnimatePresence>
-        {message && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.9 }}
-            className="absolute bottom-full right-0 mb-3 w-72"
-          >
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-xl">
-              <button
-                onClick={onMessageDismiss}
-                className="absolute top-2 right-2 text-gray-500 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-              <p className="text-sm text-gray-200 pr-4">{message}</p>
-            </div>
-            {/* Speech bubble pointer */}
-            <div className="absolute bottom-0 right-8 w-4 h-4 bg-gray-800 border-r border-b border-gray-700 transform rotate-45 translate-y-2" />
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <>
+      {/* Welcome Back Splash Screen */}
+      <WelcomeSplash context={context} />
 
-      {/* Menu */}
-      <AnimatePresence>
-        {showMenu && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.9 }}
-            className="absolute bottom-full right-0 mb-3 w-48"
-          >
-            <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden shadow-xl">
-              <button
-                onClick={() => {
-                  startTour();
-                  setShowMenu(false);
-                }}
-                className="w-full px-4 py-3 text-left text-sm text-gray-200 hover:bg-gray-700 flex items-center gap-2"
-              >
-                <MessageCircle className="w-4 h-4" />
-                Tour starten
-              </button>
-              <button
-                onClick={() => {
-                  setIsMinimized(true);
-                  setShowMenu(false);
-                }}
-                className="w-full px-4 py-3 text-left text-sm text-gray-200 hover:bg-gray-700 flex items-center gap-2 border-t border-gray-700"
-              >
-                <X className="w-4 h-4" />
-                Minimieren
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Chat Window */}
+      <SatoshiChat
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        {...chatState}
+        speechEnabled={speechEnabled}
+        onToggleSpeech={toggleSpeech}
+        isSpeaking={isSpeaking}
+      />
 
-      {/* Robot Avatar */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setShowMenu(!showMenu)}
-        className="relative w-16 h-20 cursor-pointer focus:outline-none"
-        title="Klick mich!"
+      <motion.div
+        initial={{ scale: 0, y: 50 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0, y: 50 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="fixed bottom-4 right-4 z-50"
       >
-        {/* Robot SVG */}
-        <svg viewBox="0 0 64 80" className="w-full h-full">
-          {/* Antenna */}
-          <motion.circle
-            cx="32"
-            cy="6"
-            r="4"
-            fill="#fbbf24"
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-          <line x1="32" y1="10" x2="32" y2="18" stroke="#6b7280" strokeWidth="2" />
+        {/* Message Bubble */}
+        <AnimatePresence>
+          {message && !chatOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              className="absolute bottom-full right-0 mb-3 w-72"
+            >
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-xl">
+                <button
+                  onClick={onMessageDismiss}
+                  className="absolute top-2 right-2 text-gray-500 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <p className="text-sm text-gray-200 pr-4">{message}</p>
+              </div>
+              {/* Speech bubble pointer */}
+              <div className="absolute bottom-0 right-8 w-4 h-4 bg-gray-800 border-r border-b border-gray-700 transform rotate-45 translate-y-2" />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          {/* Head */}
-          <rect x="12" y="18" width="40" height="30" rx="6" fill="#374151" stroke="#4b5563" strokeWidth="2" />
+        {/* Menu */}
+        <AnimatePresence>
+          {showMenu && !chatOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              className="absolute bottom-full right-0 mb-3 w-48"
+            >
+              <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden shadow-xl">
+                <button
+                  onClick={() => {
+                    setChatOpen(true);
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm text-gray-200 hover:bg-gray-700 flex items-center gap-2"
+                >
+                  <MessagesSquare className="w-4 h-4" />
+                  Chat öffnen
+                </button>
+                <button
+                  onClick={() => {
+                    startTour();
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm text-gray-200 hover:bg-gray-700 flex items-center gap-2 border-t border-gray-700"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Tour starten
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMinimized(true);
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm text-gray-200 hover:bg-gray-700 flex items-center gap-2 border-t border-gray-700"
+                >
+                  <X className="w-4 h-4" />
+                  Minimieren
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          {/* Eyes */}
-          <motion.g animate={{ scaleY: isBlinking ? 0.1 : 1 }} style={{ transformOrigin: '32px 30px' }}>
-            <circle cx="22" cy="30" r="6" fill="#1f2937" />
-            <circle cx="42" cy="30" r="6" fill="#1f2937" />
+        {/* Robot Avatar */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleAvatarClick}
+          onContextMenu={handleRightClick}
+          className={`relative w-16 h-20 cursor-pointer focus:outline-none ${chatOpen ? 'opacity-50' : ''}`}
+          title={chatOpen ? 'Chat schließen' : 'Klick für Chat, Rechtsklick für Menü'}
+        >
+          {/* Robot SVG */}
+          <svg viewBox="0 0 64 80" className="w-full h-full">
+            {/* Antenna */}
             <motion.circle
-              cx="22"
-              cy="30"
+              cx="32"
+              cy="6"
               r="4"
-              fill="#60a5fa"
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
+              fill={chatOpen ? '#60a5fa' : '#fbbf24'}
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
             />
+            <line x1="32" y1="10" x2="32" y2="18" stroke="#6b7280" strokeWidth="2" />
+
+            {/* Head */}
+            <rect x="12" y="18" width="40" height="30" rx="6" fill="#374151" stroke="#4b5563" strokeWidth="2" />
+
+            {/* Eyes */}
+            <motion.g animate={{ scaleY: isBlinking ? 0.1 : 1 }} style={{ transformOrigin: '32px 30px' }}>
+              <circle cx="22" cy="30" r="6" fill="#1f2937" />
+              <circle cx="42" cy="30" r="6" fill="#1f2937" />
+              <motion.circle
+                cx="22"
+                cy="30"
+                r="4"
+                fill={chatOpen ? '#22c55e' : '#60a5fa'}
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+              <motion.circle
+                cx="42"
+                cy="30"
+                r="4"
+                fill={chatOpen ? '#22c55e' : '#60a5fa'}
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+              />
+              {/* Eye highlights */}
+              <circle cx="20" cy="28" r="1.5" fill="white" opacity="0.8" />
+              <circle cx="40" cy="28" r="1.5" fill="white" opacity="0.8" />
+            </motion.g>
+
+            {/* Mouth */}
+            <motion.path
+              d="M 24 40 Q 32 46 40 40"
+              stroke={chatOpen ? '#22c55e' : '#60a5fa'}
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+              animate={message || chatOpen ? { d: ['M 24 40 Q 32 46 40 40', 'M 24 40 Q 32 42 40 40', 'M 24 40 Q 32 46 40 40'] } : {}}
+              transition={{ duration: 0.3, repeat: message || chatOpen ? Infinity : 0 }}
+            />
+
+            {/* Body */}
+            <rect x="16" y="50" width="32" height="24" rx="4" fill="#374151" stroke="#4b5563" strokeWidth="2" />
+
+            {/* Body light/icon */}
             <motion.circle
-              cx="42"
-              cy="30"
-              r="4"
-              fill="#60a5fa"
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+              cx="32"
+              cy="62"
+              r="6"
+              fill={chatOpen ? '#22c55e' : '#fbbf24'}
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
             />
-            {/* Eye highlights */}
-            <circle cx="20" cy="28" r="1.5" fill="white" opacity="0.8" />
-            <circle cx="40" cy="28" r="1.5" fill="white" opacity="0.8" />
-          </motion.g>
 
-          {/* Mouth */}
-          <motion.path
-            d="M 24 40 Q 32 46 40 40"
-            stroke="#60a5fa"
-            strokeWidth="2"
-            fill="none"
-            strokeLinecap="round"
-            animate={message ? { d: ['M 24 40 Q 32 46 40 40', 'M 24 40 Q 32 42 40 40', 'M 24 40 Q 32 46 40 40'] } : {}}
-            transition={{ duration: 0.3, repeat: message ? Infinity : 0 }}
-          />
+            {/* Bitcoin symbol on body */}
+            <text x="32" y="66" textAnchor="middle" fill="#1f2937" fontSize="10" fontWeight="bold">
+              {chatOpen ? '...' : '₿'}
+            </text>
+          </svg>
 
-          {/* Body */}
-          <rect x="16" y="50" width="32" height="24" rx="4" fill="#374151" stroke="#4b5563" strokeWidth="2" />
-
-          {/* Body light/icon */}
-          <motion.circle
-            cx="32"
-            cy="62"
-            r="6"
-            fill="#fbbf24"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-
-          {/* Bitcoin symbol on body */}
-          <text x="32" y="66" textAnchor="middle" fill="#1f2937" fontSize="10" fontWeight="bold">
-            ₿
-          </text>
-        </svg>
-
-        {/* Glow effect */}
-        <div className="absolute inset-0 rounded-full bg-blue-500/20 blur-xl -z-10" />
-      </motion.button>
-    </motion.div>
+          {/* Glow effect */}
+          <div className={`absolute inset-0 rounded-full ${chatOpen ? 'bg-green-500/20' : 'bg-blue-500/20'} blur-xl -z-10`} />
+        </motion.button>
+      </motion.div>
+    </>
   );
 }

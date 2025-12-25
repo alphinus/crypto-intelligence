@@ -1,12 +1,12 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import {
   X,
   TrendingUp,
   TrendingDown,
   Minus,
   Target,
-  Shield,
   AlertTriangle,
   Sparkles,
   Clock,
@@ -15,9 +15,11 @@ import {
   Activity,
   Zap,
   ChevronRight,
+  FastForward,
 } from 'lucide-react';
 import type { CoinIntelligenceReport as CoinReport } from '@/lib/groq';
 import type { MarketData } from '@/types/news';
+import { AnimatedText } from './AnimatedText';
 
 interface CoinIntelligenceReportProps {
   report: CoinReport;
@@ -26,6 +28,15 @@ interface CoinIntelligenceReportProps {
 }
 
 export function CoinIntelligenceReport({ report, coin, onClose }: CoinIntelligenceReportProps) {
+  const [skipAnimation, setSkipAnimation] = useState(false);
+  const [animationComplete, setAnimationComplete] = useState(false);
+
+  // Reset animation when report changes
+  useEffect(() => {
+    setSkipAnimation(false);
+    setAnimationComplete(false);
+  }, [report.timestamp]);
+
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'bullish':
@@ -95,12 +106,24 @@ export function CoinIntelligenceReport({ report, coin, onClose }: CoinIntelligen
                 </div>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-400" />
-            </button>
+            <div className="flex items-center gap-2">
+              {!animationComplete && (
+                <button
+                  onClick={() => setSkipAnimation(true)}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-white hover:bg-gray-800 rounded transition-colors"
+                  title="Animation überspringen"
+                >
+                  <FastForward className="w-3 h-3" />
+                  <span className="hidden sm:inline">Skip</span>
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -120,9 +143,17 @@ export function CoinIntelligenceReport({ report, coin, onClose }: CoinIntelligen
             </div>
           </div>
 
-          {/* Summary */}
+          {/* Summary - Animated */}
           <div className="bg-gray-800/50 rounded-lg p-4">
-            <p className="text-gray-300 leading-relaxed">{report.summary}</p>
+            <AnimatedText
+              text={report.summary}
+              speed={35}
+              delay={300}
+              skip={skipAnimation}
+              onComplete={() => setAnimationComplete(true)}
+              className="text-gray-300 leading-relaxed"
+              showCursor={true}
+            />
           </div>
 
           {/* Technical Analysis */}

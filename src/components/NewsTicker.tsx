@@ -50,7 +50,7 @@ export function NewsTicker({ headlines }: NewsTickerProps) {
   const duplicatedHeadlines = [...headlines, ...headlines];
 
   return (
-    <div className="relative bg-gray-900/80 border-b border-gray-800 overflow-hidden">
+    <div className="relative z-30 bg-gray-900/80 border-b border-gray-800 overflow-hidden">
       <div className="flex items-center">
         {/* Label */}
         <div className="flex-shrink-0 px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase tracking-wider z-10">
@@ -67,7 +67,7 @@ export function NewsTicker({ headlines }: NewsTickerProps) {
           <div
             className={`flex gap-8 py-2 ticker-scroll ${isPaused ? 'paused' : ''}`}
             style={{
-              animation: `ticker ${headlines.length * 8}s linear infinite`,
+              animation: `ticker ${headlines.length * 5}s linear infinite`,
             }}
           >
             {duplicatedHeadlines.map((headline, index) => (

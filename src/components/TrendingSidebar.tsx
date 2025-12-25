@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { TrendingUp, TrendingDown, ChevronRight, Check, Plus, Search, X, Loader2 } from 'lucide-react';
-import { FearGreedMini } from './FearGreedMini';
+import { FearGreedLiquid } from './FearGreedLiquid';
 import type { MarketData, FearGreedIndex } from '@/types/news';
 
 interface TrendingSidebarProps {
@@ -70,14 +70,11 @@ export function TrendingSidebar({
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-900/50 border-r border-gray-800">
+    <div className="h-full flex flex-col bg-gray-900/50 border-r border-gray-800 z-20">
       {/* Fear & Greed Section */}
       {fearGreed && (
-        <div className="p-4 border-b border-gray-800">
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            Fear & Greed
-          </h3>
-          <FearGreedMini value={fearGreed.value} label={fearGreed.label} />
+        <div className="p-3 border-b border-gray-800">
+          <FearGreedLiquid value={fearGreed.value} classification={fearGreed.label} />
         </div>
       )}
 

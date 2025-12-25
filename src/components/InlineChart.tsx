@@ -117,6 +117,12 @@ function CandleCountdown({ timeframe }: { timeframe: string }) {
   );
 }
 
+interface ConfluenceZone {
+  price: number;
+  timeframes: string[];
+  type: 'support' | 'resistance';
+}
+
 interface InlineChartProps {
   symbol: string;
   klines: Kline[];
@@ -125,6 +131,8 @@ interface InlineChartProps {
   selectedTimeframe: Interval;
   onTimeframeChange: (tf: Interval) => void;
   height?: number;
+  theme?: 'dark' | 'light';
+  confluenceZones?: ConfluenceZone[];
 }
 
 // Note: 1m and 3m are hidden due to high latency (250-800ms) making them unsuitable for scalping
@@ -147,7 +155,10 @@ export function InlineChart({
   selectedTimeframe,
   onTimeframeChange,
   height = 450,
+  theme = 'dark',
+  confluenceZones = [],
 }: InlineChartProps) {
+  const isDark = theme === 'dark';
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -164,7 +175,7 @@ export function InlineChart({
     goldenZone: true,
     tradeZones: true,
   });
-  const [activeIndicators, setActiveIndicators] = useState<IndicatorType[]>([]);
+  const [activeIndicators, setActiveIndicators] = useState<IndicatorType[]>(['rsi', 'macd']);
   const [visibleRange, setVisibleRange] = useState<LogicalRange | null>(null);
 
   // Toggle individual overlay
@@ -303,38 +314,39 @@ export function InlineChart({
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#111827' },
-        textColor: '#9ca3af',
+        background: { type: ColorType.Solid, color: isDark ? '#111827' : '#ffffff' },
+        textColor: isDark ? '#9ca3af' : '#374151',
       },
       grid: {
-        vertLines: { color: '#1f2937' },
-        horzLines: { color: '#1f2937' },
+        vertLines: { color: isDark ? '#1f2937' : '#e5e7eb' },
+        horzLines: { color: isDark ? '#1f2937' : '#e5e7eb' },
       },
       crosshair: {
         mode: CrosshairMode.Normal,
         vertLine: {
-          color: '#4b5563',
+          color: isDark ? '#4b5563' : '#9ca3af',
           width: 1,
           style: LineStyle.Dashed,
         },
         horzLine: {
-          color: '#4b5563',
+          color: isDark ? '#4b5563' : '#9ca3af',
           width: 1,
           style: LineStyle.Dashed,
         },
       },
       rightPriceScale: {
-        borderColor: '#1f2937',
+        borderColor: isDark ? '#1f2937' : '#e5e7eb',
         scaleMargins: {
           top: 0.1,
           bottom: 0.1,
         },
       },
       timeScale: {
-        borderColor: '#1f2937',
+        borderColor: isDark ? '#1f2937' : '#e5e7eb',
         timeVisible: true,
         secondsVisible: false,
-        rightOffset: 12, // 10-15 Kerzen Abstand rechts für Price Label
+        rightOffset: 15, // 10-15 Kerzen Abstand rechts für Price Label
+        barSpacing: 6,
       },
       width: chartContainerRef.current.clientWidth,
       height: height,
@@ -375,7 +387,7 @@ export function InlineChart({
       candlestickSeriesRef.current = null;
       setIsReady(false);
     };
-  }, [height, symbol, clearPriceLines, clearEmaSeries, clearGoldenZoneSeries, clearTpZoneSeries, clearSlZoneSeries]);
+  }, [height, symbol, isDark, clearPriceLines, clearEmaSeries, clearGoldenZoneSeries, clearTpZoneSeries, clearSlZoneSeries]);
 
   // Klines Daten setzen
   useEffect(() => {
@@ -396,6 +408,17 @@ export function InlineChart({
       chartRef.current.timeScale().fitContent();
     }
   }, [klines, isReady]);
+
+  // Auto-zoom when symbol changes
+  useEffect(() => {
+    if (chartRef.current && isReady && klines.length > 0) {
+      // Small delay to ensure data is loaded before fitting
+      const timeout = setTimeout(() => {
+        chartRef.current?.timeScale().fitContent();
+      }, 50);
+      return () => clearTimeout(timeout);
+    }
+  }, [symbol, isReady]);
 
   // Subscribe to visible range changes for indicator sync
   useEffect(() => {
@@ -693,7 +716,27 @@ export function InlineChart({
       });
     }
 
-  }, [technicalLevels, tradeSetup, goldenZone, klines, isReady, calculatedEmas, clearPriceLines, clearGoldenZoneSeries, clearTpZoneSeries, clearSlZoneSeries, overlayVisibility]);
+    // Confluence Zones - show strong multi-timeframe levels
+    if (confluenceZones && confluenceZones.length > 0) {
+      // Only show top 3 confluence zones to avoid clutter
+      confluenceZones.slice(0, 3).forEach((zone) => {
+        const isSupport = zone.type === 'support';
+        const strength = zone.timeframes.length;
+        const lineWidth = strength >= 4 ? 2 : 1;
+
+        const priceLine = candlestickSeriesRef.current!.createPriceLine({
+          price: zone.price,
+          color: isSupport ? 'rgba(168, 85, 247, 0.8)' : 'rgba(236, 72, 153, 0.8)', // Purple for support, Pink for resistance
+          lineWidth,
+          lineStyle: LineStyle.Solid,
+          axisLabelVisible: true,
+          title: `${isSupport ? 'CS' : 'CR'}${strength}`, // CS = Confluence Support, CR = Confluence Resistance
+        });
+        priceLinesRef.current.push(priceLine);
+      });
+    }
+
+  }, [technicalLevels, tradeSetup, goldenZone, klines, isReady, calculatedEmas, clearPriceLines, clearGoldenZoneSeries, clearTpZoneSeries, clearSlZoneSeries, overlayVisibility, confluenceZones]);
 
   // Aktueller Preis und Trend
   const currentPrice = klines.length > 0 ? klines[klines.length - 1].close : 0;
@@ -701,14 +744,21 @@ export function InlineChart({
     ? ((currentPrice - klines[0].close) / klines[0].close) * 100
     : 0;
 
-  // Format price based on magnitude
+  // Format price based on magnitude - improved for shitcoins
   const formatPrice = (price: number) => {
-    if (price >= 1000) {
+    if (price >= 10000) {
       return price.toLocaleString('en-US', { maximumFractionDigits: 0 });
-    } else if (price >= 1) {
+    } else if (price >= 100) {
       return price.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    } else if (price >= 1) {
+      return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    } else if (price >= 0.01) {
+      return price.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
+    } else if (price >= 0.0001) {
+      return price.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 8 });
     } else {
-      return price.toLocaleString('en-US', { maximumFractionDigits: 6 });
+      // Very small prices (shitcoins like PEPE, SHIB)
+      return price.toLocaleString('en-US', { minimumFractionDigits: 8, maximumFractionDigits: 10 });
     }
   };
 
@@ -1025,6 +1075,7 @@ export function InlineChart({
           onRemoveIndicator={removeIndicator}
           visibleRange={visibleRange}
           onVisibleRangeChange={handleVisibleRangeChange}
+          theme={theme}
         />
       )}
     </div>
