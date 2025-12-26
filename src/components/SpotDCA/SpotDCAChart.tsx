@@ -224,7 +224,18 @@ export function SpotDCAChart({
             candlestickSeriesRef.current = null;
             setIsReady(false);
         };
-    }, [height, isDark, clearPriceLines, clearEmaSeries, clearGoldenZoneSeries]);
+    }, [height, isDark, symbol, clearPriceLines, clearEmaSeries, clearGoldenZoneSeries]);
+
+    // Auto-zoom when symbol or timeframe changes
+    useEffect(() => {
+        if (chartRef.current && isReady && klines.length > 0) {
+            // Small delay to ensure data is loaded before fitting
+            const timeout = setTimeout(() => {
+                chartRef.current?.timeScale().fitContent();
+            }, 50);
+            return () => clearTimeout(timeout);
+        }
+    }, [symbol, selectedTimeframe, isReady, klines.length]);
 
     // Set klines data
     useEffect(() => {
