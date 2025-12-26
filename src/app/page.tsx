@@ -35,6 +35,7 @@ import { MobileDrawer } from '@/components/MobileDrawer';
 import { MemeCoinsPanel } from '@/components/MemeCoinsPanel';
 import { CoinSelectorBar } from '@/components/CoinSelectorBar';
 import { SimulatorPanel } from '@/components/SimulatorPanel';
+import { SpotDCAPanel } from '@/components/SpotDCA';
 import { TabNavigation, type TabId } from '@/components/Layout/TabNavigation';
 import { TabPanel } from '@/components/Layout/TabPanel';
 import { AnimatePresence } from 'framer-motion';
@@ -1462,8 +1463,8 @@ export default function Home() {
                 {/* WebSocket Status */}
                 <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded text-xs" title={`WebSocket: ${connectionState}`}>
                   <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' :
-                      connectionState === 'connecting' ? 'bg-yellow-500 animate-pulse' :
-                        'bg-red-500'
+                    connectionState === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+                      'bg-red-500'
                     }`}></div>
                   <span className="text-gray-400 text-[10px]">LIVE</span>
                 </div>
@@ -1603,8 +1604,8 @@ export default function Home() {
                     <button
                       onClick={() => setTradeSignalsLayout('below')}
                       className={`p-1.5 rounded transition-colors ${tradeSignalsLayout === 'below'
-                          ? 'bg-blue-600 text-white'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
                         }`}
                       title="Signale unterhalb vom Chart"
                     >
@@ -1613,8 +1614,8 @@ export default function Home() {
                     <button
                       onClick={() => setTradeSignalsLayout('sidebar')}
                       className={`p-1.5 rounded transition-colors ${tradeSignalsLayout === 'sidebar'
-                          ? 'bg-blue-600 text-white'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
                         }`}
                       title="Signale als rechte Spalte"
                     >
@@ -1874,7 +1875,17 @@ export default function Home() {
                 <SimulatorPanel />
               </TabPanel>
 
-              {/* TAB 4: KI Reports */}
+              {/* TAB 5: Spot DCA */}
+              <TabPanel id="spotdca" activeTab={activeTab}>
+                <SpotDCAPanel
+                  coins={marketData?.coins || []}
+                  fearGreed={marketData?.fearGreed || null}
+                  selectedCoin={selectedAnalysisCoin}
+                  onCoinSelect={handleCoinSelect}
+                />
+              </TabPanel>
+
+              {/* TAB 6: KI Reports */}
               <TabPanel id="reports" activeTab={activeTab}>
                 <div className="space-y-6">
                   {/* Report Generation Buttons */}
@@ -1964,10 +1975,10 @@ export default function Home() {
                 <div className="text-sm text-gray-400 mb-2">Fear & Greed</div>
                 <div className="flex items-center gap-3">
                   <div className={`text-3xl font-bold ${marketData.fearGreed.value <= 25 ? 'text-red-500' :
-                      marketData.fearGreed.value <= 45 ? 'text-orange-500' :
-                        marketData.fearGreed.value <= 55 ? 'text-yellow-500' :
-                          marketData.fearGreed.value <= 75 ? 'text-lime-500' :
-                            'text-green-500'
+                    marketData.fearGreed.value <= 45 ? 'text-orange-500' :
+                      marketData.fearGreed.value <= 55 ? 'text-yellow-500' :
+                        marketData.fearGreed.value <= 75 ? 'text-lime-500' :
+                          'text-green-500'
                     }`}>
                     {marketData.fearGreed.value}
                   </div>
@@ -1988,8 +1999,8 @@ export default function Home() {
                       setMobileDrawerOpen(false);
                     }}
                     className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${selectedAnalysisCoin?.symbol === coin.symbol
-                        ? 'bg-blue-600/20 border border-blue-500/50'
-                        : 'bg-gray-800/50 hover:bg-gray-700/50'
+                      ? 'bg-blue-600/20 border border-blue-500/50'
+                      : 'bg-gray-800/50 hover:bg-gray-700/50'
                       }`}
                   >
                     <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />

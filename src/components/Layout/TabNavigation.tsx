@@ -1,9 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { BarChart2, MessageSquare, Brain, Rocket } from 'lucide-react';
+import { BarChart2, MessageSquare, Brain, Rocket, PiggyBank } from 'lucide-react';
 
-export type TabId = 'trading' | 'sentiment' | 'reports' | 'memecoins' | 'simulator';
+export type TabId = 'trading' | 'sentiment' | 'reports' | 'memecoins' | 'simulator' | 'spotdca';
 
 interface Tab {
   id: TabId;
@@ -41,6 +41,13 @@ const TABS: Tab[] = [
     shortLabel: 'Sim',
     icon: <Rocket className="w-4 h-4 text-yellow-400" />,
     description: 'Coin Creator & Trading Simulator (Lehrreich)',
+  },
+  {
+    id: 'spotdca',
+    label: 'Spot DCA',
+    shortLabel: 'DCA',
+    icon: <PiggyBank className="w-4 h-4 text-green-400" />,
+    description: 'Dollar Cost Average Optimierung für Spot-Käufe',
   },
   {
     id: 'reports',
