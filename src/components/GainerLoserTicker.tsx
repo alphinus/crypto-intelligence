@@ -93,7 +93,7 @@ export function GainerLoserTicker({ coins, onCoinClick }: GainerLoserTickerProps
           onMouseLeave={() => setIsPaused(false)}
         >
           <div
-            className={`flex gap-4 py-1.5 gainer-ticker-scroll ${isPaused ? 'paused' : ''}`}
+            className={`flex gap-5 py-1.5 gainer-ticker-scroll ${isPaused ? 'paused' : ''}`}
             style={{
               animation: `gainer-ticker ${tickerItems.length * 3}s linear infinite`,
             }}
@@ -102,11 +102,10 @@ export function GainerLoserTicker({ coins, onCoinClick }: GainerLoserTickerProps
               <button
                 key={`${item.symbol}-${index}`}
                 onClick={() => onCoinClick?.(item.symbol.toUpperCase())}
-                className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border transition-all whitespace-nowrap hover:scale-105 ${
-                  item.category === 'gainer'
+                className={`flex-shrink-0 flex items-center gap-2 px-4 py-1.5 rounded-lg border transition-all hover:scale-105 ${item.category === 'gainer'
                     ? 'border-green-500/30 bg-green-900/20 hover:bg-green-900/40'
                     : 'border-red-500/30 bg-red-900/20 hover:bg-red-900/40'
-                }`}
+                  }`}
               >
                 {item.image && (
                   <img
@@ -121,9 +120,8 @@ export function GainerLoserTicker({ coins, onCoinClick }: GainerLoserTickerProps
                 <span className="text-[10px] text-gray-400">
                   ${formatPrice(item.price)}
                 </span>
-                <span className={`text-xs font-bold ${
-                  item.change24h >= 0 ? 'text-green-400' : 'text-red-400'
-                }`}>
+                <span className={`text-xs font-bold ${item.change24h >= 0 ? 'text-green-400' : 'text-red-400'
+                  }`}>
                   {formatChange(item.change24h)}
                 </span>
               </button>
