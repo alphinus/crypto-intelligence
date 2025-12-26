@@ -2,8 +2,9 @@
 // Fallback zu Binance.US wenn internationale API geblockt ist (HTTP 451 in USA)
 
 const BINANCE_URLS = [
-  'https://api.binance.com/api/v3',  // International
-  'https://api.binance.us/api/v3',   // US Fallback
+  'https://api.binance.com/api/v3',       // International
+  'https://api.binance.us/api/v3',        // US Fallback
+  'https://data-api.binance.vision/api/v3', // Vision API (often works when others blocked)
 ];
 
 export type Interval = '1m' | '3m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d' | '1w';
@@ -875,7 +876,7 @@ export function detectDivergence(
       const rsiLows = rsiSwings.lows.slice(-2);
 
       if (priceLows[1].value < priceLows[0].value &&
-          rsiLows[1].value > rsiLows[0].value) {
+        rsiLows[1].value > rsiLows[0].value) {
         rsiDivergence = {
           type: 'bullish',
           indicator: 'rsi',
@@ -893,7 +894,7 @@ export function detectDivergence(
       const rsiHighs = rsiSwings.highs.slice(-2);
 
       if (priceHighs[1].value > priceHighs[0].value &&
-          rsiHighs[1].value < rsiHighs[0].value) {
+        rsiHighs[1].value < rsiHighs[0].value) {
         rsiDivergence = {
           type: 'bearish',
           indicator: 'rsi',
@@ -917,7 +918,7 @@ export function detectDivergence(
       const histLows = histSwings.lows.slice(-2);
 
       if (priceLows[1].value < priceLows[0].value &&
-          histLows[1].value > histLows[0].value) {
+        histLows[1].value > histLows[0].value) {
         macdDivergence = {
           type: 'bullish',
           indicator: 'macd',
@@ -935,7 +936,7 @@ export function detectDivergence(
       const histHighs = histSwings.highs.slice(-2);
 
       if (priceHighs[1].value > priceHighs[0].value &&
-          histHighs[1].value < histHighs[0].value) {
+        histHighs[1].value < histHighs[0].value) {
         macdDivergence = {
           type: 'bearish',
           indicator: 'macd',

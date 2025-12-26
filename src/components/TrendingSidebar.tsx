@@ -1,8 +1,6 @@
-'use client';
-
 import { useState } from 'react';
 import { TrendingUp, TrendingDown, ChevronRight, Check, Plus, Search, X, Loader2 } from 'lucide-react';
-import { FearGreedLiquid } from './FearGreedLiquid';
+import { FearGreedCompact } from './FearGreedCompact';
 import type { MarketData, FearGreedIndex } from '@/types/news';
 
 interface TrendingSidebarProps {
@@ -71,11 +69,12 @@ export function TrendingSidebar({
 
   return (
     <div className="h-full flex flex-col bg-gray-900/50 border-r border-gray-800 z-20">
-      {/* Fear & Greed Section */}
+      {/* Fear & Greed Section - Compact Premium */}
       {fearGreed && (
-        <div className="p-3 border-b border-gray-800">
-          <FearGreedLiquid value={fearGreed.value} classification={fearGreed.label} />
-        </div>
+        <FearGreedCompact
+          value={fearGreed.value}
+          classification={fearGreed.label}
+        />
       )}
 
       {/* Add Custom Coin Section */}
@@ -131,20 +130,18 @@ export function TrendingSidebar({
             {customCoins.map((coin) => (
               <div
                 key={`custom-${coin.symbol}`}
-                className={`flex items-center gap-2 p-2 rounded-lg transition-all ${
-                  isSelected(coin)
-                    ? 'bg-purple-600/20 border border-purple-500/50'
-                    : 'hover:bg-gray-800/50 border border-transparent'
-                }`}
+                className={`flex items-center gap-2 p-2 rounded-lg transition-all ${isSelected(coin)
+                  ? 'bg-purple-600/20 border border-purple-500/50'
+                  : 'hover:bg-gray-800/50 border border-transparent'
+                  }`}
               >
                 <button
                   onClick={() => onCoinSelect(coin)}
                   className="flex-1 flex items-center gap-2 text-left"
                 >
                   <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                      isSelected(coin) ? 'border-purple-500 bg-purple-500' : 'border-gray-600'
-                    }`}
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isSelected(coin) ? 'border-purple-500 bg-purple-500' : 'border-gray-600'
+                      }`}
                   >
                     {isSelected(coin) && <Check className="w-2.5 h-2.5 text-white" />}
                   </div>
@@ -186,11 +183,10 @@ export function TrendingSidebar({
             {coins.slice(0, 20).map((coin, index) => (
               <div
                 key={coin.id || `coin-${coin.symbol}-${index}`}
-                className={`flex items-center gap-2 p-2 rounded-lg transition-all ${
-                  isSelected(coin)
-                    ? 'bg-blue-600/20 border border-blue-500/50'
-                    : 'hover:bg-gray-800/50 border border-transparent'
-                }`}
+                className={`flex items-center gap-2 p-2 rounded-lg transition-all ${isSelected(coin)
+                  ? 'bg-blue-600/20 border border-blue-500/50'
+                  : 'hover:bg-gray-800/50 border border-transparent'
+                  }`}
               >
                 {/* Main clickable area - selects coin for analysis */}
                 <button
@@ -200,11 +196,10 @@ export function TrendingSidebar({
                 >
                   {/* Selection indicator */}
                   <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                      isSelected(coin)
-                        ? 'border-blue-500 bg-blue-500'
-                        : 'border-gray-600 hover:border-gray-500'
-                    }`}
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isSelected(coin)
+                      ? 'border-blue-500 bg-blue-500'
+                      : 'border-gray-600 hover:border-gray-500'
+                      }`}
                   >
                     {isSelected(coin) && <Check className="w-2.5 h-2.5 text-white" />}
                   </div>
@@ -234,9 +229,8 @@ export function TrendingSidebar({
                   <div className="text-right">
                     <div className="text-xs text-white">{formatPrice(coin.price)}</div>
                     <div
-                      className={`text-[10px] ${
-                        coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'
-                      }`}
+                      className={`text-[10px] ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'
+                        }`}
                     >
                       {formatChange(coin.change24h)}
                     </div>

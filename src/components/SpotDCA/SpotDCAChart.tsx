@@ -113,7 +113,7 @@ export function SpotDCAChart({
         };
     }, [technicalLevels?.fibonacci]);
 
-    // Clear functions
+    // Clear functions - Identical to InlineChart
     const clearPriceLines = useCallback(() => {
         priceLinesRef.current.forEach((line) => {
             try {
@@ -141,7 +141,7 @@ export function SpotDCAChart({
         }
     }, []);
 
-    // Create chart
+    // Create chart - 1:1 Copy from InlineChart configuration
     useEffect(() => {
         if (!chartContainerRef.current) return;
 
@@ -176,7 +176,7 @@ export function SpotDCAChart({
                 timeVisible: true,
                 secondsVisible: false,
                 rightOffset: 15,
-                barSpacing: 8,
+                barSpacing: 6, // Matches InlineChart
             },
             handleScroll: {
                 mouseWheel: false,
@@ -193,6 +193,7 @@ export function SpotDCAChart({
             height: height,
         });
 
+        // Candlestick Series
         const candlestickSeries = chart.addSeries(CandlestickSeries, {
             upColor: '#22c55e',
             downColor: '#ef4444',
@@ -206,6 +207,7 @@ export function SpotDCAChart({
         candlestickSeriesRef.current = candlestickSeries;
         setIsReady(true);
 
+        // ResizeObserver
         const resizeObserver = new ResizeObserver((entries) => {
             if (entries[0]?.contentRect && chartRef.current) {
                 chartRef.current.applyOptions({ width: entries[0].contentRect.width });
@@ -228,10 +230,9 @@ export function SpotDCAChart({
         };
     }, [height, isDark, symbol, clearPriceLines, clearEmaSeries, clearGoldenZoneSeries]);
 
-    // Auto-zoom when symbol or timeframe changes
+    // Auto-zoom logic - 1:1 from InlineChart
     useEffect(() => {
         if (chartRef.current && isReady && klines.length > 0) {
-            // Small delay to ensure data is loaded before fitting
             const timeout = setTimeout(() => {
                 chartRef.current?.timeScale().fitContent();
             }, 50);
@@ -239,7 +240,7 @@ export function SpotDCAChart({
         }
     }, [symbol, selectedTimeframe, isReady, klines.length]);
 
-    // Set klines data
+    // Set klines data - 1:1 from InlineChart
     useEffect(() => {
         if (!candlestickSeriesRef.current || !isReady || klines.length === 0) return;
 
@@ -461,7 +462,7 @@ export function SpotDCAChart({
             </div>
 
             {/* Chart Container */}
-            <div ref={chartContainerRef} className="w-full" />
+            <div ref={chartContainerRef} className="w-full" style={{ height }} />
         </div>
     );
 }

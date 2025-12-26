@@ -63,9 +63,16 @@ export function SpotDCAPanel({
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.success && data.klines) {
+                    if (data.success && data.klines && Array.isArray(data.klines)) {
+                        console.log('SpotDCAPanel: Klines fetched successfully', data.klines.length);
                         setKlines(data.klines);
+                    } else {
+                        console.error('SpotDCAPanel: Invalid klines format', data);
+                        setKlines([]);
                     }
+                } else {
+                    console.error('SpotDCAPanel: Fetch failed', response.status);
+                    setKlines([]);
                 }
             } catch (error) {
                 console.error('Error fetching klines:', error);

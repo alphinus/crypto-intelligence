@@ -1524,9 +1524,9 @@ export default function Home() {
 
         {/* Main Layout - Flex Container ensuring full height and equal columns */}
         <div className="flex min-h-[calc(100vh-177px)] items-stretch">
-          {/* Left Sidebar - Sticky instead of Fixed */}
+          {/* Left Sidebar - Sticky with dynamic offset to handle scrolling tickers */}
           <aside className="hidden lg:block w-64 flex-shrink-0 border-r border-gray-800 bg-gray-900/50 relative z-20" data-tour="sidebar">
-            <div className="sticky top-[177px] h-[calc(100vh-177px)] overflow-hidden">
+            <div className="sticky top-[65px] h-[calc(100vh-65px)] overflow-hidden">
               {marketData && (
                 <TrendingSidebar
                   coins={marketData.coins}
@@ -1673,44 +1673,46 @@ export default function Home() {
                     )}
                   </div>
 
-                  {/* Trade Recommendations - Sidebar Mode */}
+                  {/* Trade Recommendations - Sidebar Mode - Full Height */}
                   {tradeSignalsLayout === 'sidebar' && (
-                    <div className="w-80 flex-shrink-0 border-l border-gray-800 pl-4 overflow-y-auto max-h-[calc(100vh-200px)] space-y-4" data-tour="trade-signals">
-                      <TradeRecommendations
-                        recommendations={tradeRecommendations}
-                        scores={tradeScores}
-                        hedgeRecommendation={hedgeRecommendation}
-                        currentPrice={selectedAnalysisCoin?.price || btcPrice}
-                        coinSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
-                        coinImage={selectedAnalysisCoin?.image}
-                        loading={loadingTrades}
-                        onCardClick={() => {
-                          if (selectedAnalysisCoin) setModalCoin(selectedAnalysisCoin);
-                        }}
-                        sentimentConflict={sentimentConflict}
-                        sentimentSignal={currentSentimentSignal}
-                        sentimentMode={sentimentMode}
-                        layout="stacked"
-                      />
+                    <div className="w-80 flex-shrink-0 border-l border-gray-800 pl-4 flex flex-col h-full" data-tour="trade-signals">
+                      <div className="flex-1 overflow-y-auto pr-1">
+                        <TradeRecommendations
+                          recommendations={tradeRecommendations}
+                          scores={tradeScores}
+                          hedgeRecommendation={hedgeRecommendation}
+                          currentPrice={selectedAnalysisCoin?.price || btcPrice}
+                          coinSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
+                          coinImage={selectedAnalysisCoin?.image}
+                          loading={loadingTrades}
+                          onCardClick={() => {
+                            if (selectedAnalysisCoin) setModalCoin(selectedAnalysisCoin);
+                          }}
+                          sentimentConflict={sentimentConflict}
+                          sentimentSignal={currentSentimentSignal}
+                          sentimentMode={sentimentMode}
+                          layout="stacked"
+                        />
 
-                      {/* Confluence Zones in Sidebar */}
-                      {confluenceZones.length > 0 && (
-                        <div data-tour="confluence">
-                          <ConfluenceWidget
-                            zones={confluenceZones}
-                            currentPrice={multiTimeframe?.currentPrice || selectedAnalysisCoin?.price || 0}
+                        {/* Confluence Zones in Sidebar */}
+                        {confluenceZones.length > 0 && (
+                          <div data-tour="confluence">
+                            <ConfluenceWidget
+                              zones={confluenceZones}
+                              currentPrice={multiTimeframe?.currentPrice || selectedAnalysisCoin?.price || 0}
+                            />
+                          </div>
+                        )}
+
+                        {/* Liquidations Mini in Sidebar */}
+                        <div data-tour="liquidations">
+                          <LiquidationMini
+                            stats={liquidationStats}
+                            levels={liquidationLevels}
+                            currentPrice={multiTimeframe?.currentPrice || 0}
+                            isConnected={liquidationConnected}
                           />
                         </div>
-                      )}
-
-                      {/* Liquidations Mini in Sidebar */}
-                      <div data-tour="liquidations">
-                        <LiquidationMini
-                          stats={liquidationStats}
-                          levels={liquidationLevels}
-                          currentPrice={multiTimeframe?.currentPrice || 0}
-                          isConnected={liquidationConnected}
-                        />
                       </div>
                     </div>
                   )}
@@ -2045,51 +2047,59 @@ export default function Home() {
         </footer>
 
         {/* Intelligence Report Modal */}
-        {intelligenceReport && !showPresentation && (
-          <IntelligenceReport
-            report={intelligenceReport}
-            technicalLevels={technicalLevels || undefined}
-            multiTimeframe={multiTimeframe || undefined}
-            fearGreed={marketData?.fearGreed?.value}
-            topCoins={marketData?.coins.slice(0, 5).map(c => ({ symbol: c.symbol, change24h: c.change24h }))}
-            onClose={() => setIntelligenceReport(null)}
-            onOpenPresentation={() => setShowPresentation(true)}
-          />
-        )}
+        {
+          intelligenceReport && !showPresentation && (
+            <IntelligenceReport
+              report={intelligenceReport}
+              technicalLevels={technicalLevels || undefined}
+              multiTimeframe={multiTimeframe || undefined}
+              fearGreed={marketData?.fearGreed?.value}
+              topCoins={marketData?.coins.slice(0, 5).map(c => ({ symbol: c.symbol, change24h: c.change24h }))}
+              onClose={() => setIntelligenceReport(null)}
+              onOpenPresentation={() => setShowPresentation(true)}
+            />
+          )
+        }
 
         {/* Presentation Mode */}
-        {showPresentation && intelligenceReport && (
-          <PresentationMode
-            report={intelligenceReport}
-            technicalLevels={technicalLevels || undefined}
-            multiTimeframe={multiTimeframe || undefined}
-            fearGreed={marketData?.fearGreed?.value}
-            topCoins={marketData?.coins.slice(0, 5).map(c => ({ symbol: c.symbol, change24h: c.change24h }))}
-            onClose={() => setShowPresentation(false)}
-          />
-        )}
+        {
+          showPresentation && intelligenceReport && (
+            <PresentationMode
+              report={intelligenceReport}
+              technicalLevels={technicalLevels || undefined}
+              multiTimeframe={multiTimeframe || undefined}
+              fearGreed={marketData?.fearGreed?.value}
+              topCoins={marketData?.coins.slice(0, 5).map(c => ({ symbol: c.symbol, change24h: c.change24h }))}
+              onClose={() => setShowPresentation(false)}
+            />
+          )
+        }
 
         {/* Coin Detail Modal */}
-        {modalCoin && (
-          <CoinDetailModal
-            coin={modalCoin}
-            onClose={() => setModalCoin(null)}
-            tradeRecommendations={
-              modalCoin.symbol === selectedAnalysisCoin?.symbol
-                ? tradeRecommendations
-                : undefined
-            }
-          />
-        )}
+        {
+          modalCoin && (
+            <CoinDetailModal
+              coin={modalCoin}
+              onClose={() => setModalCoin(null)}
+              tradeRecommendations={
+                modalCoin.symbol === selectedAnalysisCoin?.symbol
+                  ? tradeRecommendations
+                  : undefined
+              }
+            />
+          )
+        }
 
         {/* Coin Intelligence Report Modal */}
-        {coinReport && selectedAnalysisCoin && (
-          <CoinIntelligenceReport
-            report={coinReport}
-            coin={selectedAnalysisCoin}
-            onClose={() => setCoinReport(null)}
-          />
-        )}
+        {
+          coinReport && selectedAnalysisCoin && (
+            <CoinIntelligenceReport
+              report={coinReport}
+              coin={selectedAnalysisCoin}
+              onClose={() => setCoinReport(null)}
+            />
+          )
+        }
 
         {/* Alert Notifications (Toast) */}
         <AnimatePresence>
@@ -2102,7 +2112,7 @@ export default function Home() {
         {/* Satoshi Avatar & Onboarding Tour */}
         <Avatar context={satoshiContext} />
         <OnboardingTour />
-      </div>
-    </HelpProvider>
+      </div >
+    </HelpProvider >
   );
 }
