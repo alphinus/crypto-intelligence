@@ -82,6 +82,17 @@ export function MACDIndicator({
         horzLine: { color: isDark ? '#6b7280' : '#9ca3af', style: LineStyle.Dashed },
         vertLine: { color: isDark ? '#6b7280' : '#9ca3af', style: LineStyle.Dashed },
       },
+      handleScroll: {
+        mouseWheel: false,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: false,
+      },
+      handleScale: {
+        mouseWheel: false,
+        pinch: true,
+        axisPressedMouseMove: true,
+      },
     });
 
     chartRef.current = chart;

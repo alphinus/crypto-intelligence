@@ -240,10 +240,10 @@ export function SpotDCAPanel({
                 ))}
             </div>
 
-            {/* Main Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Chart Column */}
-                <div className="lg:col-span-8 space-y-4">
+            {/* Main Grid - Full Width Chart */}
+            <div className="space-y-6">
+                {/* Chart - Full Width */}
+                <div className="space-y-4">
                     {loading ? (
                         <div className="flex items-center justify-center h-[450px] bg-gray-900/50 rounded-lg">
                             <RefreshCw className="w-8 h-8 text-gray-500 animate-spin" />
@@ -283,8 +283,8 @@ export function SpotDCAPanel({
                     )}
                 </div>
 
-                {/* Sidebar Column */}
-                <div className="lg:col-span-4 space-y-6">
+                {/* DCA Info Row - Zone Indicator and Calculator side by side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Zone Indicator */}
                     {currentZone && <ZoneIndicator zone={currentZone} />}
 
