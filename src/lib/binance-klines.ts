@@ -153,20 +153,21 @@ export interface EMAData {
 
 // EMA Berechnung
 export function calculateEMA(data: number[], period: number): number[] {
-  const ema: number[] = [];
+  if (data.length < period) return new Array(data.length).fill(NaN);
+
+  const ema: number[] = new Array(data.length).fill(NaN);
   const multiplier = 2 / (period + 1);
 
-  // Erste EMA ist SMA
+  // Initial SMA for first value
   let sum = 0;
-  for (let i = 0; i < period && i < data.length; i++) {
+  for (let i = 0; i < period; i++) {
     sum += data[i];
   }
-  ema.push(sum / Math.min(period, data.length));
+  ema[period - 1] = sum / period;
 
-  // Rest der EMAs
+  // Rest of the EMAs
   for (let i = period; i < data.length; i++) {
-    const newEma = (data[i] - ema[ema.length - 1]) * multiplier + ema[ema.length - 1];
-    ema.push(newEma);
+    ema[i] = (data[i] - ema[i - 1]) * multiplier + ema[i - 1];
   }
 
   return ema;
@@ -201,15 +202,15 @@ export interface RSIData {
 
 // RSI Berechnung (Relative Strength Index)
 export function calculateRSI(closes: number[], period: number = 14): RSIData {
+  const rsiValues: number[] = new Array(closes.length).fill(NaN);
+
   if (closes.length < period + 1) {
-    return { values: [], current: 50, signal: 'neutral' };
+    return { values: rsiValues, current: 50, signal: 'neutral' };
   }
 
   const changes = closes.slice(1).map((c, i) => c - closes[i]);
   const gains = changes.map((c) => (c > 0 ? c : 0));
   const losses = changes.map((c) => (c < 0 ? Math.abs(c) : 0));
-
-  const rsiValues: number[] = [];
 
   // Wilder's Smoothing Method
   let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
@@ -223,7 +224,7 @@ export function calculateRSI(closes: number[], period: number = 14): RSIData {
 
     const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
     const rsi = 100 - 100 / (1 + rs);
-    rsiValues.push(rsi);
+    rsiValues[i] = rsi;
   }
 
   const current = rsiValues.length > 0 ? rsiValues[rsiValues.length - 1] : 50;
@@ -252,11 +253,15 @@ export function calculateMACD(
   slowPeriod: number = 26,
   signalPeriod: number = 9
 ): MACDData {
+  const macd: number[] = new Array(closes.length).fill(NaN);
+  const signal: number[] = new Array(closes.length).fill(NaN);
+  const histogram: number[] = new Array(closes.length).fill(NaN);
+
   if (closes.length < slowPeriod) {
     return {
-      macd: [],
-      signal: [],
-      histogram: [],
+      macd,
+      signal,
+      histogram,
       currentMACD: 0,
       currentSignal: 0,
       currentHistogram: 0,
@@ -268,37 +273,43 @@ export function calculateMACD(
   const emaSlow = calculateEMA(closes, slowPeriod);
 
   // MACD Line = EMA12 - EMA26
-  const macdLine: number[] = [];
-  const startIndex = slowPeriod - fastPeriod;
-
-  for (let i = 0; i < emaSlow.length; i++) {
-    const fastIndex = i + startIndex;
-    if (fastIndex >= 0 && fastIndex < emaFast.length) {
-      macdLine.push(emaFast[fastIndex] - emaSlow[i]);
+  for (let i = 0; i < closes.length; i++) {
+    if (!isNaN(emaFast[i]) && !isNaN(emaSlow[i])) {
+      macd[i] = emaFast[i] - emaSlow[i];
     }
   }
 
   // Signal Line = EMA9 of MACD
-  const signalLine = calculateEMA(macdLine, signalPeriod);
+  // We need to handle the NaN values in calculateEMA for the signal line
+  // Instead of using calculateEMA directly on a NaN-padded array, 
+  // we'll calculate it on the non-NaN part and merge back
+  const validMacdLine = macd.filter(v => !isNaN(v));
+  const rawSignalLine = calculateEMA(validMacdLine, signalPeriod);
 
-  // Histogram = MACD - Signal
-  const histogram: number[] = [];
-  const signalStart = macdLine.length - signalLine.length;
-  for (let i = 0; i < signalLine.length; i++) {
-    histogram.push(macdLine[signalStart + i] - signalLine[i]);
+  const macdStartIndex = macd.findIndex(v => !isNaN(v));
+  if (macdStartIndex !== -1) {
+    for (let i = 0; i < rawSignalLine.length; i++) {
+      const targetIndex = macdStartIndex + i + (signalPeriod - 1); // Adjust for EMA's own padding
+      if (targetIndex < closes.length) {
+        signal[targetIndex] = rawSignalLine[i];
+        if (!isNaN(macd[targetIndex]) && !isNaN(signal[targetIndex])) {
+          histogram[targetIndex] = macd[targetIndex] - signal[targetIndex];
+        }
+      }
+    }
   }
 
-  const currentMACD = macdLine.length > 0 ? macdLine[macdLine.length - 1] : 0;
-  const currentSignal = signalLine.length > 0 ? signalLine[signalLine.length - 1] : 0;
-  const currentHistogram = histogram.length > 0 ? histogram[histogram.length - 1] : 0;
+  const currentMACD = macd.length > 0 && !isNaN(macd[macd.length - 1]) ? macd[macd.length - 1] : 0;
+  const currentSignal = signal.length > 0 && !isNaN(signal[signal.length - 1]) ? signal[signal.length - 1] : 0;
+  const currentHistogram = histogram.length > 0 && !isNaN(histogram[histogram.length - 1]) ? histogram[histogram.length - 1] : 0;
 
   let trend: 'bullish' | 'bearish' | 'neutral' = 'neutral';
   if (currentMACD > currentSignal && currentHistogram > 0) trend = 'bullish';
   else if (currentMACD < currentSignal && currentHistogram < 0) trend = 'bearish';
 
   return {
-    macd: macdLine,
-    signal: signalLine,
+    macd,
+    signal,
     histogram,
     currentMACD,
     currentSignal,
@@ -356,10 +367,12 @@ export interface BollingerBandsData {
 
 // SMA Berechnung (für Bollinger Bands und andere Indikatoren)
 export function calculateSMA(data: number[], period: number): number[] {
-  const sma: number[] = [];
+  const sma: number[] = new Array(data.length).fill(NaN);
+  if (data.length < period) return sma;
+
   for (let i = period - 1; i < data.length; i++) {
     const sum = data.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
-    sma.push(sum / period);
+    sma[i] = sum / period;
   }
   return sma;
 }
@@ -530,27 +543,39 @@ export interface ATRData {
 
 // ATR Berechnung (Average True Range) - Volatilitätsmessung
 export function calculateATR(klines: Kline[], period: number = 14): ATRData {
+  const atrValues: number[] = new Array(klines.length).fill(NaN);
+
   if (klines.length < period + 1) {
-    return { values: [], current: 0, percentATR: 0 };
+    return { values: atrValues, current: 0, percentATR: 0 };
   }
 
-  // True Range berechnen
-  const trueRanges: number[] = [];
+  // True Range berechnen (Starts at index 1)
+  const trueRanges: number[] = new Array(klines.length).fill(NaN);
   for (let i = 1; i < klines.length; i++) {
     const high = klines[i].high;
     const low = klines[i].low;
     const prevClose = klines[i - 1].close;
-    const tr = Math.max(
+    trueRanges[i] = Math.max(
       high - low,
       Math.abs(high - prevClose),
       Math.abs(low - prevClose)
     );
-    trueRanges.push(tr);
   }
 
-  // ATR = EMA des True Range
-  const atrValues = calculateEMA(trueRanges, period);
-  const current = atrValues.length > 0 ? atrValues[atrValues.length - 1] : 0;
+  // ATR = EMA of True Range
+  // Handle NaN in calculateEMA (True Range has one NaN at start)
+  const validTR = trueRanges.filter(v => !isNaN(v));
+  const rawATR = calculateEMA(validTR, period);
+
+  // Map back to klines
+  for (let i = 0; i < rawATR.length; i++) {
+    const targetIndex = i + 1; // TR starts at index 1
+    atrValues[targetIndex] = rawATR[i];
+  }
+
+  const current = atrValues.length > 0 && !isNaN(atrValues[atrValues.length - 1])
+    ? atrValues[atrValues.length - 1]
+    : 0;
   const currentPrice = klines[klines.length - 1].close;
   const percentATR = currentPrice > 0 ? (current / currentPrice) * 100 : 0;
 
@@ -575,10 +600,13 @@ export function calculateStochRSI(
   kPeriod: number = 3,
   dPeriod: number = 3
 ): StochRSIData {
+  const kLine: number[] = new Array(closes.length).fill(NaN);
+  const dLine: number[] = new Array(closes.length).fill(NaN);
+
   if (closes.length < rsiPeriod + stochPeriod) {
     return {
-      k: [],
-      d: [],
+      k: kLine,
+      d: dLine,
       currentK: 50,
       currentD: 50,
       signal: 'neutral',
@@ -586,42 +614,53 @@ export function calculateStochRSI(
     };
   }
 
-  // Erst RSI berechnen
+  // 1. RSI berechnen (Length = closes.length)
   const rsiData = calculateRSI(closes, rsiPeriod);
   const rsiValues = rsiData.values;
 
-  if (rsiValues.length < stochPeriod) {
-    return {
-      k: [],
-      d: [],
-      currentK: 50,
-      currentD: 50,
-      signal: 'neutral',
-      crossover: 'none',
-    };
-  }
-
-  // Stochastic auf RSI anwenden
-  const stochK: number[] = [];
-  for (let i = stochPeriod - 1; i < rsiValues.length; i++) {
+  // 2. Stochastic auf RSI anwenden
+  const stochK_raw: number[] = new Array(closes.length).fill(NaN);
+  for (let i = rsiPeriod + stochPeriod - 1; i < rsiValues.length; i++) {
     const slice = rsiValues.slice(i - stochPeriod + 1, i + 1);
     const lowest = Math.min(...slice);
     const highest = Math.max(...slice);
     const range = highest - lowest;
-    const k = range > 0 ? ((rsiValues[i] - lowest) / range) * 100 : 50;
-    stochK.push(k);
+    stochK_raw[i] = range > 0 ? ((rsiValues[i] - lowest) / range) * 100 : 50;
   }
 
-  // %K glätten (SMA)
-  const smoothedK = calculateSMA(stochK, kPeriod);
+  // 3. %K glätten (SMA)
+  const validStochK = stochK_raw.filter(v => !isNaN(v));
+  const smoothedK_raw = calculateSMA(validStochK, kPeriod);
 
-  // %D = SMA von %K
-  const smoothedD = calculateSMA(smoothedK, dPeriod);
+  const stochStartIndex = stochK_raw.findIndex(v => !isNaN(v));
+  for (let i = 0; i < smoothedK_raw.length; i++) {
+    const targetIndex = stochStartIndex + i;
+    kLine[targetIndex] = smoothedK_raw[i];
+  }
 
-  const currentK = smoothedK.length > 0 ? smoothedK[smoothedK.length - 1] : 50;
-  const currentD = smoothedD.length > 0 ? smoothedD[smoothedD.length - 1] : 50;
-  const prevK = smoothedK.length > 1 ? smoothedK[smoothedK.length - 2] : currentK;
-  const prevD = smoothedD.length > 1 ? smoothedD[smoothedD.length - 2] : currentD;
+  // 4. %D = SMA von %K
+  const validKLine = kLine.filter(v => !isNaN(v));
+  const smoothedD_raw = calculateSMA(validKLine, dPeriod);
+
+  const kStartIndex = kLine.findIndex(v => !isNaN(v));
+  for (let i = 0; i < smoothedD_raw.length; i++) {
+    const targetIndex = kStartIndex + i;
+    dLine[targetIndex] = smoothedD_raw[i];
+  }
+
+  const currentK = kLine.length > 0 && !isNaN(kLine[kLine.length - 1]) ? kLine[kLine.length - 1] : 50;
+  const currentD = dLine.length > 0 && !isNaN(dLine[dLine.length - 1]) ? dLine[dLine.length - 1] : 50;
+
+  // Find previous valid values for crossover
+  let prevK = currentK;
+  let prevD = currentD;
+  for (let i = kLine.length - 2; i >= 0; i--) {
+    if (!isNaN(kLine[i]) && !isNaN(dLine[i])) {
+      prevK = kLine[i];
+      prevD = dLine[i];
+      break;
+    }
+  }
 
   // Signal bestimmen
   let signal: 'overbought' | 'oversold' | 'neutral' = 'neutral';
@@ -634,8 +673,8 @@ export function calculateStochRSI(
   else if (prevK >= prevD && currentK < currentD) crossover = 'bearish';
 
   return {
-    k: smoothedK,
-    d: smoothedD,
+    k: kLine,
+    d: dLine,
     currentK,
     currentD,
     signal,
