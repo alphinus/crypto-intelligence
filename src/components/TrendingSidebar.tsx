@@ -137,26 +137,54 @@ export function TrendingSidebar({
               >
                 <button
                   onClick={() => onCoinSelect(coin)}
-                  className="flex-1 flex items-center gap-2 text-left"
+                  className="flex-1 flex items-center gap-3 text-left min-w-0"
                 >
                   <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isSelected(coin) ? 'border-purple-500 bg-purple-500' : 'border-gray-600'
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected(coin) ? 'border-purple-500 bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'border-gray-600'
                       }`}
                   >
-                    {isSelected(coin) && <Check className="w-2.5 h-2.5 text-white" />}
+                    {isSelected(coin) && <Check className="w-3 h-3 text-white" />}
                   </div>
-                  {coin.image ? (
-                    <img src={coin.image} alt={coin.name} className="w-5 h-5 rounded-full" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[10px] text-white font-bold">
-                      {coin.symbol.charAt(0)}
+
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="relative flex-shrink-0">
+                      {coin.image ? (
+                        <img
+                          src={coin.image}
+                          alt=""
+                          className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent && !parent.querySelector('.coin-fallback')) {
+                              const fallback = document.createElement('div');
+                              fallback.className = 'coin-fallback w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500/50 flex items-center justify-center text-[10px] text-purple-400 font-bold';
+                              fallback.innerText = coin.symbol.slice(0, 2).toUpperCase();
+                              parent.appendChild(fallback);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-[10px] text-gray-400 font-bold">
+                          {coin.symbol.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
                     </div>
-                  )}
-                  <span className="font-medium text-white text-xs">{coin.symbol.toUpperCase()}</span>
-                  <div className="flex-1" />
-                  <div className="text-right">
-                    <div className="text-xs text-white">{formatPrice(coin.price)}</div>
-                    <div className={`text-[10px] ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-bold text-white text-xs truncate">
+                        {coin.name}
+                      </span>
+                      <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                        {coin.symbol}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-xs font-mono text-white tracking-tight">{formatPrice(coin.price)}</div>
+                    <div className={`text-[10px] font-medium ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {formatChange(coin.change24h)}
                     </div>
                   </div>
@@ -191,45 +219,69 @@ export function TrendingSidebar({
                 {/* Main clickable area - selects coin for analysis */}
                 <button
                   onClick={() => onCoinSelect(coin)}
-                  className="flex-1 flex items-center gap-2 text-left"
+                  className="flex-1 flex items-center gap-3 text-left min-w-0"
                   title={`${coin.name} für Trade-Empfehlungen auswählen`}
                 >
                   {/* Selection indicator */}
                   <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isSelected(coin)
-                      ? 'border-blue-500 bg-blue-500'
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected(coin)
+                      ? 'border-blue-500 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]'
                       : 'border-gray-600 hover:border-gray-500'
                       }`}
                   >
-                    {isSelected(coin) && <Check className="w-2.5 h-2.5 text-white" />}
+                    {isSelected(coin) && <Check className="w-3 h-3 text-white" />}
                   </div>
 
-                  {/* Coin Icon */}
-                  <img
-                    src={coin.image}
-                    alt={coin.name}
-                    className="w-5 h-5 rounded-full flex-shrink-0"
-                  />
-
-                  {/* Coin Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium text-white text-xs">
-                        {coin.symbol.toUpperCase()}
-                      </span>
-                      {coin.change24h >= 0 ? (
-                        <TrendingUp className="w-2.5 h-2.5 text-green-400" />
+                  {/* Coin Icon & Info */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="relative flex-shrink-0">
+                      {coin.image ? (
+                        <img
+                          src={coin.image}
+                          alt="" // Leave empty to prevent text overlap on error
+                          className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700"
+                          onError={(e) => {
+                            // Replace with a styled div if image fails
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent && !parent.querySelector('.coin-fallback')) {
+                              const fallback = document.createElement('div');
+                              fallback.className = 'coin-fallback w-8 h-8 rounded-full bg-blue-600/30 border border-blue-500/50 flex items-center justify-center text-[10px] text-blue-400 font-bold';
+                              fallback.innerText = coin.symbol.slice(0, 2).toUpperCase();
+                              parent.appendChild(fallback);
+                            }
+                          }}
+                        />
                       ) : (
-                        <TrendingDown className="w-2.5 h-2.5 text-red-400" />
+                        <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-[10px] text-gray-400 font-bold">
+                          {coin.symbol.slice(0, 2).toUpperCase()}
+                        </div>
                       )}
+                    </div>
+
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-bold text-white text-xs truncate">
+                        {coin.name}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                          {coin.symbol}
+                        </span>
+                        {coin.change24h >= 0 ? (
+                          <TrendingUp className="w-2.5 h-2.5 text-green-400/70" />
+                        ) : (
+                          <TrendingDown className="w-2.5 h-2.5 text-red-400/70" />
+                        )}
+                      </div>
                     </div>
                   </div>
 
                   {/* Price & Change */}
-                  <div className="text-right">
-                    <div className="text-xs text-white">{formatPrice(coin.price)}</div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-xs font-mono text-white tracking-tight">{formatPrice(coin.price)}</div>
                     <div
-                      className={`text-[10px] ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'
+                      className={`text-[10px] font-medium ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'
                         }`}
                     >
                       {formatChange(coin.change24h)}

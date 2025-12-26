@@ -124,14 +124,18 @@ async function fetchBinanceTickers(): Promise<MarketCoin[]> {
 
       const data: BinanceTicker[] = await response.json();
 
-      const coins: MarketCoin[] = data.map((ticker) => ({
-        symbol: ticker.symbol.replace('USDT', '').toLowerCase(),
-        name: getNameForSymbol(ticker.symbol.replace('USDT', '')),
-        price: parseFloat(ticker.lastPrice),
-        change24h: parseFloat(ticker.priceChangePercent),
-        marketCap: 0, // Binance hat keine MarketCap
-        volume24h: parseFloat(ticker.quoteVolume),
-      }));
+      const coins: MarketCoin[] = data.map((ticker) => {
+        const symbol = ticker.symbol.replace('USDT', '');
+        return {
+          symbol: symbol.toLowerCase(),
+          name: getNameForSymbol(symbol),
+          price: parseFloat(ticker.lastPrice),
+          change24h: parseFloat(ticker.priceChangePercent),
+          marketCap: 0, // Binance hat keine MarketCap
+          volume24h: parseFloat(ticker.quoteVolume),
+          image: `https://assets.coincap.io/assets/icons/${symbol.toLowerCase()}@2x.png`,
+        };
+      });
 
       markSuccess('binance');
       return coins;
@@ -225,7 +229,7 @@ export async function fetchMarketData(): Promise<MarketDataResult> {
     const binanceCoins = await fetchBinanceTickers();
     if (binanceCoins.length > 0) {
       // Hole MarketCap von CoinGecko im Hintergrund
-      enrichWithMarketCap(binanceCoins).catch(() => {});
+      enrichWithMarketCap(binanceCoins).catch(() => { });
 
       return {
         coins: binanceCoins,
