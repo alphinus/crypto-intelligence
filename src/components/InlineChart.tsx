@@ -377,17 +377,19 @@ export function InlineChart({
     candlestickSeriesRef.current = candlestickSeries;
     setIsReady(true);
 
-    // Resize Handler
-    const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+    // Use ResizeObserver for responsive chart resizing
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (entries[0]?.contentRect && chartRef.current) {
+        chartRef.current.applyOptions({ width: entries[0].contentRect.width });
       }
-    };
+    });
 
-    window.addEventListener('resize', handleResize);
+    if (chartContainerRef.current) {
+      resizeObserver.observe(chartContainerRef.current);
+    }
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       clearPriceLines();
       clearEmaSeries();
       clearGoldenZoneSeries();
@@ -797,8 +799,8 @@ export function InlineChart({
                 key={tf.value}
                 onClick={() => onTimeframeChange(tf.value)}
                 className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${selectedTimeframe === tf.value
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
                   }`}
               >
                 {tf.label}
@@ -820,8 +822,8 @@ export function InlineChart({
           <button
             onClick={toggleAllOverlays}
             className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${Object.values(overlayVisibility).every(v => v)
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
               }`}
             title="Alle Overlays ein/ausblenden"
           >
@@ -839,8 +841,8 @@ export function InlineChart({
           <button
             onClick={() => toggleOverlay('emas')}
             className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${overlayVisibility.emas
-                ? 'bg-purple-600/80 text-white'
-                : 'bg-gray-700 text-gray-500 line-through'
+              ? 'bg-purple-600/80 text-white'
+              : 'bg-gray-700 text-gray-500 line-through'
               }`}
           >
             EMAs
@@ -850,8 +852,8 @@ export function InlineChart({
           <button
             onClick={() => toggleOverlay('supportResistance')}
             className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${overlayVisibility.supportResistance
-                ? 'bg-emerald-600/80 text-white'
-                : 'bg-gray-700 text-gray-500 line-through'
+              ? 'bg-emerald-600/80 text-white'
+              : 'bg-gray-700 text-gray-500 line-through'
               }`}
           >
             S/R
@@ -861,8 +863,8 @@ export function InlineChart({
           <button
             onClick={() => toggleOverlay('goldenZone')}
             className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${overlayVisibility.goldenZone
-                ? 'bg-blue-600/80 text-white'
-                : 'bg-gray-700 text-gray-500 line-through'
+              ? 'bg-blue-600/80 text-white'
+              : 'bg-gray-700 text-gray-500 line-through'
               }`}
           >
             Golden Zone
@@ -872,8 +874,8 @@ export function InlineChart({
           <button
             onClick={() => toggleOverlay('tradeZones')}
             className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${overlayVisibility.tradeZones
-                ? 'bg-orange-600/80 text-white'
-                : 'bg-gray-700 text-gray-500 line-through'
+              ? 'bg-orange-600/80 text-white'
+              : 'bg-gray-700 text-gray-500 line-through'
               }`}
           >
             Trade Zones
@@ -886,8 +888,8 @@ export function InlineChart({
           <button
             onClick={() => toggleIndicator('rsi')}
             className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${activeIndicators.includes('rsi')
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+              ? 'bg-purple-600 text-white'
+              : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
               }`}
           >
             <Activity className="w-3 h-3" />
@@ -898,8 +900,8 @@ export function InlineChart({
           <button
             onClick={() => toggleIndicator('macd')}
             className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${activeIndicators.includes('macd')
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
               }`}
           >
             <BarChart3 className="w-3 h-3" />

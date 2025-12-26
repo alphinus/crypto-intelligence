@@ -1522,25 +1522,27 @@ export default function Home() {
           </div>
         )}
 
-        {/* Main Layout */}
-        <div className="flex">
-          {/* Left Sidebar - Fixed (top offset includes header + 2 tickers = 97px + 80px) */}
-          <aside className="hidden lg:block w-64 fixed left-0 top-[177px] h-[calc(100vh-177px)] overflow-hidden" data-tour="sidebar">
-            {marketData && (
-              <TrendingSidebar
-                coins={marketData.coins}
-                fearGreed={marketData.fearGreed}
-                selectedCoin={selectedAnalysisCoin}
-                onCoinSelect={handleCoinSelect}
-                onCoinDetailClick={(coin) => setModalCoin(coin)}
-                onAddCustomCoin={handleAddCustomCoin}
-                customCoins={customCoins}
-              />
-            )}
+        {/* Main Layout - Flex Container ensuring full height and equal columns */}
+        <div className="flex min-h-[calc(100vh-177px)] items-stretch">
+          {/* Left Sidebar - Sticky instead of Fixed */}
+          <aside className="hidden lg:block w-64 flex-shrink-0 border-r border-gray-800 bg-gray-900/50 relative z-20" data-tour="sidebar">
+            <div className="sticky top-[177px] h-[calc(100vh-177px)] overflow-hidden">
+              {marketData && (
+                <TrendingSidebar
+                  coins={marketData.coins}
+                  fearGreed={marketData.fearGreed}
+                  selectedCoin={selectedAnalysisCoin}
+                  onCoinSelect={handleCoinSelect}
+                  onCoinDetailClick={(coin) => setModalCoin(coin)}
+                  onAddCustomCoin={handleAddCustomCoin}
+                  customCoins={customCoins}
+                />
+              )}
+            </div>
           </aside>
 
           {/* Main Content with Tabs */}
-          <main className="flex-1 lg:ml-64">
+          <main className="flex-1 min-w-0 flex flex-col">
             {/* Tab Navigation */}
             <div data-tour="tabs">
               <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />

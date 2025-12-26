@@ -206,16 +206,18 @@ export function SpotDCAChart({
         candlestickSeriesRef.current = candlestickSeries;
         setIsReady(true);
 
-        const handleResize = () => {
-            if (chartContainerRef.current) {
-                chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+        const resizeObserver = new ResizeObserver((entries) => {
+            if (entries[0]?.contentRect && chartRef.current) {
+                chartRef.current.applyOptions({ width: entries[0].contentRect.width });
             }
-        };
+        });
 
-        window.addEventListener('resize', handleResize);
+        if (chartContainerRef.current) {
+            resizeObserver.observe(chartContainerRef.current);
+        }
 
         return () => {
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
             clearPriceLines();
             clearEmaSeries();
             clearGoldenZoneSeries();
