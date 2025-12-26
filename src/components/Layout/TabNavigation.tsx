@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { BarChart2, MessageSquare, Brain, Rocket } from 'lucide-react';
 
-export type TabId = 'trading' | 'sentiment' | 'reports' | 'memecoins';
+export type TabId = 'trading' | 'sentiment' | 'reports' | 'memecoins' | 'simulator';
 
 interface Tab {
   id: TabId;
@@ -34,6 +34,13 @@ const TABS: Tab[] = [
     shortLabel: 'Memes',
     icon: <Rocket className="w-4 h-4" />,
     description: 'Meme Coins: DOGE, SHIB, PEPE, BONK, WIF',
+  },
+  {
+    id: 'simulator',
+    label: 'Simulator',
+    shortLabel: 'Sim',
+    icon: <Rocket className="w-4 h-4 text-yellow-400" />,
+    description: 'Coin Creator & Trading Simulator (Lehrreich)',
   },
   {
     id: 'reports',

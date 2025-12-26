@@ -34,6 +34,7 @@ import { HeaderMenu } from '@/components/HeaderMenu';
 import { MobileDrawer } from '@/components/MobileDrawer';
 import { MemeCoinsPanel } from '@/components/MemeCoinsPanel';
 import { CoinSelectorBar } from '@/components/CoinSelectorBar';
+import { SimulatorPanel } from '@/components/SimulatorPanel';
 import { TabNavigation, type TabId } from '@/components/Layout/TabNavigation';
 import { TabPanel } from '@/components/Layout/TabPanel';
 import { AnimatePresence } from 'framer-motion';
@@ -230,8 +231,8 @@ export default function Home() {
     if (!futuresData?.openInterest || !multiTimeframe?.currentPrice) return [];
     const symbol = selectedAnalysisCoin?.symbol?.toUpperCase() || 'BTC';
     const oi = symbol === 'BTC' ? futuresData.openInterest.btc :
-               symbol === 'ETH' ? futuresData.openInterest.eth :
-               futuresData.openInterest.sol;
+      symbol === 'ETH' ? futuresData.openInterest.eth :
+        futuresData.openInterest.sol;
     return calculateLiquidationLevels(multiTimeframe.currentPrice, oi);
   }, [futuresData?.openInterest, multiTimeframe?.currentPrice, selectedAnalysisCoin?.symbol]);
 
@@ -668,7 +669,7 @@ export default function Home() {
     // 1. Trend Alignment (25 Punkte max)
     const trendAlignment =
       setup.confidence === 'high' ? 25 :
-      setup.confidence === 'medium' ? 15 : 5;
+        setup.confidence === 'medium' ? 15 : 5;
 
     // 2. Momentum Strength (20 Punkte max)
     const momentumStrength = Math.min(20, Math.abs(tfData.momentum) / 5);
@@ -676,8 +677,8 @@ export default function Home() {
     // 3. Risk/Reward Quality (20 Punkte max)
     const rrScore =
       setup.riskReward >= 3 ? 20 :
-      setup.riskReward >= 2 ? 15 :
-      setup.riskReward >= 1.5 ? 10 : 5;
+        setup.riskReward >= 2 ? 15 :
+          setup.riskReward >= 1.5 ? 10 : 5;
 
     // 4. Confluence Bonus (15 Punkte max) - Same direction in other TFs
     const sameDirectionCount = Object.values(allRecommendations).filter(
@@ -1399,696 +1400,696 @@ export default function Home() {
 
   return (
     <HelpProvider>
-    <div className="min-h-screen bg-gray-950 text-white">
-      {/* Header */}
-      <header className="border-b border-gray-800 sticky top-0 bg-gray-950/95 backdrop-blur z-50">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Brain className="w-7 h-7 text-blue-500" />
-              <div>
-                <h1 className="text-lg font-bold">Crypto Intelligence</h1>
-                <p className="text-[10px] text-gray-500">KI-gestützte Marktanalyse</p>
-              </div>
-            </div>
-
-            {/* Global Stats inline - Desktop */}
-            {marketData?.global && (
-              <div className="hidden md:flex items-center gap-4 text-xs">
-                <div className="text-gray-400">
-                  MCap: <span className="text-white font-medium">
-                    ${(marketData.global.totalMarketCap / 1e12).toFixed(2)}T
-                  </span>
-                </div>
-                <div className="text-gray-400">
-                  Vol 24h: <span className="text-white font-medium">
-                    ${(marketData.global.totalVolume / 1e9).toFixed(1)}B
-                  </span>
-                </div>
-                <div className="text-gray-400">
-                  BTC Dom: <span className="text-yellow-400 font-medium">
-                    {marketData.global.btcDominance.toFixed(1)}%
-                  </span>
+      <div className="min-h-screen bg-gray-950 text-white">
+        {/* Header */}
+        <header className="border-b border-gray-800 sticky top-0 bg-gray-950/95 backdrop-blur z-50">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Brain className="w-7 h-7 text-blue-500" />
+                <div>
+                  <h1 className="text-lg font-bold">Crypto Intelligence</h1>
+                  <p className="text-[10px] text-gray-500">KI-gestützte Marktanalyse</p>
                 </div>
               </div>
-            )}
 
-            {/* Global Stats - Mobile (compact) */}
-            {marketData?.global && (
-              <div className="flex md:hidden items-center gap-2 text-[10px]">
-                <span className="text-yellow-400 font-medium">
-                  BTC {marketData.global.btcDominance.toFixed(1)}%
-                </span>
-                <span className="text-gray-600">|</span>
-                <span className="text-white font-medium">
-                  ${(marketData.global.totalMarketCap / 1e12).toFixed(1)}T
-                </span>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setMobileDrawerOpen(true)}
-                className="lg:hidden p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
-                aria-label="Menü öffnen"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-
-              {/* WebSocket Status */}
-              <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded text-xs" title={`WebSocket: ${connectionState}`}>
-                <div className={`w-2 h-2 rounded-full ${
-                  isConnected ? 'bg-green-500 animate-pulse' :
-                  connectionState === 'connecting' ? 'bg-yellow-500 animate-pulse' :
-                  'bg-red-500'
-                }`}></div>
-                <span className="text-gray-400 text-[10px]">LIVE</span>
-              </div>
-
-              {/* System Clock */}
-              <SystemClock />
-
-              {/* Report Button - Always visible */}
-              <button
-                onClick={generateIntelligenceReport}
-                disabled={analyzing}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-                aria-label="KI-Report generieren"
-                data-tour="report-button"
-              >
-                <Brain className={`w-3.5 h-3.5 ${analyzing ? 'animate-pulse' : ''}`} />
-                <span className="hidden sm:inline">{analyzing ? 'Analysiere...' : 'Report'}</span>
-              </button>
-
-              {/* Header Menu - Consolidates Refresh, Theme, Settings */}
-              <div data-tour="header-menu">
-                <HeaderMenu
-                  onRefresh={() => {
-                    fetchData();
-                    fetchTradeRecommendations();
-                    setLastUpdated(new Date());
-                  }}
-                  isRefreshing={loading}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* News Ticker */}
-      <NewsTicker headlines={newsHeadlines} />
-
-      {/* Gainer/Loser Ticker */}
-      {marketData?.coins && marketData.coins.length > 0 && (
-        <div data-tour="gainer-ticker">
-          <GainerLoserTicker
-            coins={marketData.coins.map(c => ({
-              symbol: c.symbol,
-              name: c.name,
-              price: c.price,
-              change24h: c.change24h,
-              image: c.image,
-            }))}
-            onCoinClick={(symbol) => {
-              const coin = marketData.coins.find(c => c.symbol.toLowerCase() === symbol.toLowerCase());
-              if (coin) handleCoinSelect(coin);
-            }}
-          />
-        </div>
-      )}
-
-      {/* Main Layout */}
-      <div className="flex">
-        {/* Left Sidebar - Fixed (top offset includes header + 2 tickers = 97px + 80px) */}
-        <aside className="hidden lg:block w-64 fixed left-0 top-[177px] h-[calc(100vh-177px)] overflow-hidden" data-tour="sidebar">
-          {marketData && (
-            <TrendingSidebar
-              coins={marketData.coins}
-              fearGreed={marketData.fearGreed}
-              selectedCoin={selectedAnalysisCoin}
-              onCoinSelect={handleCoinSelect}
-              onCoinDetailClick={(coin) => setModalCoin(coin)}
-              onAddCustomCoin={handleAddCustomCoin}
-              customCoins={customCoins}
-            />
-          )}
-        </aside>
-
-        {/* Main Content with Tabs */}
-        <main className="flex-1 lg:ml-64">
-          {/* Tab Navigation */}
-          <div data-tour="tabs">
-            <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-          </div>
-
-          {/* Tab Content */}
-          <div className="p-4">
-            {error && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-sm">
-                <AlertCircle className="w-4 h-4" />
-                {error}
-              </div>
-            )}
-
-            {/* TAB 1: Trading */}
-            <TabPanel id="trading" activeTab={activeTab}>
-              {/* Coin Selector Bar - Desktop only (mobile uses drawer) */}
-              <div className="hidden lg:block mb-4">
-                <CoinSelectorBar
-                  coins={[
-                    ...(marketData?.coins.slice(0, 6).map(c => ({
-                      symbol: c.symbol.toUpperCase() + 'USDT',
-                      name: c.name,
-                      price: c.price,
-                      change24h: c.change24h,
-                    })) || []),
-                    ...customCoins.map(c => ({
-                      symbol: c.symbol.toUpperCase() + 'USDT',
-                      name: c.name,
-                      price: c.price,
-                      change24h: c.change24h,
-                    })),
-                  ]}
-                  selectedSymbol={(selectedAnalysisCoin?.symbol?.toUpperCase() || 'BTC') + 'USDT'}
-                  onSelect={(symbol) => {
-                    const baseSymbol = symbol.replace('USDT', '').toLowerCase();
-                    const coin = marketData?.coins.find(c => c.symbol.toLowerCase() === baseSymbol) ||
-                                 customCoins.find(c => c.symbol.toLowerCase() === baseSymbol);
-                    if (coin) handleCoinSelect(coin);
-                  }}
-                  onAddCustom={(symbol) => handleAddCustomCoin(symbol.replace('USDT', ''))}
-                  onRemove={(symbol) => {
-                    const baseSymbol = symbol.replace('USDT', '').toLowerCase();
-                    setCustomCoins(prev => prev.filter(c => c.symbol.toLowerCase() !== baseSymbol));
-                  }}
-                />
-              </div>
-
-              {/* Trade Signals Layout Switch Header */}
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-blue-400" />
-                  Trade Signale
-                  {Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length > 0 && (
-                    <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded">
-                      {Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length}
+              {/* Global Stats inline - Desktop */}
+              {marketData?.global && (
+                <div className="hidden md:flex items-center gap-4 text-xs">
+                  <div className="text-gray-400">
+                    MCap: <span className="text-white font-medium">
+                      ${(marketData.global.totalMarketCap / 1e12).toFixed(2)}T
                     </span>
-                  )}
-                </h3>
-                <div className="hidden lg:flex items-center gap-1 bg-gray-800/50 rounded-lg p-1">
-                  <button
-                    onClick={() => setTradeSignalsLayout('below')}
-                    className={`p-1.5 rounded transition-colors ${
-                      tradeSignalsLayout === 'below'
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                    }`}
-                    title="Signale unterhalb vom Chart"
-                  >
-                    <LayoutList className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setTradeSignalsLayout('sidebar')}
-                    className={`p-1.5 rounded transition-colors ${
-                      tradeSignalsLayout === 'sidebar'
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                    }`}
-                    title="Signale als rechte Spalte"
-                  >
-                    <PanelRight className="w-4 h-4" />
-                  </button>
+                  </div>
+                  <div className="text-gray-400">
+                    Vol 24h: <span className="text-white font-medium">
+                      ${(marketData.global.totalVolume / 1e9).toFixed(1)}B
+                    </span>
+                  </div>
+                  <div className="text-gray-400">
+                    BTC Dom: <span className="text-yellow-400 font-medium">
+                      {marketData.global.btcDominance.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Global Stats - Mobile (compact) */}
+              {marketData?.global && (
+                <div className="flex md:hidden items-center gap-2 text-[10px]">
+                  <span className="text-yellow-400 font-medium">
+                    BTC {marketData.global.btcDominance.toFixed(1)}%
+                  </span>
+                  <span className="text-gray-600">|</span>
+                  <span className="text-white font-medium">
+                    ${(marketData.global.totalMarketCap / 1e12).toFixed(1)}T
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                {/* Mobile Menu Button */}
+                <button
+                  onClick={() => setMobileDrawerOpen(true)}
+                  className="lg:hidden p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
+                  aria-label="Menü öffnen"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+
+                {/* WebSocket Status */}
+                <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded text-xs" title={`WebSocket: ${connectionState}`}>
+                  <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' :
+                      connectionState === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+                        'bg-red-500'
+                    }`}></div>
+                  <span className="text-gray-400 text-[10px]">LIVE</span>
+                </div>
+
+                {/* System Clock */}
+                <SystemClock />
+
+                {/* Report Button - Always visible */}
+                <button
+                  onClick={generateIntelligenceReport}
+                  disabled={analyzing}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  aria-label="KI-Report generieren"
+                  data-tour="report-button"
+                >
+                  <Brain className={`w-3.5 h-3.5 ${analyzing ? 'animate-pulse' : ''}`} />
+                  <span className="hidden sm:inline">{analyzing ? 'Analysiere...' : 'Report'}</span>
+                </button>
+
+                {/* Header Menu - Consolidates Refresh, Theme, Settings */}
+                <div data-tour="header-menu">
+                  <HeaderMenu
+                    onRefresh={() => {
+                      fetchData();
+                      fetchTradeRecommendations();
+                      setLastUpdated(new Date());
+                    }}
+                    isRefreshing={loading}
+                  />
                 </div>
               </div>
+            </div>
+          </div>
+        </header>
 
-              {/* Chart + Trade Signals Flex Container */}
-              <div className={`flex gap-4 ${tradeSignalsLayout === 'sidebar' ? 'flex-row' : 'flex-col'}`}>
-                {/* CHART FIRST - Primary Focus */}
-                <div className={`min-h-[520px] ${tradeSignalsLayout === 'sidebar' ? 'flex-1 min-w-0' : 'w-full'}`} data-tour="chart">
-                  {selectedAnalysisCoin && (
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        {selectedAnalysisCoin.image && (
-                          <img src={selectedAnalysisCoin.image} alt={selectedAnalysisCoin.name} className="w-8 h-8 rounded-full" />
-                        )}
-                        <div>
-                          <span className="font-semibold text-lg">{selectedAnalysisCoin.symbol.toUpperCase()}</span>
-                          <span className="text-gray-400 ml-2">${selectedAnalysisCoin.price?.toLocaleString()}</span>
-                        </div>
-                        <span className={`text-sm px-2 py-0.5 rounded ${selectedAnalysisCoin.change24h >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                          {selectedAnalysisCoin.change24h >= 0 ? '+' : ''}{selectedAnalysisCoin.change24h.toFixed(2)}%
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => generateCoinReport(selectedAnalysisCoin)}
-                        disabled={analyzingCoin}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors"
-                      >
-                        <Sparkles className={`w-3.5 h-3.5 ${analyzingCoin ? 'animate-pulse' : ''}`} />
-                        {analyzingCoin ? 'Analysiere...' : 'KI Analyse'}
-                      </button>
-                    </div>
-                  )}
-                  {currentKlines.length > 0 ? (
-                    <InlineChart
-                      symbol={selectedAnalysisCoin?.symbol || 'BTC'}
-                      klines={currentKlines}
-                      technicalLevels={currentTechnicalLevels || undefined}
-                      tradeSetup={tradeRecommendations[chartTimeframe] || null}
-                      selectedTimeframe={chartTimeframe}
-                      onTimeframeChange={setChartTimeframe}
-                      height={500}
-                      theme={theme}
-                      confluenceZones={confluenceZones}
-                    />
-                  ) : (
-                    <div className="h-[500px] bg-gray-900/50 rounded-lg flex items-center justify-center">
-                      <div className="text-gray-500">Chart loading...</div>
-                    </div>
-                  )}
+        {/* News Ticker */}
+        <NewsTicker headlines={newsHeadlines} />
+
+        {/* Gainer/Loser Ticker */}
+        {marketData?.coins && marketData.coins.length > 0 && (
+          <div data-tour="gainer-ticker">
+            <GainerLoserTicker
+              coins={marketData.coins.map(c => ({
+                symbol: c.symbol,
+                name: c.name,
+                price: c.price,
+                change24h: c.change24h,
+                image: c.image,
+              }))}
+              onCoinClick={(symbol) => {
+                const coin = marketData.coins.find(c => c.symbol.toLowerCase() === symbol.toLowerCase());
+                if (coin) handleCoinSelect(coin);
+              }}
+            />
+          </div>
+        )}
+
+        {/* Main Layout */}
+        <div className="flex">
+          {/* Left Sidebar - Fixed (top offset includes header + 2 tickers = 97px + 80px) */}
+          <aside className="hidden lg:block w-64 fixed left-0 top-[177px] h-[calc(100vh-177px)] overflow-hidden" data-tour="sidebar">
+            {marketData && (
+              <TrendingSidebar
+                coins={marketData.coins}
+                fearGreed={marketData.fearGreed}
+                selectedCoin={selectedAnalysisCoin}
+                onCoinSelect={handleCoinSelect}
+                onCoinDetailClick={(coin) => setModalCoin(coin)}
+                onAddCustomCoin={handleAddCustomCoin}
+                customCoins={customCoins}
+              />
+            )}
+          </aside>
+
+          {/* Main Content with Tabs */}
+          <main className="flex-1 lg:ml-64">
+            {/* Tab Navigation */}
+            <div data-tour="tabs">
+              <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-4">
+              {error && (
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  {error}
+                </div>
+              )}
+
+              {/* TAB 1: Trading */}
+              <TabPanel id="trading" activeTab={activeTab}>
+                {/* Coin Selector Bar - Desktop only (mobile uses drawer) */}
+                <div className="hidden lg:block mb-4">
+                  <CoinSelectorBar
+                    coins={[
+                      ...(marketData?.coins.slice(0, 6).map(c => ({
+                        symbol: c.symbol.toUpperCase() + 'USDT',
+                        name: c.name,
+                        price: c.price,
+                        change24h: c.change24h,
+                      })) || []),
+                      ...customCoins.map(c => ({
+                        symbol: c.symbol.toUpperCase() + 'USDT',
+                        name: c.name,
+                        price: c.price,
+                        change24h: c.change24h,
+                      })),
+                    ]}
+                    selectedSymbol={(selectedAnalysisCoin?.symbol?.toUpperCase() || 'BTC') + 'USDT'}
+                    onSelect={(symbol) => {
+                      const baseSymbol = symbol.replace('USDT', '').toLowerCase();
+                      const coin = marketData?.coins.find(c => c.symbol.toLowerCase() === baseSymbol) ||
+                        customCoins.find(c => c.symbol.toLowerCase() === baseSymbol);
+                      if (coin) handleCoinSelect(coin);
+                    }}
+                    onAddCustom={(symbol) => handleAddCustomCoin(symbol.replace('USDT', ''))}
+                    onRemove={(symbol) => {
+                      const baseSymbol = symbol.replace('USDT', '').toLowerCase();
+                      setCustomCoins(prev => prev.filter(c => c.symbol.toLowerCase() !== baseSymbol));
+                    }}
+                  />
                 </div>
 
-                {/* Trade Recommendations - Sidebar Mode */}
-                {tradeSignalsLayout === 'sidebar' && (
-                  <div className="w-80 flex-shrink-0 border-l border-gray-800 pl-4 overflow-y-auto max-h-[calc(100vh-200px)] space-y-4" data-tour="trade-signals">
-                    <TradeRecommendations
-                      recommendations={tradeRecommendations}
-                      scores={tradeScores}
-                      hedgeRecommendation={hedgeRecommendation}
-                      currentPrice={selectedAnalysisCoin?.price || btcPrice}
-                      coinSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
-                      coinImage={selectedAnalysisCoin?.image}
-                      loading={loadingTrades}
-                      onCardClick={() => {
-                        if (selectedAnalysisCoin) setModalCoin(selectedAnalysisCoin);
-                      }}
-                      sentimentConflict={sentimentConflict}
-                      sentimentSignal={currentSentimentSignal}
-                      sentimentMode={sentimentMode}
-                      layout="stacked"
-                    />
+                {/* Trade Signals Layout Switch Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-blue-400" />
+                    Trade Signale
+                    {Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length > 0 && (
+                      <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded">
+                        {Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length}
+                      </span>
+                    )}
+                  </h3>
+                  <div className="hidden lg:flex items-center gap-1 bg-gray-800/50 rounded-lg p-1">
+                    <button
+                      onClick={() => setTradeSignalsLayout('below')}
+                      className={`p-1.5 rounded transition-colors ${tradeSignalsLayout === 'below'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                        }`}
+                      title="Signale unterhalb vom Chart"
+                    >
+                      <LayoutList className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setTradeSignalsLayout('sidebar')}
+                      className={`p-1.5 rounded transition-colors ${tradeSignalsLayout === 'sidebar'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                        }`}
+                      title="Signale als rechte Spalte"
+                    >
+                      <PanelRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
 
-                    {/* Confluence Zones in Sidebar */}
-                    {confluenceZones.length > 0 && (
-                      <div data-tour="confluence">
-                        <ConfluenceWidget
-                          zones={confluenceZones}
-                          currentPrice={multiTimeframe?.currentPrice || selectedAnalysisCoin?.price || 0}
-                        />
+                {/* Chart + Trade Signals Flex Container */}
+                <div className={`flex gap-4 ${tradeSignalsLayout === 'sidebar' ? 'flex-row' : 'flex-col'}`}>
+                  {/* CHART FIRST - Primary Focus */}
+                  <div className={`min-h-[520px] ${tradeSignalsLayout === 'sidebar' ? 'flex-1 min-w-0' : 'w-full'}`} data-tour="chart">
+                    {selectedAnalysisCoin && (
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          {selectedAnalysisCoin.image && (
+                            <img src={selectedAnalysisCoin.image} alt={selectedAnalysisCoin.name} className="w-8 h-8 rounded-full" />
+                          )}
+                          <div>
+                            <span className="font-semibold text-lg">{selectedAnalysisCoin.symbol.toUpperCase()}</span>
+                            <span className="text-gray-400 ml-2">${selectedAnalysisCoin.price?.toLocaleString()}</span>
+                          </div>
+                          <span className={`text-sm px-2 py-0.5 rounded ${selectedAnalysisCoin.change24h >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                            {selectedAnalysisCoin.change24h >= 0 ? '+' : ''}{selectedAnalysisCoin.change24h.toFixed(2)}%
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => generateCoinReport(selectedAnalysisCoin)}
+                          disabled={analyzingCoin}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors"
+                        >
+                          <Sparkles className={`w-3.5 h-3.5 ${analyzingCoin ? 'animate-pulse' : ''}`} />
+                          {analyzingCoin ? 'Analysiere...' : 'KI Analyse'}
+                        </button>
                       </div>
                     )}
-
-                    {/* Liquidations Mini in Sidebar */}
-                    <div data-tour="liquidations">
-                    <LiquidationMini
-                      stats={liquidationStats}
-                      levels={liquidationLevels}
-                      currentPrice={multiTimeframe?.currentPrice || 0}
-                      isConnected={liquidationConnected}
-                    />
-                    </div>
+                    {currentKlines.length > 0 ? (
+                      <InlineChart
+                        symbol={selectedAnalysisCoin?.symbol || 'BTC'}
+                        klines={currentKlines}
+                        technicalLevels={currentTechnicalLevels || undefined}
+                        tradeSetup={tradeRecommendations[chartTimeframe] || null}
+                        selectedTimeframe={chartTimeframe}
+                        onTimeframeChange={setChartTimeframe}
+                        height={500}
+                        theme={theme}
+                        confluenceZones={confluenceZones}
+                      />
+                    ) : (
+                      <div className="h-[500px] bg-gray-900/50 rounded-lg flex items-center justify-center">
+                        <div className="text-gray-500">Chart loading...</div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Trade Recommendations - Below Mode (Collapsible) */}
-              {tradeSignalsLayout === 'below' && (
-              <div className="space-y-4 mt-6" data-tour="trade-signals">
-                <CollapsibleSection
-                  title="Trade Signale"
-                  icon={<TrendingUp className="w-4 h-4" />}
-                  defaultOpen={true}
-                  badge={Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length || undefined}
-                  badgeColor="blue"
-                >
-                  <TradeRecommendations
-                    recommendations={tradeRecommendations}
-                    scores={tradeScores}
-                    hedgeRecommendation={hedgeRecommendation}
-                    currentPrice={selectedAnalysisCoin?.price || btcPrice}
-                    coinSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
-                    coinImage={selectedAnalysisCoin?.image}
-                    loading={loadingTrades}
-                    onCardClick={() => {
-                      if (selectedAnalysisCoin) setModalCoin(selectedAnalysisCoin);
-                    }}
-                    sentimentConflict={sentimentConflict}
-                    sentimentSignal={currentSentimentSignal}
-                    sentimentMode={sentimentMode}
-                  />
-                </CollapsibleSection>
+                  {/* Trade Recommendations - Sidebar Mode */}
+                  {tradeSignalsLayout === 'sidebar' && (
+                    <div className="w-80 flex-shrink-0 border-l border-gray-800 pl-4 overflow-y-auto max-h-[calc(100vh-200px)] space-y-4" data-tour="trade-signals">
+                      <TradeRecommendations
+                        recommendations={tradeRecommendations}
+                        scores={tradeScores}
+                        hedgeRecommendation={hedgeRecommendation}
+                        currentPrice={selectedAnalysisCoin?.price || btcPrice}
+                        coinSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
+                        coinImage={selectedAnalysisCoin?.image}
+                        loading={loadingTrades}
+                        onCardClick={() => {
+                          if (selectedAnalysisCoin) setModalCoin(selectedAnalysisCoin);
+                        }}
+                        sentimentConflict={sentimentConflict}
+                        sentimentSignal={currentSentimentSignal}
+                        sentimentMode={sentimentMode}
+                        layout="stacked"
+                      />
 
-                {/* Liquidations - Collapsible */}
-                <CollapsibleSection
-                  title="Liquidations"
-                  icon={<Zap className="w-4 h-4 text-yellow-400" />}
-                  defaultOpen={false}
-                  badge={liquidationConnected ? 'Live' : undefined}
-                  badgeColor="green"
-                >
-                  <div className="space-y-4">
-                    <LiquidationStats stats={liquidationStats} isConnected={liquidationConnected} />
-                    {liquidationLevels.length > 0 && (
-                      <div>
-                        <div className="text-xs text-gray-400 mb-2">Liquidation Heatmap</div>
-                        <LiquidationHeatmap
+                      {/* Confluence Zones in Sidebar */}
+                      {confluenceZones.length > 0 && (
+                        <div data-tour="confluence">
+                          <ConfluenceWidget
+                            zones={confluenceZones}
+                            currentPrice={multiTimeframe?.currentPrice || selectedAnalysisCoin?.price || 0}
+                          />
+                        </div>
+                      )}
+
+                      {/* Liquidations Mini in Sidebar */}
+                      <div data-tour="liquidations">
+                        <LiquidationMini
+                          stats={liquidationStats}
                           levels={liquidationLevels}
                           currentPrice={multiTimeframe?.currentPrice || 0}
-                          height={150}
+                          isConnected={liquidationConnected}
                         />
                       </div>
-                    )}
-                    <div>
-                      <div className="text-xs text-gray-400 mb-2">Live Feed</div>
-                      <LiquidationFeed liquidations={liquidations} maxItems={15} />
                     </div>
-                  </div>
-                </CollapsibleSection>
+                  )}
+                </div>
 
-                {/* Price Alerts - Collapsible */}
-                <CollapsibleSection
-                  title="Preisalarme"
-                  icon={<Bell className="w-4 h-4" />}
-                  defaultOpen={false}
-                  badge={alerts.filter(a => a.enabled).length || undefined}
-                  badgeColor="yellow"
-                >
-                  <AlertManager
-                    alerts={alerts}
-                    onAddAlert={addAlert}
-                    onRemoveAlert={removeAlert}
-                    onToggleAlert={toggleAlert}
-                    currentSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
-                    currentPrice={multiTimeframe?.currentPrice || selectedAnalysisCoin?.price || 0}
-                  />
-                </CollapsibleSection>
-              </div>
-              )}
+                {/* Trade Recommendations - Below Mode (Collapsible) */}
+                {tradeSignalsLayout === 'below' && (
+                  <div className="space-y-4 mt-6" data-tour="trade-signals">
+                    <CollapsibleSection
+                      title="Trade Signale"
+                      icon={<TrendingUp className="w-4 h-4" />}
+                      defaultOpen={true}
+                      badge={Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length || undefined}
+                      badgeColor="blue"
+                    >
+                      <TradeRecommendations
+                        recommendations={tradeRecommendations}
+                        scores={tradeScores}
+                        hedgeRecommendation={hedgeRecommendation}
+                        currentPrice={selectedAnalysisCoin?.price || btcPrice}
+                        coinSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
+                        coinImage={selectedAnalysisCoin?.image}
+                        loading={loadingTrades}
+                        onCardClick={() => {
+                          if (selectedAnalysisCoin) setModalCoin(selectedAnalysisCoin);
+                        }}
+                        sentimentConflict={sentimentConflict}
+                        sentimentSignal={currentSentimentSignal}
+                        sentimentMode={sentimentMode}
+                      />
+                    </CollapsibleSection>
+
+                    {/* Liquidations - Collapsible */}
+                    <CollapsibleSection
+                      title="Liquidations"
+                      icon={<Zap className="w-4 h-4 text-yellow-400" />}
+                      defaultOpen={false}
+                      badge={liquidationConnected ? 'Live' : undefined}
+                      badgeColor="green"
+                    >
+                      <div className="space-y-4">
+                        <LiquidationStats stats={liquidationStats} isConnected={liquidationConnected} />
+                        {liquidationLevels.length > 0 && (
+                          <div>
+                            <div className="text-xs text-gray-400 mb-2">Liquidation Heatmap</div>
+                            <LiquidationHeatmap
+                              levels={liquidationLevels}
+                              currentPrice={multiTimeframe?.currentPrice || 0}
+                              height={150}
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <div className="text-xs text-gray-400 mb-2">Live Feed</div>
+                          <LiquidationFeed liquidations={liquidations} maxItems={15} />
+                        </div>
+                      </div>
+                    </CollapsibleSection>
+
+                    {/* Price Alerts - Collapsible */}
+                    <CollapsibleSection
+                      title="Preisalarme"
+                      icon={<Bell className="w-4 h-4" />}
+                      defaultOpen={false}
+                      badge={alerts.filter(a => a.enabled).length || undefined}
+                      badgeColor="yellow"
+                    >
+                      <AlertManager
+                        alerts={alerts}
+                        onAddAlert={addAlert}
+                        onRemoveAlert={removeAlert}
+                        onToggleAlert={toggleAlert}
+                        currentSymbol={selectedAnalysisCoin?.symbol || 'BTC'}
+                        currentPrice={multiTimeframe?.currentPrice || selectedAnalysisCoin?.price || 0}
+                      />
+                    </CollapsibleSection>
+                  </div>
+                )}
 
               </TabPanel>
 
-            {/* TAB 2: Sentiment & On-Chain */}
-            <TabPanel id="sentiment" activeTab={activeTab}>
-              <div data-tour="sentiment">
-              {/* Mini Widgets */}
-              <MiniWidgets
-                reddit={redditData?.overall ? {
-                  sentiment: redditData.overall.sentiment,
-                  score: redditData.overall.sentimentScore,
-                  topTopic: redditData.overall.trendingTopics[0],
-                } : undefined}
-                defi={defiData ? {
-                  tvl: defiData.totalTvl,
-                  tvlChange24h: defiData.totalTvlChange24h,
-                } : undefined}
-                futures={futuresData ? {
-                  openInterest: totalOI,
-                  oiChange24h: 0,
-                } : undefined}
-              />
+              {/* TAB 2: Sentiment & On-Chain */}
+              <TabPanel id="sentiment" activeTab={activeTab}>
+                <div data-tour="sentiment">
+                  {/* Mini Widgets */}
+                  <MiniWidgets
+                    reddit={redditData?.overall ? {
+                      sentiment: redditData.overall.sentiment,
+                      score: redditData.overall.sentimentScore,
+                      topTopic: redditData.overall.trendingTopics[0],
+                    } : undefined}
+                    defi={defiData ? {
+                      tvl: defiData.totalTvl,
+                      tvlChange24h: defiData.totalTvlChange24h,
+                    } : undefined}
+                    futures={futuresData ? {
+                      openInterest: totalOI,
+                      oiChange24h: 0,
+                    } : undefined}
+                  />
 
-              {/* Guru Watcher - Twitter Influencer Sentiment */}
-              <GuruWatcher />
+                  {/* Guru Watcher - Twitter Influencer Sentiment */}
+                  <GuruWatcher />
 
-              {/* Telegram Sentiment */}
-              <TelegramSentiment />
+                  {/* Telegram Sentiment */}
+                  <TelegramSentiment />
 
-              {/* Bitcoin On-Chain Data (nur wenn BTC ausgewählt) */}
-              {selectedAnalysisCoin?.symbol?.toLowerCase() === 'btc' && bitcoinData && (
-                <div className="mt-6 bg-gray-900/50 border border-gray-800 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <span className="text-yellow-500">₿</span> Bitcoin On-Chain Daten
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-400">Block Height:</span>
-                      <span className="text-white ml-2">{bitcoinData.blockHeight?.toLocaleString()}</span>
+                  {/* Bitcoin On-Chain Data (nur wenn BTC ausgewählt) */}
+                  {selectedAnalysisCoin?.symbol?.toLowerCase() === 'btc' && bitcoinData && (
+                    <div className="mt-6 bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <span className="text-yellow-500">₿</span> Bitcoin On-Chain Daten
+                      </h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-400">Block Height:</span>
+                          <span className="text-white ml-2">{bitcoinData.blockHeight?.toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Mempool Size:</span>
+                          <span className="text-white ml-2">{bitcoinData.mempool?.count?.toLocaleString()} TXs</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Fast Fee:</span>
+                          <span className="text-white ml-2">{bitcoinData.fees?.fastestFee} sat/vB</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Difficulty Adj:</span>
+                          <span className="text-white ml-2">{bitcoinData.difficulty?.progressPercent?.toFixed(1)}%</span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-400">Mempool Size:</span>
-                      <span className="text-white ml-2">{bitcoinData.mempool?.count?.toLocaleString()} TXs</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Fast Fee:</span>
-                      <span className="text-white ml-2">{bitcoinData.fees?.fastestFee} sat/vB</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Difficulty Adj:</span>
-                      <span className="text-white ml-2">{bitcoinData.difficulty?.progressPercent?.toFixed(1)}%</span>
-                    </div>
+                  )}
+
+                  {/* YouTube Crypto News */}
+                  <div className="mt-6">
+                    <YouTubeSection />
                   </div>
                 </div>
-              )}
+              </TabPanel>
 
-              {/* YouTube Crypto News */}
-              <div className="mt-6">
-                <YouTubeSection />
-              </div>
-              </div>
-            </TabPanel>
+              {/* TAB 3: Meme Coins */}
+              <TabPanel id="memecoins" activeTab={activeTab}>
+                <div data-tour="memecoins-tab">
+                  <MemeCoinsPanel
+                    onCoinSelect={(symbol) => {
+                      // Find or create the coin in our list and select it
+                      const existingCoin = marketData?.coins.find(c => c.symbol === symbol);
+                      if (existingCoin) {
+                        handleCoinSelect(existingCoin);
+                        setActiveTab('trading');
+                      } else {
+                        // Add as custom coin
+                        handleAddCustomCoin(symbol);
+                        setActiveTab('trading');
+                      }
+                    }}
+                  />
+                </div>
+              </TabPanel>
 
-            {/* TAB 3: Meme Coins */}
-            <TabPanel id="memecoins" activeTab={activeTab}>
-              <div data-tour="memecoins-tab">
-              <MemeCoinsPanel
-                onCoinSelect={(symbol) => {
-                  // Find or create the coin in our list and select it
-                  const existingCoin = marketData?.coins.find(c => c.symbol === symbol);
-                  if (existingCoin) {
-                    handleCoinSelect(existingCoin);
-                    setActiveTab('trading');
-                  } else {
-                    // Add as custom coin
-                    handleAddCustomCoin(symbol);
-                    setActiveTab('trading');
-                  }
-                }}
-              />
-              </div>
-            </TabPanel>
+              {/* TAB 4: Simulator */}
+              <TabPanel id="simulator" activeTab={activeTab}>
+                <SimulatorPanel />
+              </TabPanel>
 
-            {/* TAB 4: KI Reports */}
-            <TabPanel id="reports" activeTab={activeTab}>
-              <div className="space-y-6">
-                {/* Report Generation Buttons */}
-                <div className="flex flex-wrap gap-4">
-                  <button
-                    onClick={generateIntelligenceReport}
-                    disabled={analyzing}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors"
-                  >
-                    <Brain className={`w-4 h-4 ${analyzing ? 'animate-pulse' : ''}`} />
-                    {analyzing ? 'Analysiere Markt...' : 'Markt-Intelligence Report generieren'}
-                  </button>
-
-                  {selectedAnalysisCoin && (
+              {/* TAB 4: KI Reports */}
+              <TabPanel id="reports" activeTab={activeTab}>
+                <div className="space-y-6">
+                  {/* Report Generation Buttons */}
+                  <div className="flex flex-wrap gap-4">
                     <button
-                      onClick={() => generateCoinReport(selectedAnalysisCoin)}
-                      disabled={analyzingCoin}
-                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors"
+                      onClick={generateIntelligenceReport}
+                      disabled={analyzing}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors"
                     >
-                      <Sparkles className={`w-4 h-4 ${analyzingCoin ? 'animate-pulse' : ''}`} />
-                      {analyzingCoin ? 'Analysiere...' : `${selectedAnalysisCoin.symbol.toUpperCase()} analysieren`}
+                      <Brain className={`w-4 h-4 ${analyzing ? 'animate-pulse' : ''}`} />
+                      {analyzing ? 'Analysiere Markt...' : 'Markt-Intelligence Report generieren'}
                     </button>
+
+                    {selectedAnalysisCoin && (
+                      <button
+                        onClick={() => generateCoinReport(selectedAnalysisCoin)}
+                        disabled={analyzingCoin}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        <Sparkles className={`w-4 h-4 ${analyzingCoin ? 'animate-pulse' : ''}`} />
+                        {analyzingCoin ? 'Analysiere...' : `${selectedAnalysisCoin.symbol.toUpperCase()} analysieren`}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Reports Info */}
+                  <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-white mb-3">KI-Reports</h3>
+                    <p className="text-gray-400 text-sm mb-4">
+                      Generiere detaillierte KI-Analysen für den Gesamtmarkt oder einzelne Coins.
+                      Die Reports nutzen technische Analyse, Sentiment-Daten und On-Chain-Metriken.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="bg-gray-800/50 rounded-lg p-3">
+                        <h4 className="font-medium text-blue-400 mb-2">Markt-Intelligence</h4>
+                        <ul className="text-gray-400 space-y-1 text-xs">
+                          <li>• Gesamtmarkt-Übersicht</li>
+                          <li>• Fear & Greed Analyse</li>
+                          <li>• Top-Mover Analyse</li>
+                          <li>• Trend-Prognosen</li>
+                        </ul>
+                      </div>
+                      <div className="bg-gray-800/50 rounded-lg p-3">
+                        <h4 className="font-medium text-purple-400 mb-2">Coin-Intelligence</h4>
+                        <ul className="text-gray-400 space-y-1 text-xs">
+                          <li>• Multi-Timeframe Analyse</li>
+                          <li>• Support/Resistance Levels</li>
+                          <li>• Trade-Empfehlungen</li>
+                          <li>• Risiko-Bewertung</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Show existing reports if available */}
+                  {intelligenceReport && (
+                    <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-medium text-blue-400">Letzter Markt-Report</h4>
+                        <button
+                          onClick={() => setIntelligenceReport(null)}
+                          className="text-xs text-gray-500 hover:text-gray-300"
+                        >
+                          Report öffnen →
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-300">{intelligenceReport.summary?.substring(0, 200)}...</p>
+                    </div>
                   )}
                 </div>
+              </TabPanel>
 
-                {/* Reports Info */}
-                <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-white mb-3">KI-Reports</h3>
-                  <p className="text-gray-400 text-sm mb-4">
-                    Generiere detaillierte KI-Analysen für den Gesamtmarkt oder einzelne Coins.
-                    Die Reports nutzen technische Analyse, Sentiment-Daten und On-Chain-Metriken.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <h4 className="font-medium text-blue-400 mb-2">Markt-Intelligence</h4>
-                      <ul className="text-gray-400 space-y-1 text-xs">
-                        <li>• Gesamtmarkt-Übersicht</li>
-                        <li>• Fear & Greed Analyse</li>
-                        <li>• Top-Mover Analyse</li>
-                        <li>• Trend-Prognosen</li>
-                      </ul>
-                    </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <h4 className="font-medium text-purple-400 mb-2">Coin-Intelligence</h4>
-                      <ul className="text-gray-400 space-y-1 text-xs">
-                        <li>• Multi-Timeframe Analyse</li>
-                        <li>• Support/Resistance Levels</li>
-                        <li>• Trade-Empfehlungen</li>
-                        <li>• Risiko-Bewertung</li>
-                      </ul>
-                    </div>
+            </div>
+          </main>
+        </div>
+
+        {/* Mobile Drawer - Sidebar on mobile */}
+        <MobileDrawer
+          open={mobileDrawerOpen}
+          onClose={() => setMobileDrawerOpen(false)}
+          title="Navigation"
+        >
+          <div className="space-y-4">
+            {/* Fear & Greed Index */}
+            {marketData?.fearGreed && (
+              <div className="bg-gray-800/50 rounded-lg p-4" data-tour="fear-greed">
+                <div className="text-sm text-gray-400 mb-2">Fear & Greed</div>
+                <div className="flex items-center gap-3">
+                  <div className={`text-3xl font-bold ${marketData.fearGreed.value <= 25 ? 'text-red-500' :
+                      marketData.fearGreed.value <= 45 ? 'text-orange-500' :
+                        marketData.fearGreed.value <= 55 ? 'text-yellow-500' :
+                          marketData.fearGreed.value <= 75 ? 'text-lime-500' :
+                            'text-green-500'
+                    }`}>
+                    {marketData.fearGreed.value}
                   </div>
+                  <div className="text-sm text-gray-300">{marketData.fearGreed.label}</div>
                 </div>
-
-                {/* Show existing reports if available */}
-                {intelligenceReport && (
-                  <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-medium text-blue-400">Letzter Markt-Report</h4>
-                      <button
-                        onClick={() => setIntelligenceReport(null)}
-                        className="text-xs text-gray-500 hover:text-gray-300"
-                      >
-                        Report öffnen →
-                      </button>
-                    </div>
-                    <p className="text-sm text-gray-300">{intelligenceReport.summary?.substring(0, 200)}...</p>
-                  </div>
-                )}
               </div>
-            </TabPanel>
+            )}
 
+            {/* Coin List */}
+            <div>
+              <div className="text-sm text-gray-400 mb-3">Top Coins</div>
+              <div className="space-y-2">
+                {marketData?.coins.slice(0, 10).map((coin, index) => (
+                  <button
+                    key={coin.id || `drawer-coin-${coin.symbol}-${index}`}
+                    onClick={() => {
+                      handleCoinSelect(coin);
+                      setMobileDrawerOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${selectedAnalysisCoin?.symbol === coin.symbol
+                        ? 'bg-blue-600/20 border border-blue-500/50'
+                        : 'bg-gray-800/50 hover:bg-gray-700/50'
+                      }`}
+                  >
+                    <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />
+                    <div className="flex-1 text-left">
+                      <div className="font-medium text-white">{coin.symbol.toUpperCase()}</div>
+                      <div className="text-xs text-gray-400">${coin.price?.toLocaleString()}</div>
+                    </div>
+                    <div className={`text-sm font-medium ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(1)}%
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Add Custom Coin */}
+            <button
+              onClick={() => {
+                const symbol = prompt('Coin Symbol eingeben (z.B. DOGE):');
+                if (symbol) {
+                  handleAddCustomCoin(symbol);
+                  setMobileDrawerOpen(false);
+                }
+              }}
+              className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Coin hinzufügen
+            </button>
           </div>
-        </main>
+        </MobileDrawer>
+
+        {/* Footer */}
+        <footer className="border-t border-gray-800 mt-12 lg:ml-64">
+          <div className="px-4 py-3 text-center text-[10px] text-gray-500">
+            Crypto Intelligence - Daten von CoinGecko, DefiLlama, Reddit, Binance, Mempool.space & Groq AI
+          </div>
+        </footer>
+
+        {/* Intelligence Report Modal */}
+        {intelligenceReport && !showPresentation && (
+          <IntelligenceReport
+            report={intelligenceReport}
+            technicalLevels={technicalLevels || undefined}
+            multiTimeframe={multiTimeframe || undefined}
+            fearGreed={marketData?.fearGreed?.value}
+            topCoins={marketData?.coins.slice(0, 5).map(c => ({ symbol: c.symbol, change24h: c.change24h }))}
+            onClose={() => setIntelligenceReport(null)}
+            onOpenPresentation={() => setShowPresentation(true)}
+          />
+        )}
+
+        {/* Presentation Mode */}
+        {showPresentation && intelligenceReport && (
+          <PresentationMode
+            report={intelligenceReport}
+            technicalLevels={technicalLevels || undefined}
+            multiTimeframe={multiTimeframe || undefined}
+            fearGreed={marketData?.fearGreed?.value}
+            topCoins={marketData?.coins.slice(0, 5).map(c => ({ symbol: c.symbol, change24h: c.change24h }))}
+            onClose={() => setShowPresentation(false)}
+          />
+        )}
+
+        {/* Coin Detail Modal */}
+        {modalCoin && (
+          <CoinDetailModal
+            coin={modalCoin}
+            onClose={() => setModalCoin(null)}
+            tradeRecommendations={
+              modalCoin.symbol === selectedAnalysisCoin?.symbol
+                ? tradeRecommendations
+                : undefined
+            }
+          />
+        )}
+
+        {/* Coin Intelligence Report Modal */}
+        {coinReport && selectedAnalysisCoin && (
+          <CoinIntelligenceReport
+            report={coinReport}
+            coin={selectedAnalysisCoin}
+            onClose={() => setCoinReport(null)}
+          />
+        )}
+
+        {/* Alert Notifications (Toast) */}
+        <AnimatePresence>
+          <AlertNotificationsContainer
+            notifications={notifications}
+            onDismiss={dismissNotification}
+          />
+        </AnimatePresence>
+
+        {/* Satoshi Avatar & Onboarding Tour */}
+        <Avatar context={satoshiContext} />
+        <OnboardingTour />
       </div>
-
-      {/* Mobile Drawer - Sidebar on mobile */}
-      <MobileDrawer
-        open={mobileDrawerOpen}
-        onClose={() => setMobileDrawerOpen(false)}
-        title="Navigation"
-      >
-        <div className="space-y-4">
-          {/* Fear & Greed Index */}
-          {marketData?.fearGreed && (
-            <div className="bg-gray-800/50 rounded-lg p-4" data-tour="fear-greed">
-              <div className="text-sm text-gray-400 mb-2">Fear & Greed</div>
-              <div className="flex items-center gap-3">
-                <div className={`text-3xl font-bold ${
-                  marketData.fearGreed.value <= 25 ? 'text-red-500' :
-                  marketData.fearGreed.value <= 45 ? 'text-orange-500' :
-                  marketData.fearGreed.value <= 55 ? 'text-yellow-500' :
-                  marketData.fearGreed.value <= 75 ? 'text-lime-500' :
-                  'text-green-500'
-                }`}>
-                  {marketData.fearGreed.value}
-                </div>
-                <div className="text-sm text-gray-300">{marketData.fearGreed.label}</div>
-              </div>
-            </div>
-          )}
-
-          {/* Coin List */}
-          <div>
-            <div className="text-sm text-gray-400 mb-3">Top Coins</div>
-            <div className="space-y-2">
-              {marketData?.coins.slice(0, 10).map((coin, index) => (
-                <button
-                  key={coin.id || `drawer-coin-${coin.symbol}-${index}`}
-                  onClick={() => {
-                    handleCoinSelect(coin);
-                    setMobileDrawerOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                    selectedAnalysisCoin?.symbol === coin.symbol
-                      ? 'bg-blue-600/20 border border-blue-500/50'
-                      : 'bg-gray-800/50 hover:bg-gray-700/50'
-                  }`}
-                >
-                  <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />
-                  <div className="flex-1 text-left">
-                    <div className="font-medium text-white">{coin.symbol.toUpperCase()}</div>
-                    <div className="text-xs text-gray-400">${coin.price?.toLocaleString()}</div>
-                  </div>
-                  <div className={`text-sm font-medium ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(1)}%
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Add Custom Coin */}
-          <button
-            onClick={() => {
-              const symbol = prompt('Coin Symbol eingeben (z.B. DOGE):');
-              if (symbol) {
-                handleAddCustomCoin(symbol);
-                setMobileDrawerOpen(false);
-              }
-            }}
-            className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Coin hinzufügen
-          </button>
-        </div>
-      </MobileDrawer>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-800 mt-12 lg:ml-64">
-        <div className="px-4 py-3 text-center text-[10px] text-gray-500">
-          Crypto Intelligence - Daten von CoinGecko, DefiLlama, Reddit, Binance, Mempool.space & Groq AI
-        </div>
-      </footer>
-
-      {/* Intelligence Report Modal */}
-      {intelligenceReport && !showPresentation && (
-        <IntelligenceReport
-          report={intelligenceReport}
-          technicalLevels={technicalLevels || undefined}
-          multiTimeframe={multiTimeframe || undefined}
-          fearGreed={marketData?.fearGreed?.value}
-          topCoins={marketData?.coins.slice(0, 5).map(c => ({ symbol: c.symbol, change24h: c.change24h }))}
-          onClose={() => setIntelligenceReport(null)}
-          onOpenPresentation={() => setShowPresentation(true)}
-        />
-      )}
-
-      {/* Presentation Mode */}
-      {showPresentation && intelligenceReport && (
-        <PresentationMode
-          report={intelligenceReport}
-          technicalLevels={technicalLevels || undefined}
-          multiTimeframe={multiTimeframe || undefined}
-          fearGreed={marketData?.fearGreed?.value}
-          topCoins={marketData?.coins.slice(0, 5).map(c => ({ symbol: c.symbol, change24h: c.change24h }))}
-          onClose={() => setShowPresentation(false)}
-        />
-      )}
-
-      {/* Coin Detail Modal */}
-      {modalCoin && (
-        <CoinDetailModal
-          coin={modalCoin}
-          onClose={() => setModalCoin(null)}
-          tradeRecommendations={
-            modalCoin.symbol === selectedAnalysisCoin?.symbol
-              ? tradeRecommendations
-              : undefined
-          }
-        />
-      )}
-
-      {/* Coin Intelligence Report Modal */}
-      {coinReport && selectedAnalysisCoin && (
-        <CoinIntelligenceReport
-          report={coinReport}
-          coin={selectedAnalysisCoin}
-          onClose={() => setCoinReport(null)}
-        />
-      )}
-
-      {/* Alert Notifications (Toast) */}
-      <AnimatePresence>
-        <AlertNotificationsContainer
-          notifications={notifications}
-          onDismiss={dismissNotification}
-        />
-      </AnimatePresence>
-
-      {/* Satoshi Avatar & Onboarding Tour */}
-      <Avatar context={satoshiContext} />
-      <OnboardingTour />
-    </div>
     </HelpProvider>
   );
 }

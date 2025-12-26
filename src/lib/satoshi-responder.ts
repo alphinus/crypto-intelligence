@@ -46,6 +46,7 @@ const PATTERNS = {
   THANKS: /danke|thx|thanks|merci/i,
   HELP: /hilfe|help|was kannst du|commands|befehle/i,
   TOP_COINS: /top coins|beste coins|welche coins|trending/i,
+  SIMULATOR: /simulator|creator|coin erstellen|coin machen|simulation/i,
 };
 
 // Prüft ob eine Frage regelbasiert beantwortet werden kann
@@ -250,9 +251,8 @@ export function generateRuleBasedResponse(
 
   // Greeting
   if (PATTERNS.GREETING.test(msg)) {
-    return `Hey Elvis! 👋 Ich bin bereit. Der Markt zeigt gerade ${
-      context.fearGreed ? `Fear & Greed bei ${context.fearGreed.value} (${context.fearGreed.label})` : 'gemischte Signale'
-    }. Was möchtest du wissen?`;
+    return `Hey Elvis! 👋 Ich bin bereit. Der Markt zeigt gerade ${context.fearGreed ? `Fear & Greed bei ${context.fearGreed.value} (${context.fearGreed.label})` : 'gemischte Signale'
+      }. Was möchtest du wissen?`;
   }
 
   // Thanks
@@ -275,8 +275,17 @@ export function generateRuleBasedResponse(
 • **Fear & Greed?** - Marktsentiment
 • **Funding Rate?** - Futures-Finanzierung
 • **Top Coins** - Die besten Performer
+• **Simulator?** - Zeige Infos zum Coin Creator
 
 Oder stell mir komplexere Fragen - da nutze ich KI!`;
+  }
+
+  // Simulator
+  if (PATTERNS.SIMULATOR.test(msg)) {
+    return `🚀 **Der Coin Simulator:**
+Du kannst im neuen Tab **"Simulator"** deinen eigenen Memecoin erstellen! 
+Dort lernst du wie Bonding Curves funktionieren und kannst mit Spielgeld traden.
+Wähle einfach Name, Symbol und Logo aus und starte deine eigene Simulation.`;
   }
 
   // Best Trade
@@ -447,7 +456,7 @@ ${list}`;
   if (coinPriceMatch) {
     // Finde den Coin-Namen aus den Match-Gruppen
     const query = (coinPriceMatch[1] || coinPriceMatch[2] || coinPriceMatch[3] ||
-                   coinPriceMatch[4] || coinPriceMatch[5] || coinPriceMatch[6])?.trim();
+      coinPriceMatch[4] || coinPriceMatch[5] || coinPriceMatch[6])?.trim();
 
     if (query) {
       const coin = findCoinByQuery(query, context.allCoins);
