@@ -56,6 +56,26 @@ export function PresentationMode({
 
   const totalSlides = 5;
 
+  // Navigation functions (defined before useEffect to avoid hoisting issues)
+  const nextSlide = useCallback(() => {
+    if (currentSlide < totalSlides - 1) {
+      setCurrentSlide((prev) => prev + 1);
+    }
+  }, [currentSlide]);
+
+  const prevSlide = useCallback(() => {
+    if (currentSlide > 0) {
+      setCurrentSlide((prev) => prev - 1);
+    }
+  }, [currentSlide]);
+
+  const toggleAudio = useCallback(() => {
+    if (audioEnabled) {
+      stopSpeaking();
+    }
+    setAudioEnabled((prev) => !prev);
+  }, [audioEnabled]);
+
   // Keyboard Navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -110,10 +130,10 @@ export function PresentationMode({
       timeframes: multiTimeframe?.timeframes,
       levels: technicalLevels
         ? {
-            keySupport: technicalLevels.keySupport,
-            keyResistance: technicalLevels.keyResistance,
-            currentPrice: technicalLevels.currentPrice,
-          }
+          keySupport: technicalLevels.keySupport,
+          keyResistance: technicalLevels.keyResistance,
+          currentPrice: technicalLevels.currentPrice,
+        }
         : undefined,
       tradeRecommendation: report.tradeRecommendation,
       signals: report.signals,
@@ -133,25 +153,6 @@ export function PresentationMode({
       setIsSpeakingNow(false);
     };
   }, [currentSlide, audioEnabled]);
-
-  const nextSlide = useCallback(() => {
-    if (currentSlide < totalSlides - 1) {
-      setCurrentSlide((prev) => prev + 1);
-    }
-  }, [currentSlide]);
-
-  const prevSlide = useCallback(() => {
-    if (currentSlide > 0) {
-      setCurrentSlide((prev) => prev - 1);
-    }
-  }, [currentSlide]);
-
-  const toggleAudio = useCallback(() => {
-    if (audioEnabled) {
-      stopSpeaking();
-    }
-    setAudioEnabled((prev) => !prev);
-  }, [audioEnabled]);
 
   const getSentimentIcon = () => {
     switch (report.overallSentiment) {
@@ -345,18 +346,16 @@ export function PresentationMode({
       {report.tradeRecommendation && report.tradeRecommendation.type !== 'wait' ? (
         <div className="w-full max-w-xl">
           <div
-            className={`rounded-2xl p-8 ${
-              report.tradeRecommendation.type === 'long'
+            className={`rounded-2xl p-8 ${report.tradeRecommendation.type === 'long'
                 ? 'bg-gradient-to-br from-green-900/50 to-green-800/30 border border-green-500/30'
                 : 'bg-gradient-to-br from-red-900/50 to-red-800/30 border border-red-500/30'
-            }`}
+              }`}
           >
             {/* Trade Type */}
             <div className="text-center mb-8">
               <div
-                className={`text-5xl font-bold ${
-                  report.tradeRecommendation.type === 'long' ? 'text-green-400' : 'text-red-400'
-                }`}
+                className={`text-5xl font-bold ${report.tradeRecommendation.type === 'long' ? 'text-green-400' : 'text-red-400'
+                  }`}
               >
                 {report.tradeRecommendation.type.toUpperCase()}
               </div>
@@ -425,13 +424,12 @@ export function PresentationMode({
         <div className="bg-gray-800/50 rounded-xl p-6 mb-8 text-center">
           <div className="text-sm text-gray-400 mb-2">Risiko-Level</div>
           <div
-            className={`text-4xl font-bold ${
-              report.riskLevel === 'low'
+            className={`text-4xl font-bold ${report.riskLevel === 'low'
                 ? 'text-green-400'
                 : report.riskLevel === 'high'
                   ? 'text-red-400'
                   : 'text-yellow-400'
-            }`}
+              }`}
           >
             {report.riskLevel === 'low' ? 'NIEDRIG' : report.riskLevel === 'high' ? 'HOCH' : 'MITTEL'}
           </div>
@@ -486,9 +484,8 @@ export function PresentationMode({
           {/* Audio Toggle */}
           <button
             onClick={toggleAudio}
-            className={`p-2 rounded-lg transition-colors ${
-              audioEnabled ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
-            }`}
+            className={`p-2 rounded-lg transition-colors ${audioEnabled ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
+              }`}
             title="Audio (A)"
           >
             {audioEnabled ? (
@@ -501,9 +498,8 @@ export function PresentationMode({
           {/* Auto-Play Toggle */}
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className={`p-2 rounded-lg transition-colors ${
-              isPlaying ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400'
-            }`}
+            className={`p-2 rounded-lg transition-colors ${isPlaying ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400'
+              }`}
             title="Auto-Play"
           >
             {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
@@ -540,9 +536,8 @@ export function PresentationMode({
             <button
               key={i}
               onClick={() => setCurrentSlide(i)}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                i === currentSlide ? 'bg-blue-500' : 'bg-gray-700 hover:bg-gray-600'
-              }`}
+              className={`w-3 h-3 rounded-full transition-colors ${i === currentSlide ? 'bg-blue-500' : 'bg-gray-700 hover:bg-gray-600'
+                }`}
             />
           ))}
         </div>

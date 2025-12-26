@@ -257,7 +257,7 @@ export default function CoinCreatorPage() {
                   <li>• <strong>Kaufen:</strong> Der Preis steigt mit jedem Kauf, da mehr Tokens im Umlauf sind</li>
                   <li>• <strong>Verkaufen:</strong> Der Preis sinkt, wenn Tokens zurueck in die Curve verkauft werden</li>
                   <li>• <strong>Price Impact:</strong> Grosse Orders haben einen staerkeren Einfluss auf den Preis</li>
-                  <li>• <strong>Graduation:</strong> Bei $69k Market Cap wird der Token "graduiert" und waere bereit fuer DEX-Listing</li>
+                  <li>• <strong>Graduation:</strong> Bei $69k Market Cap wird der Token &quot;graduiert&quot; und waere bereit fuer DEX-Listing</li>
                 </ul>
               </div>
             </motion.div>

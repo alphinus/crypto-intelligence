@@ -142,6 +142,19 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [envStatus, setEnvStatus] = useState<Record<string, boolean>>({});
 
+  // Function to check env status (defined before useEffect to avoid hoisting)
+  const checkEnvStatus = async () => {
+    try {
+      const res = await fetch('/api/settings/status');
+      const data = await res.json();
+      if (data.success) {
+        setEnvStatus(data.status);
+      }
+    } catch {
+      // API might not exist yet
+    }
+  };
+
   // Load saved values from localStorage
   useEffect(() => {
     const savedValues = localStorage.getItem('crypto-intelligence-settings');
@@ -156,18 +169,6 @@ export default function SettingsPage() {
     // Check which env vars are configured (via API)
     checkEnvStatus();
   }, []);
-
-  const checkEnvStatus = async () => {
-    try {
-      const res = await fetch('/api/settings/status');
-      const data = await res.json();
-      if (data.success) {
-        setEnvStatus(data.status);
-      }
-    } catch {
-      // API might not exist yet
-    }
-  };
 
   const handleChange = (key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -388,11 +389,10 @@ export default function SettingsPage() {
                       const newWeights = { technical: 100, sentiment: 0 };
                       setValues(prev => ({ ...prev, analysisWeights: JSON.stringify(newWeights) }));
                     }}
-                    className={`px-2 py-1 text-[10px] rounded transition-colors ${
-                      JSON.parse(values.analysisWeights || '{"technical":70}').technical === 100
+                    className={`px-2 py-1 text-[10px] rounded transition-colors ${JSON.parse(values.analysisWeights || '{"technical":70}').technical === 100
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                    }`}
+                      }`}
                   >
                     100% Tech
                   </button>
@@ -401,11 +401,10 @@ export default function SettingsPage() {
                       const newWeights = { technical: 70, sentiment: 30 };
                       setValues(prev => ({ ...prev, analysisWeights: JSON.stringify(newWeights) }));
                     }}
-                    className={`px-2 py-1 text-[10px] rounded transition-colors ${
-                      JSON.parse(values.analysisWeights || '{"technical":70}').technical === 70
+                    className={`px-2 py-1 text-[10px] rounded transition-colors ${JSON.parse(values.analysisWeights || '{"technical":70}').technical === 70
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                         : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                    }`}
+                      }`}
                   >
                     70/30
                   </button>
@@ -414,11 +413,10 @@ export default function SettingsPage() {
                       const newWeights = { technical: 50, sentiment: 50 };
                       setValues(prev => ({ ...prev, analysisWeights: JSON.stringify(newWeights) }));
                     }}
-                    className={`px-2 py-1 text-[10px] rounded transition-colors ${
-                      JSON.parse(values.analysisWeights || '{"technical":70}').technical === 50
+                    className={`px-2 py-1 text-[10px] rounded transition-colors ${JSON.parse(values.analysisWeights || '{"technical":70}').technical === 50
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                         : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                    }`}
+                      }`}
                   >
                     50/50
                   </button>
@@ -427,11 +425,10 @@ export default function SettingsPage() {
                       const newWeights = { technical: 0, sentiment: 100 };
                       setValues(prev => ({ ...prev, analysisWeights: JSON.stringify(newWeights) }));
                     }}
-                    className={`px-2 py-1 text-[10px] rounded transition-colors ${
-                      JSON.parse(values.analysisWeights || '{"technical":70}').sentiment === 100
+                    className={`px-2 py-1 text-[10px] rounded transition-colors ${JSON.parse(values.analysisWeights || '{"technical":70}').sentiment === 100
                         ? 'bg-purple-600 text-white'
                         : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                    }`}
+                      }`}
                   >
                     100% Sent
                   </button>
@@ -496,31 +493,28 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setValues(prev => ({ ...prev, sentimentMode: 'info' }))}
-                    className={`px-2.5 py-1.5 text-xs rounded transition-colors ${
-                      (values.sentimentMode || 'info') === 'info'
+                    className={`px-2.5 py-1.5 text-xs rounded transition-colors ${(values.sentimentMode || 'info') === 'info'
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                    }`}
+                      }`}
                   >
                     Info Only
                   </button>
                   <button
                     onClick={() => setValues(prev => ({ ...prev, sentimentMode: 'filter' }))}
-                    className={`px-2.5 py-1.5 text-xs rounded transition-colors ${
-                      values.sentimentMode === 'filter'
+                    className={`px-2.5 py-1.5 text-xs rounded transition-colors ${values.sentimentMode === 'filter'
                         ? 'bg-purple-600 text-white'
                         : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                    }`}
+                      }`}
                   >
                     Filter
                   </button>
                   <button
                     onClick={() => setValues(prev => ({ ...prev, sentimentMode: 'combined' }))}
-                    className={`px-2.5 py-1.5 text-xs rounded transition-colors ${
-                      values.sentimentMode === 'combined'
+                    className={`px-2.5 py-1.5 text-xs rounded transition-colors ${values.sentimentMode === 'combined'
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                         : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                    }`}
+                      }`}
                   >
                     Combined
                   </button>

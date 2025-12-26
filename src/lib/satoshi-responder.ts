@@ -332,7 +332,7 @@ ${findBestTrade(context.tradeRecommendations, context.tradeScores)?.timeframe ||
     const best = findBestTrade(context.tradeRecommendations, context.tradeScores);
     const fearGreed = context.fearGreed?.value || 50;
 
-    let riskFactors: string[] = [];
+    const riskFactors: string[] = [];
 
     if (best) {
       if (best.score < 50) riskFactors.push('Schwacher Trade-Score');

@@ -27,7 +27,7 @@ export function SimulatorPanel() {
                 const parsedToken = JSON.parse(savedToken);
                 // Convert ISO string dates back to Date objects if needed
                 parsedToken.createdAt = new Date(parsedToken.createdAt);
-                parsedToken.trades = parsedToken.trades.map((t: any) => ({
+                parsedToken.trades = parsedToken.trades.map((t: MockTrade) => ({
                     ...t,
                     timestamp: new Date(t.timestamp)
                 }));
@@ -234,7 +234,7 @@ export function SimulatorPanel() {
                                     desto teurer wird der nächste Token.
                                 </p>
                                 <p className="text-xs text-gray-300 leading-relaxed">
-                                    Wenn die Market Cap <span className="text-green-400 font-bold">$69.000</span> erreicht, "graduiert"
+                                    Wenn die Market Cap <span className="text-green-400 font-bold">$69.000</span> erreicht, &quot;graduiert&quot;
                                     der Token und die Liquidität wird symbolisch auf eine DEX übertragen.
                                 </p>
                             </div>

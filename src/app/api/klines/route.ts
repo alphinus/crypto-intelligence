@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { fetchMultiTimeframe, fetchSingleTimeframe, toBinanceSymbol, type MultiTimeframeData } from '@/lib/binance-klines';
+import { fetchMultiTimeframe, fetchSingleTimeframe, toBinanceSymbol, type MultiTimeframeData, type Interval } from '@/lib/binance-klines';
 
 export const revalidate = 60; // Cache für 1 Minute
 
@@ -7,23 +7,23 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const symbol = searchParams.get('symbol') || 'BTC';
-    const interval = searchParams.get('interval') as any; // Cast to avoid type issues, validated below
+    const interval = searchParams.get('interval'); // Validated below
 
     const binanceSymbol = toBinanceSymbol(symbol);
 
     // If interval is provided, return specific klines for chart
     if (interval) {
       // Validate interval (simple check)
-      const validIntervals = ['1m', '3m', '5m', '15m', '30m', '1h', '4h', '1d', '1w'];
-      if (!validIntervals.includes(interval)) {
+      const validIntervals = ['1m', '3m', '5m', '15m', '30m', '1h', '4h', '1d', '1w'] as const;
+      if (!validIntervals.includes(interval as Interval)) {
         return NextResponse.json(
           { success: false, error: 'Invalid interval' },
           { status: 400 }
         );
       }
 
-      // Fetch specific timeframe data
-      const data = await fetchSingleTimeframe(binanceSymbol, interval, 200);
+      // Fetch specific timeframe data (interval is now validated as Interval type)
+      const data = await fetchSingleTimeframe(binanceSymbol, interval as Interval, 200);
 
       return NextResponse.json({
         success: true,

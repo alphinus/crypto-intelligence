@@ -2,6 +2,7 @@
 
 import { signIn } from 'next-auth/react';
 import { Brain } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SignInPage() {
   return (
@@ -68,12 +69,12 @@ export default function SignInPage() {
           </div>
 
           {/* Continue as Guest */}
-          <a
+          <Link
             href="/"
             className="block w-full text-center px-4 py-3 border border-gray-700 rounded-lg text-gray-400 hover:text-white hover:border-gray-600 transition-colors"
           >
             Als Gast fortfahren
-          </a>
+          </Link>
         </div>
 
         {/* Info */}
