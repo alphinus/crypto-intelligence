@@ -85,10 +85,10 @@ export function HelpProvider({ children }: HelpProviderProps) {
         // Show welcome-back message
         setShowWelcomeBack(true);
 
-        // Auto-hide after 5 seconds
+        // Auto-hide after 2 seconds
         const timer = setTimeout(() => {
           setShowWelcomeBack(false);
-        }, 5000);
+        }, 2000);
 
         return () => clearTimeout(timer);
       }
