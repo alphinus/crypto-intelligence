@@ -384,17 +384,21 @@ export function SpotDCAChart({
         }
     }, [technicalLevels, goldenZone, klines, isReady, calculatedEmas, clearPriceLines, clearGoldenZoneSeries, overlayVisibility]);
 
-    // Current price and change
-    const currentPrice = klines.length > 0 ? klines[klines.length - 1].close : 0;
-    const priceChange = klines.length > 1
-        ? ((currentPrice - klines[0].close) / klines[0].close) * 100
-        : 0;
-
+    // Format price - Identical to InlineChart
     const formatPrice = (price: number) => {
-        if (price >= 10000) return price.toLocaleString('en-US', { maximumFractionDigits: 0 });
-        if (price >= 100) return price.toLocaleString('en-US', { maximumFractionDigits: 2 });
-        if (price >= 1) return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-        return price.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 8 });
+        if (price >= 10000) {
+            return price.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        } else if (price >= 100) {
+            return price.toLocaleString('en-US', { maximumFractionDigits: 2 });
+        } else if (price >= 1) {
+            return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+        } else if (price >= 0.01) {
+            return price.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
+        } else if (price >= 0.0001) {
+            return price.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 8 });
+        } else {
+            return price.toLocaleString('en-US', { minimumFractionDigits: 8, maximumFractionDigits: 10 });
+        }
     };
 
     return (
@@ -402,9 +406,11 @@ export function SpotDCAChart({
             {/* Header */}
             <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-gray-800">
                 <div className="flex items-center gap-3">
-                    <BarChart2 className="w-5 h-5 text-green-400" />
+                    <BarChart2 className="w-5 h-5 text-blue-400" />
                     <span className="font-semibold text-white">{symbol.toUpperCase()}/USDT</span>
-                    <span className="text-lg font-bold text-white">${formatPrice(currentPrice)}</span>
+                    <span className="text-lg font-bold text-white">
+                        ${formatPrice(currentPrice)}
+                    </span>
                     <span className={`flex items-center gap-1 text-sm ${priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {priceChange >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                         {priceChange >= 0 ? '+' : ''}{priceChange.toFixed(2)}%
@@ -419,7 +425,7 @@ export function SpotDCAChart({
                                 key={tf.value}
                                 onClick={() => onTimeframeChange(tf.value)}
                                 className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${selectedTimeframe === tf.value
-                                    ? 'bg-green-600 text-white'
+                                    ? 'bg-blue-600 text-white'
                                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
                                     }`}
                             >
@@ -431,8 +437,8 @@ export function SpotDCAChart({
                     {/* DCA Zone Badge */}
                     {dcaZone && (
                         <div
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold"
-                            style={{ backgroundColor: dcaZone.bgColor, color: dcaZone.color }}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg"
+                            style={{ backgroundColor: dcaZone.bgColor, color: dcaZone.color, border: `1px solid ${dcaZone.color}40` }}
                         >
                             DCA: {dcaZone.score}/100
                         </div>
@@ -443,15 +449,16 @@ export function SpotDCAChart({
             {/* Overlay Toggles */}
             <div className="flex flex-wrap gap-2 px-4 py-2 border-b border-gray-800 bg-gray-900/30">
                 {[
-                    { key: 'emas' as const, label: 'EMAs', color: '#3b82f6' },
+                    { key: 'emas' as const, label: 'EMAs', color: '#f59e0b' },
                     { key: 'supportResistance' as const, label: 'S/R', color: '#22c55e' },
                     { key: 'goldenZone' as const, label: 'Fib Zone', color: '#8b5cf6' },
                 ].map(({ key, label, color }) => (
                     <button
                         key={key}
+                        toggle-id={key}
                         onClick={() => toggleOverlay(key)}
                         className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors ${overlayVisibility[key]
-                            ? 'bg-gray-700 text-white'
+                            ? 'bg-gray-700 text-white shadow-sm'
                             : 'bg-gray-800/50 text-gray-500'
                             }`}
                     >
@@ -462,7 +469,7 @@ export function SpotDCAChart({
             </div>
 
             {/* Chart Container */}
-            <div ref={chartContainerRef} className="w-full" style={{ height }} />
+            <div ref={chartContainerRef} className="w-full relative" style={{ height }} />
         </div>
     );
 }

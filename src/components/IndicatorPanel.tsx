@@ -3,9 +3,11 @@
 import { useRef, useCallback } from 'react';
 import { RSIIndicator } from './RSIIndicator';
 import { MACDIndicator } from './MACDIndicator';
+import { StochRSIIndicator } from './StochRSIIndicator';
+import { ATRIndicator } from './ATRIndicator';
 import type { LogicalRange } from 'lightweight-charts';
 
-export type IndicatorType = 'rsi' | 'macd' | 'stochastic' | 'bollinger';
+export type IndicatorType = 'rsi' | 'macd' | 'stochrsi' | 'atr';
 
 interface IndicatorPanelProps {
   klines: { openTime: number; close: number; high: number; low: number }[];
@@ -62,6 +64,26 @@ export function IndicatorPanel({
           klines={klines}
           height={120}
           onClose={() => onRemoveIndicator('macd')}
+          visibleRange={visibleRange}
+          onVisibleRangeChange={handleVisibleRangeChange}
+          theme={theme}
+        />
+      )}
+      {activeIndicators.includes('stochrsi') && (
+        <StochRSIIndicator
+          klines={klines}
+          height={120}
+          onClose={() => onRemoveIndicator('stochrsi')}
+          visibleRange={visibleRange}
+          onVisibleRangeChange={handleVisibleRangeChange}
+          theme={theme}
+        />
+      )}
+      {activeIndicators.includes('atr') && (
+        <ATRIndicator
+          klines={klines}
+          height={100}
+          onClose={() => onRemoveIndicator('atr')}
           visibleRange={visibleRange}
           onVisibleRangeChange={handleVisibleRangeChange}
           theme={theme}

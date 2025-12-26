@@ -1880,14 +1880,14 @@ export default function Home() {
               </TabPanel>
 
               {/* TAB 5: Spot DCA */}
-              <TabPanel id="spotdca" activeTab={activeTab}>
+              <TabPanelPersistent id="spotdca" activeTab={activeTab}>
                 <SpotDCAPanel
                   coins={marketData?.coins || []}
                   fearGreed={marketData?.fearGreed || null}
                   selectedCoin={selectedAnalysisCoin}
                   onCoinSelect={handleCoinSelect}
                 />
-              </TabPanel>
+              </TabPanelPersistent>
 
               {/* TAB 6: KI Reports */}
               <TabPanel id="reports" activeTab={activeTab}>
