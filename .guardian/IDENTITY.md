@@ -3,9 +3,9 @@
 | Attribute | Value |
 |:---|:---|
 | **Origin** | legacy (auto-discovered) |
-| **Protocol** | V9.4 [DISCOVERER] |
-| **Integrity** | UNLOCKED |
-| **Migration** | 2025-12-24 (Auto-Init) |
+| **Protocol** | V14.0 [HYBRID] |
+| **Integrity** | LOCKED |
+| **Migration** | 2025-12-26 (Latest Bump) |
 
 ---
 
