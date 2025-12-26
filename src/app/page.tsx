@@ -31,6 +31,7 @@ import { YouTubeSection } from '@/components/YouTubeSection';
 import { GuruWatcher } from '@/components/GuruWatcher';
 import { TelegramSentiment } from '@/components/TelegramSentiment';
 import { HeaderMenu } from '@/components/HeaderMenu';
+import { SessionTimer } from '@/components/SessionTimer';
 import { MobileDrawer } from '@/components/MobileDrawer';
 import { MemeCoinsPanel } from '@/components/MemeCoinsPanel';
 import { CoinSelectorBar } from '@/components/CoinSelectorBar';
@@ -1414,26 +1415,24 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Global Stats inline - Desktop */}
-              {marketData?.global && (
-                <div className="hidden md:flex items-center gap-4 text-xs">
-                  <div className="text-gray-400">
-                    MCap: <span className="text-white font-medium">
-                      ${(marketData.global.totalMarketCap / 1e12).toFixed(2)}T
-                    </span>
+              {/* Session Timer & Global Stats - Desktop */}
+              <div className="hidden lg:flex items-center gap-6">
+                <SessionTimer />
+
+                {marketData?.global && (
+                  <div className="flex items-center gap-4 text-[11px]">
+                    <div className="flex flex-col">
+                      <span className="text-gray-500 uppercase text-[9px] font-bold tracking-wider">Vol 24h</span>
+                      <span className="text-white font-medium">${(marketData.global.totalVolume / 1e9).toFixed(1)}B</span>
+                    </div>
+                    <div className="w-px h-6 bg-gray-800" />
+                    <div className="flex flex-col">
+                      <span className="text-gray-500 uppercase text-[9px] font-bold tracking-wider">BTC Dom</span>
+                      <span className="text-yellow-400 font-medium">{marketData.global.btcDominance.toFixed(1)}%</span>
+                    </div>
                   </div>
-                  <div className="text-gray-400">
-                    Vol 24h: <span className="text-white font-medium">
-                      ${(marketData.global.totalVolume / 1e9).toFixed(1)}B
-                    </span>
-                  </div>
-                  <div className="text-gray-400">
-                    BTC Dom: <span className="text-yellow-400 font-medium">
-                      {marketData.global.btcDominance.toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Global Stats - Mobile (compact) */}
               {marketData?.global && (
@@ -1591,69 +1590,10 @@ export default function Home() {
                   />
                 </div>
 
-                {/* Trade Signals Layout Switch Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-blue-400" />
-                    Trade Signale
-                    {Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length > 0 && (
-                      <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded">
-                        {Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length}
-                      </span>
-                    )}
-                  </h3>
-                  <div className="hidden lg:flex items-center gap-1 bg-gray-800/50 rounded-lg p-1">
-                    <button
-                      onClick={() => setTradeSignalsLayout('below')}
-                      className={`p-1.5 rounded transition-colors ${tradeSignalsLayout === 'below'
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                        }`}
-                      title="Signale unterhalb vom Chart"
-                    >
-                      <LayoutList className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setTradeSignalsLayout('sidebar')}
-                      className={`p-1.5 rounded transition-colors ${tradeSignalsLayout === 'sidebar'
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                        }`}
-                      title="Signale als rechte Spalte"
-                    >
-                      <PanelRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Chart + Trade Signals Flex Container */}
+                {/* Chart Segment */}
                 <div className={`flex gap-4 ${tradeSignalsLayout === 'sidebar' ? 'flex-row' : 'flex-col'}`}>
                   {/* CHART FIRST - Primary Focus */}
-                  <div className={`min-h-[520px] ${tradeSignalsLayout === 'sidebar' ? 'flex-1 min-w-0' : 'w-full'}`} data-tour="chart">
-                    {selectedAnalysisCoin && (
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          {selectedAnalysisCoin.image && (
-                            <img src={selectedAnalysisCoin.image} alt={selectedAnalysisCoin.name} className="w-8 h-8 rounded-full" />
-                          )}
-                          <div>
-                            <span className="font-semibold text-lg">{selectedAnalysisCoin.symbol.toUpperCase()}</span>
-                            <span className="text-gray-400 ml-2">${selectedAnalysisCoin.price?.toLocaleString()}</span>
-                          </div>
-                          <span className={`text-sm px-2 py-0.5 rounded ${selectedAnalysisCoin.change24h >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                            {selectedAnalysisCoin.change24h >= 0 ? '+' : ''}{selectedAnalysisCoin.change24h.toFixed(2)}%
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => generateCoinReport(selectedAnalysisCoin)}
-                          disabled={analyzingCoin}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors"
-                        >
-                          <Sparkles className={`w-3.5 h-3.5 ${analyzingCoin ? 'animate-pulse' : ''}`} />
-                          {analyzingCoin ? 'Analysiere...' : 'KI Analyse'}
-                        </button>
-                      </div>
-                    )}
+                  <div className={`${tradeSignalsLayout === 'sidebar' ? 'flex-1 min-w-0' : 'w-full'}`} data-tour="chart">
                     {currentKlines.length > 0 ? (
                       <InlineChart
                         symbol={selectedAnalysisCoin?.symbol || 'BTC'}
@@ -1662,12 +1602,17 @@ export default function Home() {
                         tradeSetup={tradeRecommendations[chartTimeframe] || null}
                         selectedTimeframe={chartTimeframe}
                         onTimeframeChange={setChartTimeframe}
-                        height={500}
+                        height={550}
                         theme={theme}
                         confluenceZones={confluenceZones}
+                        onAiAnalyze={selectedAnalysisCoin ? () => generateCoinReport(selectedAnalysisCoin) : undefined}
+                        isAnalyzing={analyzingCoin}
+                        tradeSignalsCount={Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length}
+                        onLayoutChange={setTradeSignalsLayout}
+                        currentLayout={tradeSignalsLayout}
                       />
                     ) : (
-                      <div className="h-[500px] bg-gray-900/50 rounded-lg flex items-center justify-center">
+                      <div className="h-[550px] bg-gray-900/50 rounded-lg flex items-center justify-center border border-gray-800">
                         <div className="text-gray-500">Chart loading...</div>
                       </div>
                     )}

@@ -15,7 +15,7 @@ import {
   type IPriceLine,
   type LogicalRange,
 } from 'lightweight-charts';
-import { BarChart2, TrendingUp, TrendingDown, Eye, EyeOff, Clock, Activity, BarChart3 } from 'lucide-react';
+import { BarChart2, TrendingUp, TrendingDown, Eye, EyeOff, Clock, Activity, BarChart3, Sparkles, LayoutList, PanelRight } from 'lucide-react';
 import { IndicatorPanel, type IndicatorType } from './IndicatorPanel';
 import type { Kline, Interval } from '@/lib/binance-klines';
 
@@ -133,6 +133,11 @@ interface InlineChartProps {
   height?: number;
   theme?: 'dark' | 'light';
   confluenceZones?: ConfluenceZone[];
+  onAiAnalyze?: () => void;
+  isAnalyzing?: boolean;
+  tradeSignalsCount?: number;
+  onLayoutChange?: (layout: 'below' | 'sidebar') => void;
+  currentLayout?: 'below' | 'sidebar';
 }
 
 // Note: 1m and 3m are hidden due to high latency (250-800ms) making them unsuitable for scalping
@@ -157,6 +162,11 @@ export function InlineChart({
   height = 450,
   theme = 'dark',
   confluenceZones = [],
+  onAiAnalyze,
+  isAnalyzing = false,
+  tradeSignalsCount = 0,
+  onLayoutChange,
+  currentLayout = 'below',
 }: InlineChartProps) {
   const isDark = theme === 'dark';
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -781,14 +791,25 @@ export function InlineChart({
       <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-gray-800">
         <div className="flex items-center gap-3">
           <BarChart2 className="w-5 h-5 text-blue-400" />
-          <span className="font-semibold text-white">{symbol.toUpperCase()}/USDT</span>
-          <span className="text-lg font-bold text-white">
-            ${formatPrice(currentPrice)}
-          </span>
-          <span className={`flex items-center gap-1 text-sm ${priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-            {priceChange >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-            {priceChange >= 0 ? '+' : ''}{priceChange.toFixed(2)}%
-          </span>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-white leading-tight">{symbol.toUpperCase()}/USDT</span>
+              {tradeSignalsCount > 0 && (
+                <div className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] rounded font-bold border border-blue-500/20">
+                  {tradeSignalsCount} SIGNALE
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-white leading-none">
+                ${formatPrice(currentPrice)}
+              </span>
+              <span className={`flex items-center gap-0.5 text-[10px] ${priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {priceChange >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {priceChange >= 0 ? '+' : ''}{priceChange.toFixed(2)}%
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
@@ -810,6 +831,18 @@ export function InlineChart({
 
           {/* Candle Countdown Timer */}
           <CandleCountdown timeframe={selectedTimeframe} />
+
+          {/* AI Analysis Button Slot */}
+          {onAiAnalyze && (
+            <button
+              onClick={onAiAnalyze}
+              disabled={isAnalyzing}
+              className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-all shadow-lg shadow-purple-500/10 active:scale-95"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${isAnalyzing ? 'animate-pulse' : ''}`} />
+              <span>{isAnalyzing ? 'Analysiere...' : 'KI Analyse'}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -931,6 +964,28 @@ export function InlineChart({
             <Activity className="w-3 h-3" />
             ATR
           </button>
+
+          {onLayoutChange && (
+            <>
+              <div className="w-px h-4 bg-gray-700 mx-1" />
+              <div className="flex items-center gap-1 bg-gray-900/50 rounded p-0.5 border border-gray-700/50">
+                <button
+                  onClick={() => onLayoutChange('below')}
+                  className={`p-1 rounded transition-colors ${currentLayout === 'below' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                  title="Signale unten"
+                >
+                  <LayoutList className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={() => onLayoutChange('sidebar')}
+                  className={`p-1 rounded transition-colors ${currentLayout === 'sidebar' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                  title="Signale rechts"
+                >
+                  <PanelRight className="w-3 h-3" />
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Quick Info */}
