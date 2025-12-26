@@ -91,6 +91,17 @@ export default function LightweightChart({
         secondsVisible: false,
         rightOffset: 12, // 10-15 Kerzen Abstand rechts für Price Label
       },
+      handleScroll: {
+        mouseWheel: false, // Disable scroll zoom to prevent page scroll hijacking
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: false, // Allow vertical page scroll on touch
+      },
+      handleScale: {
+        mouseWheel: false, // Disable scroll zoom
+        pinch: true, // Allow pinch-to-zoom on touch devices
+        axisPressedMouseMove: true,
+      },
       width: chartContainerRef.current.clientWidth,
       height: height,
     });

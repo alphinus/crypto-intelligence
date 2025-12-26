@@ -348,6 +348,17 @@ export function InlineChart({
         rightOffset: 15, // 10-15 Kerzen Abstand rechts für Price Label
         barSpacing: 6,
       },
+      handleScroll: {
+        mouseWheel: false, // Disable scroll zoom to prevent page scroll hijacking
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: false, // Allow vertical page scroll on touch
+      },
+      handleScale: {
+        mouseWheel: false, // Disable scroll zoom
+        pinch: true, // Allow pinch-to-zoom on touch devices
+        axisPressedMouseMove: true,
+      },
       width: chartContainerRef.current.clientWidth,
       height: height,
     });
@@ -785,11 +796,10 @@ export function InlineChart({
               <button
                 key={tf.value}
                 onClick={() => onTimeframeChange(tf.value)}
-                className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                  selectedTimeframe === tf.value
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${selectedTimeframe === tf.value
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
-                }`}
+                  }`}
               >
                 {tf.label}
               </button>
@@ -809,11 +819,10 @@ export function InlineChart({
           {/* Toggle All Button */}
           <button
             onClick={toggleAllOverlays}
-            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${
-              Object.values(overlayVisibility).every(v => v)
+            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${Object.values(overlayVisibility).every(v => v)
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-            }`}
+              }`}
             title="Alle Overlays ein/ausblenden"
           >
             {Object.values(overlayVisibility).every(v => v) ? (
@@ -829,11 +838,10 @@ export function InlineChart({
           {/* EMAs Toggle */}
           <button
             onClick={() => toggleOverlay('emas')}
-            className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${
-              overlayVisibility.emas
+            className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${overlayVisibility.emas
                 ? 'bg-purple-600/80 text-white'
                 : 'bg-gray-700 text-gray-500 line-through'
-            }`}
+              }`}
           >
             EMAs
           </button>
@@ -841,11 +849,10 @@ export function InlineChart({
           {/* S/R Toggle */}
           <button
             onClick={() => toggleOverlay('supportResistance')}
-            className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${
-              overlayVisibility.supportResistance
+            className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${overlayVisibility.supportResistance
                 ? 'bg-emerald-600/80 text-white'
                 : 'bg-gray-700 text-gray-500 line-through'
-            }`}
+              }`}
           >
             S/R
           </button>
@@ -853,11 +860,10 @@ export function InlineChart({
           {/* Golden Zone Toggle */}
           <button
             onClick={() => toggleOverlay('goldenZone')}
-            className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${
-              overlayVisibility.goldenZone
+            className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${overlayVisibility.goldenZone
                 ? 'bg-blue-600/80 text-white'
                 : 'bg-gray-700 text-gray-500 line-through'
-            }`}
+              }`}
           >
             Golden Zone
           </button>
@@ -865,11 +871,10 @@ export function InlineChart({
           {/* Trade Zones Toggle */}
           <button
             onClick={() => toggleOverlay('tradeZones')}
-            className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${
-              overlayVisibility.tradeZones
+            className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${overlayVisibility.tradeZones
                 ? 'bg-orange-600/80 text-white'
                 : 'bg-gray-700 text-gray-500 line-through'
-            }`}
+              }`}
           >
             Trade Zones
           </button>
@@ -880,11 +885,10 @@ export function InlineChart({
           {/* RSI Toggle */}
           <button
             onClick={() => toggleIndicator('rsi')}
-            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${
-              activeIndicators.includes('rsi')
+            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${activeIndicators.includes('rsi')
                 ? 'bg-purple-600 text-white'
                 : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-            }`}
+              }`}
           >
             <Activity className="w-3 h-3" />
             RSI
@@ -893,11 +897,10 @@ export function InlineChart({
           {/* MACD Toggle */}
           <button
             onClick={() => toggleIndicator('macd')}
-            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${
-              activeIndicators.includes('macd')
+            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${activeIndicators.includes('macd')
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-            }`}
+              }`}
           >
             <BarChart3 className="w-3 h-3" />
             MACD
@@ -909,11 +912,11 @@ export function InlineChart({
           {!overlayVisibility.emas && !overlayVisibility.supportResistance && !overlayVisibility.goldenZone && !overlayVisibility.tradeZones
             ? 'Nur Candles + Trade-Setup'
             : `${[
-                overlayVisibility.emas && 'EMAs',
-                overlayVisibility.supportResistance && 'S/R',
-                overlayVisibility.goldenZone && 'Fib',
-                overlayVisibility.tradeZones && 'Zones',
-              ].filter(Boolean).join(' • ')}`
+              overlayVisibility.emas && 'EMAs',
+              overlayVisibility.supportResistance && 'S/R',
+              overlayVisibility.goldenZone && 'Fib',
+              overlayVisibility.tradeZones && 'Zones',
+            ].filter(Boolean).join(' • ')}`
           }
         </div>
       </div>
