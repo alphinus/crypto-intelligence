@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Rocket, Trash2, Info, Wallet } from 'lucide-react';
+import { Rocket, Trash2, Info, Wallet, Brain } from 'lucide-react';
 import { TokenDesigner } from './CoinCreator/TokenDesigner';
 import { BondingCurveChart } from './CoinCreator/BondingCurveChart';
 import { MockTradingPanel } from './CoinCreator/MockTradingPanel';
