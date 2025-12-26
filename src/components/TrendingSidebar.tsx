@@ -131,7 +131,7 @@ export function TrendingSidebar({
               <div
                 key={`custom-${coin.symbol}`}
                 className={`flex items-center gap-2 p-2 rounded-lg transition-all ${isSelected(coin)
-                  ? 'bg-purple-600/20 border border-purple-500/50'
+                  ? 'bg-purple-600/20 border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.3)]'
                   : 'hover:bg-gray-800/50 border border-transparent'
                   }`}
               >
@@ -152,31 +152,31 @@ export function TrendingSidebar({
                         <img
                           src={coin.image}
                           alt=""
-                          className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700"
+                          className="w-9 h-9 rounded-full bg-gray-800 border-2 border-gray-700/50 object-cover"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                             const parent = target.parentElement;
                             if (parent && !parent.querySelector('.coin-fallback')) {
                               const fallback = document.createElement('div');
-                              fallback.className = 'coin-fallback w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500/50 flex items-center justify-center text-[10px] text-purple-400 font-bold';
+                              fallback.className = 'coin-fallback w-9 h-9 rounded-full bg-purple-600/20 border-2 border-purple-500/30 flex items-center justify-center text-[11px] text-purple-400 font-bold';
                               fallback.innerText = coin.symbol.slice(0, 2).toUpperCase();
                               parent.appendChild(fallback);
                             }
                           }}
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-[10px] text-gray-400 font-bold">
+                        <div className="w-9 h-9 rounded-full bg-gray-800 border-2 border-gray-700/50 flex items-center justify-center text-[11px] text-gray-400 font-bold">
                           {coin.symbol.slice(0, 2).toUpperCase()}
                         </div>
                       )}
                     </div>
 
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-white text-xs truncate">
+                    <div className="flex flex-col min-w-0 space-y-0.5">
+                      <span className="font-bold text-white text-[13px] truncate tracking-tight leading-none overflow-hidden">
                         {coin.name}
                       </span>
-                      <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                      <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest leading-none">
                         {coin.symbol}
                       </span>
                     </div>
@@ -239,39 +239,42 @@ export function TrendingSidebar({
                         <img
                           src={coin.image}
                           alt="" // Leave empty to prevent text overlap on error
-                          className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700"
+                          className="w-9 h-9 rounded-full bg-gray-800 border-2 border-gray-700/50 object-cover"
                           onError={(e) => {
-                            // Replace with a styled div if image fails
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                             const parent = target.parentElement;
                             if (parent && !parent.querySelector('.coin-fallback')) {
                               const fallback = document.createElement('div');
-                              fallback.className = 'coin-fallback w-8 h-8 rounded-full bg-blue-600/30 border border-blue-500/50 flex items-center justify-center text-[10px] text-blue-400 font-bold';
+                              fallback.className = 'coin-fallback w-9 h-9 rounded-full bg-blue-600/20 border-2 border-blue-500/30 flex items-center justify-center text-[11px] text-blue-400 font-bold';
                               fallback.innerText = coin.symbol.slice(0, 2).toUpperCase();
                               parent.appendChild(fallback);
                             }
                           }}
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-[10px] text-gray-400 font-bold">
+                        <div className="w-9 h-9 rounded-full bg-gray-800 border-2 border-gray-700/50 flex items-center justify-center text-[11px] text-gray-400 font-bold">
                           {coin.symbol.slice(0, 2).toUpperCase()}
                         </div>
                       )}
                     </div>
 
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-white text-xs truncate">
+                    <div className="flex flex-col min-w-0 space-y-0.5">
+                      <span className="font-bold text-white text-[13px] truncate tracking-tight leading-none overflow-hidden">
                         {coin.name}
                       </span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest leading-none">
                           {coin.symbol}
                         </span>
                         {coin.change24h >= 0 ? (
-                          <TrendingUp className="w-2.5 h-2.5 text-green-400/70" />
+                          <div className="flex items-center text-green-400/60">
+                            <TrendingUp className="w-2.5 h-2.5" />
+                          </div>
                         ) : (
-                          <TrendingDown className="w-2.5 h-2.5 text-red-400/70" />
+                          <div className="flex items-center text-red-400/60">
+                            <TrendingDown className="w-2.5 h-2.5" />
+                          </div>
                         )}
                       </div>
                     </div>

@@ -97,6 +97,10 @@ export function SpotDCAChart({
             };
         });
     }, [klines]);
+    // Get current price data
+    const currentPrice = klines.length > 0 ? klines[klines.length - 1].close : 0;
+    const lastPrice = klines.length > 1 ? klines[klines.length - 2].close : currentPrice;
+    const priceChange = lastPrice !== 0 ? ((currentPrice - lastPrice) / lastPrice) * 100 : 0;
 
     // Get Golden Zone from Fibonacci
     const goldenZone = useMemo(() => {

@@ -175,7 +175,7 @@ export function InlineChart({
     goldenZone: true,
     tradeZones: true,
   });
-  const [activeIndicators, setActiveIndicators] = useState<IndicatorType[]>(['rsi', 'macd']);
+  const [activeIndicators, setActiveIndicators] = useState<IndicatorType[]>(['rsi', 'macd', 'stochrsi', 'atr']);
   const [visibleRange, setVisibleRange] = useState<LogicalRange | null>(null);
 
   // Toggle individual overlay

@@ -37,7 +37,7 @@ import { CoinSelectorBar } from '@/components/CoinSelectorBar';
 import { SimulatorPanel } from '@/components/SimulatorPanel';
 import { SpotDCAPanel } from '@/components/SpotDCA';
 import { TabNavigation, type TabId } from '@/components/Layout/TabNavigation';
-import { TabPanel } from '@/components/Layout/TabPanel';
+import { TabPanel, TabPanelPersistent } from '@/components/Layout/TabPanel';
 import { AnimatePresence } from 'framer-motion';
 import { AlertNotificationsContainer, AlertManager } from '@/components/Alerts';
 import { LiquidationFeed, LiquidationStats, LiquidationHeatmap, LiquidationMini } from '@/components/Liquidations';

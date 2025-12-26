@@ -112,7 +112,59 @@ export function SpotDCAPanel({
         fetchLevels();
     }, [activeCoin?.symbol, klines.length, timeframe]);
 
-    // ... (rest of memo logic remains same)
+    // Memoize params for both calculation and preset lookup
+    const dcaParams = useMemo(() => {
+        if (!activeCoin || klines.length === 0) return null;
+
+        const currentPrice = klines[klines.length - 1].close;
+        const closes = klines.map((k) => k.close);
+
+        const ema50 = calculateEMA(closes, 50);
+        const ema200 = calculateEMA(closes, 200);
+        const ema300 = calculateEMA(closes, 300);
+
+        const currentEma50 = ema50.length > 0 ? ema50[ema50.length - 1] : null;
+        const currentEma200 = ema200.length > 0 ? ema200[ema200.length - 1] : null;
+        const currentEma300 = ema300.length > 0 ? ema300[ema300.length - 1] : null;
+
+        const rsiPeriod = 14;
+        let rsiValue: number | null = null;
+        if (closes.length > rsiPeriod) {
+            const gains = [];
+            const losses = [];
+            for (let i = 1; i <= rsiPeriod; i++) {
+                const diff = closes[closes.length - i] - closes[closes.length - i - 1];
+                if (diff >= 0) { gains.push(diff); losses.push(0); }
+                else { gains.push(0); losses.push(Math.abs(diff)); }
+            }
+            const avgGain = gains.reduce((a, b) => a + b, 0) / rsiPeriod;
+            const avgLoss = losses.reduce((a, b) => a + b, 0) / rsiPeriod;
+            rsiValue = avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
+        }
+
+        return {
+            currentPrice,
+            ema50: currentEma50,
+            ema200: currentEma200,
+            ema300: currentEma300,
+            fearGreed,
+            rsi: rsiValue,
+            fib382: technicalLevels?.fibonacci?.find(l => l.ratio === 0.382)?.price || null,
+            fib618: technicalLevels?.fibonacci?.find(l => l.ratio === 0.618)?.price || null,
+            fibHigh: technicalLevels?.swingHigh || null,
+            fibLow: technicalLevels?.swingLow || null,
+        };
+    }, [activeCoin, klines, fearGreed, technicalLevels]);
+
+    const dcaCalculation = useMemo(() => {
+        if (!dcaParams) return null;
+        return calculateCombinedDCAScore(dcaParams);
+    }, [dcaParams]);
+
+    const currentZone = useMemo(() => {
+        if (!dcaParams) return null;
+        return calculateZoneByPreset(preset, dcaParams);
+    }, [dcaParams, preset]);
 
     const currentPriceHeader = klines.length > 0 ? klines[klines.length - 1].close : activeCoin?.price || 0;
 
