@@ -907,6 +907,30 @@ export function InlineChart({
             <BarChart3 className="w-3 h-3" />
             MACD
           </button>
+
+          {/* StochRSI Toggle */}
+          <button
+            onClick={() => toggleIndicator('stochrsi')}
+            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${activeIndicators.includes('stochrsi')
+              ? 'bg-indigo-600 text-white'
+              : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+              }`}
+          >
+            <TrendingUp className="w-3 h-3" />
+            StochRSI
+          </button>
+
+          {/* ATR Toggle */}
+          <button
+            onClick={() => toggleIndicator('atr')}
+            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${activeIndicators.includes('atr')
+              ? 'bg-amber-600 text-white'
+              : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+              }`}
+          >
+            <Activity className="w-3 h-3" />
+            ATR
+          </button>
         </div>
 
         {/* Quick Info */}
