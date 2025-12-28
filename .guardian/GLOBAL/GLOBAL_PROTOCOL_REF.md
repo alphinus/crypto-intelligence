@@ -1,0 +1,1 @@
+> Inherits from Master GLOBAL_PROTOCOL_V14.0.md
