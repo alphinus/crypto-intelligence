@@ -76,7 +76,7 @@ const TIMEFRAME_MS: Record<string, number> = {
 };
 
 // Candle Countdown Component
-function CandleCountdown({ timeframe }: { timeframe: string }) {
+function CandleCountdown({ timeframe, theme }: { timeframe: string, theme?: 'dark' | 'light' }) {
   const [countdown, setCountdown] = useState('--:--');
 
   useEffect(() => {
@@ -108,10 +108,12 @@ function CandleCountdown({ timeframe }: { timeframe: string }) {
     return () => clearInterval(timer);
   }, [timeframe]);
 
+  const isDark = theme === 'dark' || !theme;
+
   return (
-    <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded text-xs">
-      <Clock className="w-3 h-3 text-gray-400" />
-      <span className="text-gray-500">Kerze:</span>
+    <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs ${isDark ? 'bg-gray-800/50' : 'bg-gray-100 text-gray-900 border border-gray-200'}`}>
+      <Clock className={`w-3 h-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+      <span className={isDark ? 'text-gray-500' : 'text-gray-600'}>Kerze:</span>
       <span className="font-mono text-blue-400">{countdown}</span>
     </div>
   );
@@ -169,6 +171,18 @@ export function InlineChart({
   currentLayout = 'below',
 }: InlineChartProps) {
   const isDark = theme === 'dark';
+
+  // Theme-based style classes
+  const styles = {
+    container: isDark ? 'bg-gray-900/50 border-gray-800' : 'bg-white border-gray-200 shadow-sm',
+    header: isDark ? 'border-gray-800' : 'border-gray-100',
+    textMain: isDark ? 'text-white' : 'text-gray-900',
+    textMuted: isDark ? 'text-gray-400' : 'text-gray-500',
+    buttonActive: 'bg-blue-600 text-white',
+    buttonInactive: isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
+    overlayBg: isDark ? 'bg-gray-900/95' : 'bg-white/95 shadow-md',
+    controlsBg: isDark ? 'bg-gray-800/30 border-gray-800' : 'bg-gray-50 border-gray-100',
+  };
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -786,14 +800,14 @@ export function InlineChart({
   };
 
   return (
-    <div className="bg-gray-900/50 border border-gray-800 rounded-lg overflow-hidden">
+    <div className={`${styles.container} border rounded-lg overflow-hidden`}>
       {/* Header mit Timeframe-Switcher und EMA-Presets */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-gray-800">
+      <div className={`flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b ${styles.header}`}>
         <div className="flex items-center gap-3">
           <BarChart2 className="w-5 h-5 text-blue-400" />
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-white leading-tight">{symbol.toUpperCase()}/USDT</span>
+              <span className={`font-semibold leading-tight ${styles.textMain}`}>{symbol.toUpperCase()}/USDT</span>
               {tradeSignalsCount > 0 && (
                 <div className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] rounded font-bold border border-blue-500/20">
                   {tradeSignalsCount} SIGNALE
@@ -801,7 +815,7 @@ export function InlineChart({
               )}
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-white leading-none">
+              <span className={`text-sm font-bold leading-none ${styles.textMain}`}>
                 ${formatPrice(currentPrice)}
               </span>
               <span className={`flex items-center gap-0.5 text-[10px] ${priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -820,8 +834,8 @@ export function InlineChart({
                 key={tf.value}
                 onClick={() => onTimeframeChange(tf.value)}
                 className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${selectedTimeframe === tf.value
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
+                  ? styles.buttonActive
+                  : styles.buttonInactive
                   }`}
               >
                 {tf.label}
@@ -830,7 +844,7 @@ export function InlineChart({
           </div>
 
           {/* Candle Countdown Timer */}
-          <CandleCountdown timeframe={selectedTimeframe} />
+          <CandleCountdown timeframe={selectedTimeframe} theme={theme} />
 
           {/* AI Analysis Button Slot */}
           {onAiAnalyze && (
@@ -847,7 +861,7 @@ export function InlineChart({
       </div>
 
       {/* Overlay Toggles Row */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-800/30 border-b border-gray-800">
+      <div className={`flex items-center justify-between px-4 py-2 border-b ${styles.controlsBg}`}>
         <div className="flex items-center gap-1">
           <span className="text-xs text-gray-500 mr-2">Overlays:</span>
 
@@ -855,8 +869,8 @@ export function InlineChart({
           <button
             onClick={toggleAllOverlays}
             className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded transition-colors ${Object.values(overlayVisibility).every(v => v)
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+              ? styles.buttonActive
+              : isDark ? 'bg-gray-700 text-gray-400 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
               }`}
             title="Alle Overlays ein/ausblenden"
           >
@@ -1023,7 +1037,7 @@ export function InlineChart({
           {overlayVisibility.emas && calculatedEmas?.map((ema, idx) => (
             <span
               key={idx}
-              className="bg-gray-900/90 px-1.5 py-0.5 rounded border"
+              className={`${styles.overlayBg} px-1.5 py-0.5 rounded border`}
               style={{ color: ema.color, borderColor: `${ema.color}40` }}
             >
               {ema.label}
@@ -1031,10 +1045,10 @@ export function InlineChart({
           ))}
           {overlayVisibility.supportResistance && (
             <>
-              <span className="bg-gray-900/90 px-1.5 py-0.5 rounded text-green-500 border border-green-500/30">
+              <span className={`${styles.overlayBg} px-1.5 py-0.5 rounded text-green-500 border border-green-500/30`}>
                 Support
               </span>
-              <span className="bg-gray-900/90 px-1.5 py-0.5 rounded text-red-500 border border-red-500/30">
+              <span className={`${styles.overlayBg} px-1.5 py-0.5 rounded text-red-500 border border-red-500/30`}>
                 Resistance
               </span>
             </>
@@ -1056,14 +1070,13 @@ export function InlineChart({
           )}
         </div>
 
-        {/* EMA Werte Anzeige - only if EMAs visible */}
         {overlayVisibility.emas && calculatedEmas && (
-          <div className="absolute top-2 right-2 bg-gray-900/95 p-2 rounded text-[10px] space-y-0.5 border border-gray-700">
+          <div className={`absolute top-2 right-2 ${styles.overlayBg} p-2 rounded text-[10px] space-y-0.5 border ${styles.header}`}>
             {calculatedEmas.map((ema, idx) => (
               ema.currentValue && (
                 <div key={idx} className="flex justify-between gap-3">
                   <span style={{ color: ema.color }}>{ema.label}:</span>
-                  <span className="text-white font-mono">${formatPrice(ema.currentValue)}</span>
+                  <span className={`${styles.textMain} font-mono`}>${formatPrice(ema.currentValue)}</span>
                 </div>
               )
             ))}
@@ -1105,7 +1118,8 @@ export function InlineChart({
             : '0.00';
 
           return (
-            <div className="absolute bottom-2 right-2 bg-gray-900/95 p-3 rounded-lg text-xs border border-gray-700 min-w-[200px]">
+          return (
+            <div className={`absolute bottom-2 right-2 ${styles.overlayBg} p-3 rounded-lg text-xs border ${styles.header} min-w-[200px]`}>
               <div className={`font-bold text-sm mb-2 pb-2 border-b border-gray-700 ${tradeSetup.type === 'long' ? 'text-green-500' : 'text-red-500'}`}>
                 {tradeSetup.type.toUpperCase()} Trade
               </div>

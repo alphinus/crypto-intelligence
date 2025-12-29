@@ -60,6 +60,12 @@ export default function LightweightChart({
 
     const isDark = theme === 'dark';
 
+    // Theme styles
+    const styles = {
+      overlayBg: isDark ? 'bg-gray-900/80' : 'bg-white/80 shadow-sm',
+      textMain: isDark ? 'text-white' : 'text-gray-900',
+    };
+
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: isDark ? '#1a1a2e' : '#ffffff' },
@@ -331,21 +337,21 @@ export default function LightweightChart({
 
       {/* Legende */}
       <div className="absolute top-2 left-2 flex flex-wrap gap-2 text-xs">
-        <span className="bg-gray-900/80 px-2 py-1 rounded text-white">
+        <span className={`${isDark ? 'bg-gray-900/80 text-white' : 'bg-white/80 text-gray-900 shadow-sm'} px-2 py-1 rounded`}>
           {symbol} {interval}
         </span>
         {showLevels && (
           <>
-            <span className="bg-gray-900/80 px-2 py-1 rounded text-green-500">
+            <span className={`${isDark ? 'bg-gray-900/80' : 'bg-white/80 shadow-sm'} px-2 py-1 rounded text-green-500`}>
               S/R Support
             </span>
-            <span className="bg-gray-900/80 px-2 py-1 rounded text-red-500">
+            <span className={`${isDark ? 'bg-gray-900/80' : 'bg-white/80 shadow-sm'} px-2 py-1 rounded text-red-500`}>
               S/R Resistance
             </span>
           </>
         )}
         {showFibonacci && (
-          <span className="bg-gray-900/80 px-2 py-1 rounded text-blue-500">
+          <span className={`${isDark ? 'bg-gray-900/80' : 'bg-white/80 shadow-sm'} px-2 py-1 rounded text-blue-500`}>
             Fibonacci
           </span>
         )}
@@ -376,7 +382,7 @@ export default function LightweightChart({
 
       {/* Trade Info Overlay */}
       {showTradeSetup && tradeSetup && tradeSetup.type !== 'wait' && (
-        <div className="absolute top-2 right-2 bg-gray-900/90 p-2 rounded text-xs text-white">
+        <div className={`absolute top-2 right-2 ${isDark ? 'bg-gray-900/90 text-white' : 'bg-white/95 text-gray-900 shadow'} p-2 rounded text-xs`}>
           <div className={`font-bold ${tradeSetup.type === 'long' ? 'text-green-500' : 'text-red-500'}`}>
             {tradeSetup.type.toUpperCase()} - {tradeSetup.confidence}
           </div>
