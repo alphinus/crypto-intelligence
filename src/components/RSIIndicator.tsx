@@ -200,31 +200,31 @@ export function RSIIndicator({
   }, [visibleRange]);
 
   const getRSIColor = (value: number) => {
-    if (value >= 70) return 'text-red-400';
-    if (value <= 30) return 'text-green-400';
-    return 'text-purple-400';
+    if (value >= 70) return 'text-red-600 dark:text-red-400';
+    if (value <= 30) return 'text-green-600 dark:text-green-400';
+    return 'text-purple-600 dark:text-purple-400';
   };
 
   return (
-    <div className="bg-gray-900/50 border-t border-gray-800">
+    <div className="bg-white dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-800">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-medium text-gray-400">RSI(14)</span>
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">RSI(14)</span>
           {currentRSI !== null && (
             <span className={`text-xs font-bold ${getRSIColor(currentRSI)}`}>
               {currentRSI.toFixed(2)}
             </span>
           )}
           <div className="flex items-center gap-2 text-[10px] text-gray-500">
-            <span><span className="text-red-400">70</span> Overbought</span>
-            <span><span className="text-green-400">30</span> Oversold</span>
+            <span><span className="text-red-600 dark:text-red-400">70</span> Overbought</span>
+            <span><span className="text-green-600 dark:text-green-400">30</span> Oversold</span>
           </div>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-800 rounded transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
           >
             <X className="w-3.5 h-3.5 text-gray-500" />
           </button>

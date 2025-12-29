@@ -172,19 +172,19 @@ export function StochRSIIndicator({
     }, [visibleRange]);
 
     return (
-        <div className="bg-gray-900/50 border-t border-gray-800">
-            <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-800">
+        <div className="bg-white dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
+            <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-800">
                 <div className="flex items-center gap-3">
-                    <span className="text-xs font-medium text-gray-400">Stoch RSI(14,14,3,3)</span>
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Stoch RSI(14,14,3,3)</span>
                     {currentValues && (
                         <div className="flex gap-3 text-xs font-bold">
-                            <span className="text-blue-400">K: {currentValues.k.toFixed(2)}</span>
-                            <span className="text-orange-400">D: {currentValues.d.toFixed(2)}</span>
+                            <span className="text-blue-600 dark:text-blue-400">K: {currentValues.k.toFixed(2)}</span>
+                            <span className="text-orange-600 dark:text-orange-400">D: {currentValues.d.toFixed(2)}</span>
                         </div>
                     )}
                 </div>
                 {onClose && (
-                    <button onClick={onClose} className="p-1 hover:bg-gray-800 rounded transition-colors">
+                    <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
                         <X className="w-3.5 h-3.5 text-gray-500" />
                     </button>
                 )}

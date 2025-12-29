@@ -31,23 +31,22 @@ export function GlobalStats({ global, trending }: GlobalStatsProps) {
   return (
     <div className="mb-6 space-y-4">
       {/* Global Market Stats Bar */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-700 rounded-lg p-4">
+      <div className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm dark:shadow-none">
         <div className="flex items-center gap-2 mb-3">
-          <Globe className="w-5 h-5 text-blue-400" />
-          <h3 className="font-semibold text-white">Global Market</h3>
+          <Globe className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <h3 className="font-semibold text-gray-900 dark:text-white">Global Market</h3>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Total Market Cap */}
           <div>
-            <div className="text-xs text-gray-400 mb-1">Market Cap</div>
-            <div className="text-lg font-bold text-white">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Market Cap</div>
+            <div className="text-lg font-bold text-gray-900 dark:text-white">
               {formatMarketCap(global.totalMarketCap)}
             </div>
             <div
-              className={`flex items-center gap-1 text-xs ${
-                isPositive ? 'text-green-400' : 'text-red-400'
-              }`}
+              className={`flex items-center gap-1 text-xs ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                }`}
             >
               {isPositive ? (
                 <TrendingUp className="w-3 h-3" />
@@ -61,21 +60,21 @@ export function GlobalStats({ global, trending }: GlobalStatsProps) {
 
           {/* 24h Volume */}
           <div>
-            <div className="text-xs text-gray-400 mb-1">24h Volume</div>
-            <div className="text-lg font-bold text-white">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">24h Volume</div>
+            <div className="text-lg font-bold text-gray-900 dark:text-white">
               {formatMarketCap(global.totalVolume)}
             </div>
           </div>
 
           {/* BTC Dominance */}
           <div>
-            <div className="text-xs text-gray-400 mb-1">BTC Dominance</div>
-            <div className="text-lg font-bold text-orange-400">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">BTC Dominance</div>
+            <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
               {global.btcDominance.toFixed(1)}%
             </div>
-            <div className="h-1.5 bg-gray-700 rounded-full mt-1 overflow-hidden">
+            <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mt-1 overflow-hidden">
               <div
-                className="h-full bg-orange-400 rounded-full"
+                className="h-full bg-orange-500 dark:bg-orange-400 rounded-full"
                 style={{ width: `${global.btcDominance}%` }}
               />
             </div>
@@ -83,13 +82,13 @@ export function GlobalStats({ global, trending }: GlobalStatsProps) {
 
           {/* ETH Dominance */}
           <div>
-            <div className="text-xs text-gray-400 mb-1">ETH Dominance</div>
-            <div className="text-lg font-bold text-purple-400">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">ETH Dominance</div>
+            <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
               {global.ethDominance.toFixed(1)}%
             </div>
-            <div className="h-1.5 bg-gray-700 rounded-full mt-1 overflow-hidden">
+            <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mt-1 overflow-hidden">
               <div
-                className="h-full bg-purple-400 rounded-full"
+                className="h-full bg-purple-500 dark:bg-purple-400 rounded-full"
                 style={{ width: `${global.ethDominance}%` }}
               />
             </div>
@@ -99,18 +98,18 @@ export function GlobalStats({ global, trending }: GlobalStatsProps) {
 
       {/* Trending Coins */}
       {trending.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 shadow-sm dark:shadow-none">
           <div className="flex items-center gap-2 mb-3">
-            <Flame className="w-5 h-5 text-orange-500" />
-            <h3 className="font-semibold text-white">Trending</h3>
-            <Activity className="w-4 h-4 text-gray-500 animate-pulse" />
+            <Flame className="w-5 h-5 text-orange-600 dark:text-orange-500" />
+            <h3 className="font-semibold text-gray-900 dark:text-white">Trending</h3>
+            <Activity className="w-4 h-4 text-gray-400 dark:text-gray-500 animate-pulse" />
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {trending.map((coin) => (
               <div
                 key={coin.id}
-                className="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-gray-800/50 hover:bg-gray-800 rounded-lg border border-gray-700 transition-colors"
+                className="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors"
               >
                 <img
                   src={coin.thumb}
@@ -118,7 +117,7 @@ export function GlobalStats({ global, trending }: GlobalStatsProps) {
                   className="w-6 h-6 rounded-full"
                 />
                 <div>
-                  <div className="font-medium text-white text-sm">
+                  <div className="font-medium text-gray-900 dark:text-white text-sm">
                     {coin.symbol.toUpperCase()}
                   </div>
                   <div className="text-xs text-gray-500">
@@ -127,9 +126,8 @@ export function GlobalStats({ global, trending }: GlobalStatsProps) {
                 </div>
                 {coin.priceChange24h !== 0 && (
                   <span
-                    className={`text-xs font-medium ${
-                      coin.priceChange24h >= 0 ? 'text-green-400' : 'text-red-400'
-                    }`}
+                    className={`text-xs font-medium ${coin.priceChange24h >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                      }`}
                   >
                     {coin.priceChange24h >= 0 ? '+' : ''}
                     {coin.priceChange24h.toFixed(1)}%

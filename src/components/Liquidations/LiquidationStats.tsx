@@ -17,36 +17,36 @@ export function LiquidationStats({ stats, isConnected }: LiquidationStatsProps) 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {/* Long Liquidations */}
-      <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+      <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg p-3">
         <div className="flex items-center gap-2 mb-1">
-          <TrendingDown className="w-4 h-4 text-red-400" />
-          <span className="text-xs text-gray-400">Long Liqs</span>
+          <TrendingDown className="w-4 h-4 text-red-600 dark:text-red-400" />
+          <span className="text-xs text-gray-500 dark:text-gray-400">Long Liqs</span>
         </div>
-        <div className="text-lg font-bold text-red-400">
+        <div className="text-lg font-bold text-red-600 dark:text-red-400">
           {formatLiquidationValue(stats.totalLongUsd)}
         </div>
-        <div className="text-xs text-gray-500">{longPercentage.toFixed(1)}%</div>
+        <div className="text-xs text-gray-600 dark:text-gray-500">{longPercentage.toFixed(1)}%</div>
       </div>
 
       {/* Short Liquidations */}
-      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+      <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 rounded-lg p-3">
         <div className="flex items-center gap-2 mb-1">
-          <TrendingUp className="w-4 h-4 text-green-400" />
-          <span className="text-xs text-gray-400">Short Liqs</span>
+          <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
+          <span className="text-xs text-gray-500 dark:text-gray-400">Short Liqs</span>
         </div>
-        <div className="text-lg font-bold text-green-400">
+        <div className="text-lg font-bold text-green-600 dark:text-green-400">
           {formatLiquidationValue(stats.totalShortUsd)}
         </div>
-        <div className="text-xs text-gray-500">{shortPercentage.toFixed(1)}%</div>
+        <div className="text-xs text-gray-600 dark:text-gray-500">{shortPercentage.toFixed(1)}%</div>
       </div>
 
       {/* Total Count */}
-      <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+      <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
         <div className="flex items-center gap-2 mb-1">
-          <Activity className="w-4 h-4 text-blue-400" />
-          <span className="text-xs text-gray-400">Anzahl</span>
+          <Activity className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <span className="text-xs text-gray-500 dark:text-gray-400">Anzahl</span>
         </div>
-        <div className="text-lg font-bold text-white">{stats.count}</div>
+        <div className="text-lg font-bold text-gray-900 dark:text-white">{stats.count}</div>
         <div className="flex items-center gap-1 text-xs">
           <span
             className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}
@@ -56,14 +56,14 @@ export function LiquidationStats({ stats, isConnected }: LiquidationStatsProps) 
       </div>
 
       {/* Largest Liquidation */}
-      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+      <div className="bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/30 rounded-lg p-3">
         <div className="flex items-center gap-2 mb-1">
-          <Zap className="w-4 h-4 text-yellow-400" />
-          <span className="text-xs text-gray-400">Größte</span>
+          <Zap className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+          <span className="text-xs text-gray-500 dark:text-gray-400">Größte</span>
         </div>
         {stats.largestLiquidation ? (
           <>
-            <div className="text-lg font-bold text-yellow-400">
+            <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
               {formatLiquidationValue(stats.largestLiquidation.usdValue)}
             </div>
             <div className="text-xs text-gray-500">
@@ -84,17 +84,17 @@ export function LiquidationStatsInline({ stats, isConnected }: LiquidationStatsP
     <div className="flex items-center gap-4 text-xs">
       <div className="flex items-center gap-1">
         <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-        <Zap className="w-3 h-3 text-yellow-400" />
+        <Zap className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />
       </div>
       <div className="flex items-center gap-1">
-        <TrendingDown className="w-3 h-3 text-red-400" />
-        <span className="text-red-400">{formatLiquidationValue(stats.totalLongUsd)}</span>
+        <TrendingDown className="w-3 h-3 text-red-600 dark:text-red-400" />
+        <span className="text-red-600 dark:text-red-400">{formatLiquidationValue(stats.totalLongUsd)}</span>
       </div>
       <div className="flex items-center gap-1">
-        <TrendingUp className="w-3 h-3 text-green-400" />
-        <span className="text-green-400">{formatLiquidationValue(stats.totalShortUsd)}</span>
+        <TrendingUp className="w-3 h-3 text-green-600 dark:text-green-400" />
+        <span className="text-green-600 dark:text-green-400">{formatLiquidationValue(stats.totalShortUsd)}</span>
       </div>
-      <span className="text-gray-500">({stats.count})</span>
+      <span className="text-gray-500 dark:text-gray-400">({stats.count})</span>
     </div>
   );
 }

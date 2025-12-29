@@ -357,23 +357,23 @@ export default function LightweightChart({
         )}
         {showLiquidations && liquidationLevels && liquidationLevels.length > 0 && (
           <>
-            <span className="bg-gray-900/80 px-2 py-1 rounded text-red-400">
+            <span className={`${isDark ? 'bg-gray-900/80' : 'bg-white/80 shadow-sm'} px-2 py-1 rounded text-red-500`}>
               Long Liq
             </span>
-            <span className="bg-gray-900/80 px-2 py-1 rounded text-green-400">
+            <span className={`${isDark ? 'bg-gray-900/80' : 'bg-white/80 shadow-sm'} px-2 py-1 rounded text-green-500`}>
               Short Liq
             </span>
           </>
         )}
         {showTradeSetup && tradeSetup && tradeSetup.type !== 'wait' && (
           <>
-            <span className="bg-gray-900/80 px-2 py-1 rounded text-yellow-500">
+            <span className={`${isDark ? 'bg-gray-900/80' : 'bg-white/80 shadow-sm'} px-2 py-1 rounded text-yellow-500`}>
               Entry
             </span>
-            <span className="bg-gray-900/80 px-2 py-1 rounded text-red-600">
+            <span className={`${isDark ? 'bg-gray-900/80' : 'bg-white/80 shadow-sm'} px-2 py-1 rounded text-red-600`}>
               Stop Loss
             </span>
-            <span className="bg-gray-900/80 px-2 py-1 rounded text-green-600">
+            <span className={`${isDark ? 'bg-gray-900/80' : 'bg-white/80 shadow-sm'} px-2 py-1 rounded text-green-600`}>
               Take Profit
             </span>
           </>

@@ -236,25 +236,25 @@ export function MACDIndicator({
   };
 
   return (
-    <div className="bg-gray-900/50 border-t border-gray-800">
+    <div className="bg-white dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-800">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-medium text-gray-400">MACD(12,26,9)</span>
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">MACD(12,26,9)</span>
           <div className="flex items-center gap-2 text-[10px]">
             <span>
-              <span className="text-blue-400">MACD:</span>{' '}
-              <span className={currentValues.macd !== null && currentValues.macd >= 0 ? 'text-green-400' : 'text-red-400'}>
+              <span className="text-blue-600 dark:text-blue-400">MACD:</span>{' '}
+              <span className={currentValues.macd !== null && currentValues.macd >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                 {formatValue(currentValues.macd)}
               </span>
             </span>
             <span>
-              <span className="text-orange-400">Signal:</span>{' '}
-              <span className="text-gray-300">{formatValue(currentValues.signal)}</span>
+              <span className="text-orange-600 dark:text-orange-400">Signal:</span>{' '}
+              <span className="text-gray-600 dark:text-gray-300">{formatValue(currentValues.signal)}</span>
             </span>
             <span>
               <span className="text-gray-500">Hist:</span>{' '}
-              <span className={currentValues.histogram !== null && currentValues.histogram >= 0 ? 'text-green-400' : 'text-red-400'}>
+              <span className={currentValues.histogram !== null && currentValues.histogram >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                 {formatValue(currentValues.histogram)}
               </span>
             </span>
@@ -263,7 +263,7 @@ export function MACDIndicator({
         {onClose && (
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-800 rounded transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
           >
             <X className="w-3.5 h-3.5 text-gray-500" />
           </button>

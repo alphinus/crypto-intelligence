@@ -71,15 +71,15 @@ export function GainerLoserTicker({ coins, onCoinClick }: GainerLoserTickerProps
   };
 
   return (
-    <div className="relative z-30 bg-gray-900/60 border-b border-gray-800 overflow-hidden">
+    <div className="relative z-30 bg-white/80 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-800 overflow-hidden backdrop-blur-sm">
       <div className="flex items-center">
         {/* Labels */}
         <div className="flex-shrink-0 flex">
-          <div className="px-3 py-1.5 bg-green-600/80 text-white text-[10px] font-bold uppercase tracking-wider z-10 flex items-center gap-1">
+          <div className="px-3 py-1.5 bg-green-100/80 dark:bg-green-600/80 text-green-700 dark:text-white text-[10px] font-bold uppercase tracking-wider z-10 flex items-center gap-1">
             <TrendingUp className="w-3 h-3" />
             Top
           </div>
-          <div className="px-3 py-1.5 bg-red-600/80 text-white text-[10px] font-bold uppercase tracking-wider z-10 flex items-center gap-1">
+          <div className="px-3 py-1.5 bg-red-100/80 dark:bg-red-600/80 text-red-700 dark:text-white text-[10px] font-bold uppercase tracking-wider z-10 flex items-center gap-1">
             <TrendingDown className="w-3 h-3" />
             Flop
           </div>
@@ -103,8 +103,8 @@ export function GainerLoserTicker({ coins, onCoinClick }: GainerLoserTickerProps
                 key={`${item.symbol}-${index}`}
                 onClick={() => onCoinClick?.(item.symbol.toUpperCase())}
                 className={`flex-shrink-0 flex items-center gap-2 px-4 py-1.5 rounded-lg border transition-all hover:scale-105 ${item.category === 'gainer'
-                    ? 'border-green-500/30 bg-green-900/20 hover:bg-green-900/40'
-                    : 'border-red-500/30 bg-red-900/20 hover:bg-red-900/40'
+                  ? 'border-green-200 dark:border-green-500/30 bg-green-50/50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40'
+                  : 'border-red-200 dark:border-red-500/30 bg-red-50/50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40'
                   }`}
               >
                 {item.image && (
@@ -114,13 +114,13 @@ export function GainerLoserTicker({ coins, onCoinClick }: GainerLoserTickerProps
                     className="w-4 h-4 rounded-full"
                   />
                 )}
-                <span className="text-xs font-medium text-white">
+                <span className="text-xs font-medium text-gray-900 dark:text-white">
                   {item.symbol.toUpperCase()}
                 </span>
-                <span className="text-[10px] text-gray-400">
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">
                   ${formatPrice(item.price)}
                 </span>
-                <span className={`text-xs font-bold ${item.change24h >= 0 ? 'text-green-400' : 'text-red-400'
+                <span className={`text-xs font-bold ${item.change24h >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                   {formatChange(item.change24h)}
                 </span>

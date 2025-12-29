@@ -127,18 +127,18 @@ export function ATRIndicator({
     }, [visibleRange]);
 
     return (
-        <div className="bg-gray-900/50 border-t border-gray-800">
-            <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-800">
+        <div className="bg-white dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
+            <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-800">
                 <div className="flex items-center gap-3">
-                    <span className="text-xs font-medium text-gray-400">ATR(14)</span>
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">ATR(14)</span>
                     {currentATR !== null && (
-                        <span className="text-xs font-bold text-yellow-400">
+                        <span className="text-xs font-bold text-yellow-600 dark:text-yellow-400">
                             {currentATR.toFixed(2)}
                         </span>
                     )}
                 </div>
                 {onClose && (
-                    <button onClick={onClose} className="p-1 hover:bg-gray-800 rounded transition-colors">
+                    <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
                         <X className="w-3.5 h-3.5 text-gray-500" />
                     </button>
                 )}

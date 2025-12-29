@@ -28,22 +28,22 @@ export function CollapsibleSection({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const badgeColors = {
-    green: 'bg-green-500/20 text-green-400',
-    red: 'bg-red-500/20 text-red-400',
-    yellow: 'bg-yellow-500/20 text-yellow-400',
-    blue: 'bg-blue-500/20 text-blue-400',
-    gray: 'bg-gray-500/20 text-gray-400',
+    green: 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400',
+    red: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400',
+    yellow: 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
+    blue: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
+    gray: 'bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-400',
   };
 
   return (
-    <div className={`bg-gray-800/50 rounded-lg overflow-hidden ${className}`}>
+    <div className={`bg-white dark:bg-gray-800/50 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 ${className}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between p-3 hover:bg-gray-700/50 transition-colors ${headerClassName}`}
+        className={`w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${headerClassName}`}
       >
         <div className="flex items-center gap-2">
-          {icon && <span className="text-gray-400">{icon}</span>}
-          <span className="font-medium text-white">{title}</span>
+          {icon && <span className="text-gray-500 dark:text-gray-400">{icon}</span>}
+          <span className="font-medium text-gray-900 dark:text-white">{title}</span>
           {badge !== undefined && (
             <span className={`text-xs px-2 py-0.5 rounded-full ${badgeColors[badgeColor]}`}>
               {badge}
@@ -54,7 +54,7 @@ export function CollapsibleSection({
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          <ChevronDown className="w-5 h-5 text-gray-400" />
+          <ChevronDown className="w-5 h-5 text-gray-400 dark:text-gray-500" />
         </motion.div>
       </button>
 

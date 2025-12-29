@@ -42,7 +42,7 @@ export function LiquidationMini({ stats, levels, currentPrice, isConnected, onCl
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-yellow-400" />
+          <Zap className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Liquidations</span>
         </div>
         <div className="flex items-center gap-1">
@@ -55,8 +55,8 @@ export function LiquidationMini({ stats, levels, currentPrice, isConnected, onCl
       {/* Long/Short Bar */}
       <div className="mb-2">
         <div className="flex justify-between text-[10px] mb-1">
-          <span className="text-red-400">Long {formatLiquidationValue(stats.totalLongUsd)}</span>
-          <span className="text-green-400">Short {formatLiquidationValue(stats.totalShortUsd)}</span>
+          <span className="text-red-600 dark:text-red-400">Long {formatLiquidationValue(stats.totalLongUsd)}</span>
+          <span className="text-green-600 dark:text-green-400">Short {formatLiquidationValue(stats.totalShortUsd)}</span>
         </div>
         <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden flex">
           <div
@@ -74,7 +74,7 @@ export function LiquidationMini({ stats, levels, currentPrice, isConnected, onCl
         {nearestAbove && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
-              <TrendingUp className="w-3 h-3 text-red-400" />
+              <TrendingUp className="w-3 h-3 text-red-600 dark:text-red-400" />
               <span className="text-gray-500">Above</span>
             </div>
             <div>
@@ -86,7 +86,7 @@ export function LiquidationMini({ stats, levels, currentPrice, isConnected, onCl
         {nearestBelow && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
-              <TrendingDown className="w-3 h-3 text-green-400" />
+              <TrendingDown className="w-3 h-3 text-green-600 dark:text-green-400" />
               <span className="text-gray-500">Below</span>
             </div>
             <div>
@@ -101,7 +101,7 @@ export function LiquidationMini({ stats, levels, currentPrice, isConnected, onCl
       <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-800 flex justify-between text-[10px]">
         <span className="text-gray-500">{stats.count} liquidations</span>
         {stats.largestLiquidation && (
-          <span className="text-yellow-400">
+          <span className="text-yellow-600 dark:text-yellow-400">
             Max: {formatLiquidationValue(stats.largestLiquidation.usdValue)}
           </span>
         )}

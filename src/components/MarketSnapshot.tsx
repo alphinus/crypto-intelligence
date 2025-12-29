@@ -34,11 +34,11 @@ export function MarketSnapshot({
   const getSentimentColor = (type: string) => {
     switch (type) {
       case 'bullish':
-        return 'text-green-400 bg-green-500/20';
+        return 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-500/20';
       case 'bearish':
-        return 'text-red-400 bg-red-500/20';
+        return 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-500/20';
       default:
-        return 'text-yellow-400 bg-yellow-500/20';
+        return 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-500/20';
     }
   };
 
@@ -65,15 +65,17 @@ export function MarketSnapshot({
           ) : fundingRate ? (
             <div className="flex items-center gap-1">
               <span
-                className={`text-sm font-bold ${fundingRate.btc >= 0 ? 'text-green-400' : 'text-red-400'
+                className={`text-sm font-bold ${fundingRate.btc >= 0
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-600 dark:text-red-400'
                   }`}
               >
                 {formatFunding(fundingRate.btc)}
               </span>
               {fundingRate.btc >= 0 ? (
-                <TrendingUp className="w-3 h-3 text-green-400" />
+                <TrendingUp className="w-3 h-3 text-green-600 dark:text-green-400" />
               ) : (
-                <TrendingDown className="w-3 h-3 text-red-400" />
+                <TrendingDown className="w-3 h-3 text-red-600 dark:text-red-400" />
               )}
             </div>
           ) : (
@@ -82,7 +84,7 @@ export function MarketSnapshot({
         </div>
         {fundingRate?.eth !== undefined && (
           <div className="text-[10px] text-gray-500 mt-0.5 text-right">
-            ETH: <span className={fundingRate.eth >= 0 ? 'text-green-400' : 'text-red-400'}>
+            ETH: <span className={fundingRate.eth >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
               {formatFunding(fundingRate.eth)}
             </span>
           </div>
@@ -136,13 +138,13 @@ export function MarketSnapshot({
             <div className="flex items-center gap-2 text-xs">
               {keyLevels.support && (
                 <span>
-                  <span className="text-green-400">S:</span>
+                  <span className="text-green-600 dark:text-green-400">S:</span>
                   <span className="text-gray-600 dark:text-gray-300 ml-0.5">{formatPrice(keyLevels.support)}</span>
                 </span>
               )}
               {keyLevels.resistance && (
                 <span>
-                  <span className="text-red-400">R:</span>
+                  <span className="text-red-600 dark:text-red-400">R:</span>
                   <span className="text-gray-600 dark:text-gray-300 ml-0.5">{formatPrice(keyLevels.resistance)}</span>
                 </span>
               )}

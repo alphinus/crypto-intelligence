@@ -96,7 +96,7 @@ export function MemeCoinsPanel({ onCoinSelect }: MemeCoinsProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
           <span className="text-2xl">🚀</span>
           Meme Coins
         </h2>
@@ -113,7 +113,7 @@ export function MemeCoinsPanel({ onCoinSelect }: MemeCoinsProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
             onClick={() => onCoinSelect?.(coin.symbol.toUpperCase() + 'USDT')}
-            className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 hover:bg-gray-800/50 cursor-pointer transition-colors"
+            className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors shadow-sm dark:shadow-none"
           >
             <div className="flex items-center gap-3 mb-3">
               <img
@@ -123,10 +123,10 @@ export function MemeCoinsPanel({ onCoinSelect }: MemeCoinsProps) {
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-white">{coin.symbol.toUpperCase()}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{coin.symbol.toUpperCase()}</span>
                   <span className="text-xs text-gray-500 truncate">{coin.name}</span>
                 </div>
-                <div className="text-lg font-bold text-white">
+                <div className="text-lg font-bold text-gray-900 dark:text-white">
                   ${formatPrice(coin.current_price)}
                 </div>
               </div>
@@ -135,7 +135,7 @@ export function MemeCoinsPanel({ onCoinSelect }: MemeCoinsProps) {
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-gray-500">24h</span>
-                <div className={`flex items-center gap-1 ${coin.price_change_percentage_24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <div className={`flex items-center gap-1 ${coin.price_change_percentage_24h >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {coin.price_change_percentage_24h >= 0 ? (
                     <TrendingUp className="w-3 h-3" />
                   ) : (
@@ -146,7 +146,7 @@ export function MemeCoinsPanel({ onCoinSelect }: MemeCoinsProps) {
               </div>
               <div>
                 <span className="text-gray-500">7d</span>
-                <div className={`flex items-center gap-1 ${(coin.price_change_percentage_7d_in_currency ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <div className={`flex items-center gap-1 ${(coin.price_change_percentage_7d_in_currency ?? 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {(coin.price_change_percentage_7d_in_currency ?? 0) >= 0 ? (
                     <TrendingUp className="w-3 h-3" />
                   ) : (
@@ -157,11 +157,11 @@ export function MemeCoinsPanel({ onCoinSelect }: MemeCoinsProps) {
               </div>
               <div>
                 <span className="text-gray-500">MCap</span>
-                <div className="text-gray-300">${formatNumber(coin.market_cap)}</div>
+                <div className="text-gray-600 dark:text-gray-300">${formatNumber(coin.market_cap)}</div>
               </div>
               <div>
                 <span className="text-gray-500">Vol 24h</span>
-                <div className="text-gray-300">${formatNumber(coin.total_volume)}</div>
+                <div className="text-gray-600 dark:text-gray-300">${formatNumber(coin.total_volume)}</div>
               </div>
             </div>
           </motion.div>

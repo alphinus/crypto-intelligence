@@ -77,22 +77,22 @@ export function GuruWatcher() {
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'bullish':
-        return 'text-green-400 bg-green-500/20';
+        return 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-500/20';
       case 'bearish':
-        return 'text-red-400 bg-red-500/20';
+        return 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-500/20';
       default:
-        return 'text-yellow-400 bg-yellow-500/20';
+        return 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-500/20';
     }
   };
 
   const getConsensusColor = (consensus: string) => {
     switch (consensus) {
       case 'bullish':
-        return 'text-green-400';
+        return 'text-green-600 dark:text-green-400';
       case 'bearish':
-        return 'text-red-400';
+        return 'text-red-600 dark:text-red-400';
       case 'mixed':
-        return 'text-yellow-400';
+        return 'text-yellow-600 dark:text-yellow-400';
       default:
         return 'text-gray-400';
     }
@@ -100,16 +100,16 @@ export function GuruWatcher() {
 
   const getTierBadge = (tier: string) => {
     const colors: Record<string, string> = {
-      analyst: 'bg-blue-500/20 text-blue-400',
-      trader: 'bg-purple-500/20 text-purple-400',
-      media: 'bg-orange-500/20 text-orange-400',
+      analyst: 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400',
+      trader: 'bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400',
+      media: 'bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400',
     };
-    return colors[tier] || 'bg-gray-500/20 text-gray-400';
+    return colors[tier] || 'bg-gray-100 dark:bg-gray-500/20 text-gray-500 dark:text-gray-400';
   };
 
   if (loading && !data) {
     return (
-      <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+      <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
         <div className="flex items-center gap-2 text-gray-400">
           <RefreshCw className="w-4 h-4 animate-spin" />
           <span className="text-sm">Lade Guru Sentiment...</span>
@@ -120,10 +120,10 @@ export function GuruWatcher() {
 
   if (error && !data) {
     return (
-      <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+      <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
         <div className="flex items-center justify-between">
-          <span className="text-red-400 text-sm">{error}</span>
-          <button onClick={fetchData} className="text-blue-400 text-sm hover:underline">
+          <span className="text-red-500 dark:text-red-400 text-sm">{error}</span>
+          <button onClick={fetchData} className="text-blue-500 dark:text-blue-400 text-sm hover:underline">
             Erneut versuchen
           </button>
         </div>
@@ -132,15 +132,15 @@ export function GuruWatcher() {
   }
 
   return (
-    <div className="bg-gray-900/50 border border-gray-800 rounded-lg overflow-hidden mt-6">
+    <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden mt-6 shadow-sm dark:shadow-none">
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-800/50 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <Users className="w-5 h-5 text-purple-400" />
-          <span className="font-medium text-white">Guru Watcher</span>
+          <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <span className="font-medium text-gray-900 dark:text-white">Guru Watcher</span>
 
           {data && (
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${getSentimentColor(data.consensus.consensus)}`}>
@@ -168,14 +168,14 @@ export function GuruWatcher() {
       {isExpanded && data && (
         <div className="px-4 pb-4">
           {/* Consensus Bar */}
-          <div className="mb-4 bg-gray-800/50 rounded-lg p-3">
+          <div className="mb-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-400">Guru Consensus</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">Guru Consensus</span>
               <span className={`text-sm font-bold ${getConsensusColor(data.consensus.consensus)}`}>
                 {data.consensus.percentage.toFixed(0)}% Bullish
               </span>
             </div>
-            <div className="h-2 bg-gray-700 rounded-full overflow-hidden flex">
+            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden flex">
               <div
                 className="h-full bg-green-500"
                 style={{ width: `${data.consensus.percentage}%` }}
@@ -197,7 +197,7 @@ export function GuruWatcher() {
                 {data.trendingTopics.slice(0, 8).map((topic) => (
                   <span
                     key={topic}
-                    className="px-2 py-0.5 bg-gray-800 rounded text-xs text-gray-300"
+                    className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs text-gray-600 dark:text-gray-300"
                   >
                     {topic}
                   </span>
@@ -211,13 +211,13 @@ export function GuruWatcher() {
             {data.influencers.map((influencer) => (
               <div
                 key={influencer.handle}
-                className="bg-gray-800/50 rounded-lg p-2 flex items-center justify-between"
+                className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 flex items-center justify-between"
               >
                 <div className="flex items-center gap-2">
                   {getSentimentIcon(influencer.recentSentiment)}
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
                         {influencer.name}
                       </span>
                       <span className={`text-[10px] px-1.5 py-0.5 rounded ${getTierBadge(influencer.tier)}`}>
@@ -228,10 +228,9 @@ export function GuruWatcher() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs font-bold ${
-                    influencer.sentimentScore > 0 ? 'text-green-400' :
-                    influencer.sentimentScore < 0 ? 'text-red-400' : 'text-gray-400'
-                  }`}>
+                  <span className={`text-xs font-bold ${influencer.sentimentScore > 0 ? 'text-green-600 dark:text-green-400' :
+                      influencer.sentimentScore < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-400'
+                    }`}>
                     {influencer.sentimentScore > 0 ? '+' : ''}{influencer.sentimentScore}
                   </span>
                   <a

@@ -22,8 +22,8 @@ const SESSIONS: Session[] = [
     emoji: '🇦🇺',
     openUTC: 22,
     closeUTC: 7,
-    color: 'text-purple-400',
-    bgColor: 'bg-purple-500/20',
+    color: 'text-purple-600 dark:text-purple-400',
+    bgColor: 'bg-purple-100 dark:bg-purple-500/20',
   },
   {
     id: 'tokyo',
@@ -32,8 +32,8 @@ const SESSIONS: Session[] = [
     emoji: '🇯🇵',
     openUTC: 0,
     closeUTC: 9,
-    color: 'text-red-400',
-    bgColor: 'bg-red-500/20',
+    color: 'text-red-600 dark:text-red-400',
+    bgColor: 'bg-red-100 dark:bg-red-500/20',
   },
   {
     id: 'london',
@@ -42,8 +42,8 @@ const SESSIONS: Session[] = [
     emoji: '🇬🇧',
     openUTC: 8,
     closeUTC: 17,
-    color: 'text-blue-400',
-    bgColor: 'bg-blue-500/20',
+    color: 'text-blue-600 dark:text-blue-400',
+    bgColor: 'bg-blue-100 dark:bg-blue-500/20',
   },
   {
     id: 'newyork',
@@ -52,8 +52,8 @@ const SESSIONS: Session[] = [
     emoji: '🇺🇸',
     openUTC: 13,
     closeUTC: 22,
-    color: 'text-green-400',
-    bgColor: 'bg-green-500/20',
+    color: 'text-green-600 dark:text-green-400',
+    bgColor: 'bg-green-100 dark:bg-green-500/20',
   },
 ];
 
@@ -110,12 +110,12 @@ export function MarketSessions() {
   const hasHighLiquidity = activeDescription.includes('Overlap');
 
   return (
-    <div className="bg-[#1a1a2e] rounded-lg border border-gray-800 overflow-hidden">
+    <div className="bg-white dark:bg-[#1a1a2e] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm dark:shadow-none">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Globe className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-medium text-white">Trading Sessions</span>
+          <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <span className="text-sm font-medium text-gray-900 dark:text-white">Trading Sessions</span>
         </div>
         <span className="text-xs text-gray-500">
           UTC {new Date().getUTCHours().toString().padStart(2, '0')}:{new Date().getUTCMinutes().toString().padStart(2, '0')}
@@ -134,8 +134,8 @@ export function MarketSessions() {
                 className={`
                   relative rounded-lg p-2 text-center transition-all
                   ${isActive
-                    ? `${session.bgColor} border border-${session.color.replace('text-', '')}/30`
-                    : 'bg-gray-800/50 opacity-50'
+                    ? `${session.bgColor} border border-${session.color.split(' ')[0].replace('text-', '')}/30`
+                    : 'bg-gray-100 dark:bg-gray-800/50 opacity-50'
                   }
                 `}
               >
@@ -143,7 +143,7 @@ export function MarketSessions() {
                 {isActive && (
                   <span className="absolute -top-1 -right-1 flex h-3 w-3">
                     <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${session.bgColor} opacity-75`}></span>
-                    <span className={`relative inline-flex rounded-full h-3 w-3 ${session.color.replace('text-', 'bg-')}`}></span>
+                    <span className={`relative inline-flex rounded-full h-3 w-3 ${session.color.split(' ')[0].replace('text-', 'bg-')}`}></span>
                   </span>
                 )}
 
@@ -162,21 +162,21 @@ export function MarketSessions() {
 
       {/* Current Status */}
       <div className={`
-        px-4 py-2 border-t border-gray-800 flex items-center justify-between
-        ${hasHighLiquidity ? 'bg-green-500/10' : 'bg-gray-900/50'}
+        px-4 py-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between
+        ${hasHighLiquidity ? 'bg-green-100 dark:bg-green-500/10' : 'bg-gray-50 dark:bg-gray-900/50'}
       `}>
         <div className="flex items-center gap-2">
           {activeSessions.length > 0 ? (
-            <Sun className={`w-4 h-4 ${hasHighLiquidity ? 'text-green-400' : 'text-yellow-400'}`} />
+            <Sun className={`w-4 h-4 ${hasHighLiquidity ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`} />
           ) : (
             <Moon className="w-4 h-4 text-gray-500" />
           )}
-          <span className={`text-xs ${hasHighLiquidity ? 'text-green-400 font-medium' : 'text-gray-400'}`}>
+          <span className={`text-xs ${hasHighLiquidity ? 'text-green-600 dark:text-green-400 font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
             {activeDescription}
           </span>
         </div>
         {hasHighLiquidity && (
-          <span className="text-[10px] px-2 py-0.5 bg-green-500/20 text-green-400 rounded">
+          <span className="text-[10px] px-2 py-0.5 bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded">
             High Volume
           </span>
         )}
