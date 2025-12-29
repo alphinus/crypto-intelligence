@@ -592,6 +592,12 @@ Analysiere ALLE Daten. Beachte besonders:
 3. Was signalisieren Funding Rates und Long/Short Ratio?
 4. Gib eine KONKRETE Trade-Empfehlung wenn ein Setup erkennbar ist.
 
+WICHTIGE VETO-REGELN:
+- NIEMALS Long wenn RSI > 70 oder bei extremer Greed (>80)
+- NIEMALS Short wenn RSI < 30 oder bei extremer Fear (<20)
+- Priorisiere "wait" wenn Timeframes divergieren
+- Funding Rate > 0.03% = Risiko für Long, < -0.03% = Risiko für Short
+
 Antworte NUR mit diesem JSON:
 {
   "overallSentiment": "bullish" | "bearish" | "neutral",
@@ -730,6 +736,14 @@ Gib für JEDEN Timeframe eine passende Empfehlung:
 - 1h: Größere Stops, 2-5% Targets
 - 4h: Swing-Stops, 5-10% Targets
 - Daily: Position-Stops, 10%+ Targets
+
+WICHTIGE VETO-REGELN (STRIKT EINHALTEN):
+1. NIEMALS Long-Signal wenn RSI > 70 (Überkauft) - stattdessen "wait" oder Short erwägen
+2. NIEMALS Short-Signal wenn RSI < 30 (Überverkauft) - stattdessen "wait" oder Long erwägen
+3. Priorisiere "wait" wenn höhere Timeframes (1h, 4h, 1d) divergieren
+4. Funding Rate > 0.03% = Warnung für Long (überfüllt), < -0.03% = Warnung für Short
+5. Bei extremer Fear (<20) = potentieller Bounce (bevorzuge Long/Wait), bei extremer Greed (>80) = potentieller Drop (bevorzuge Short/Wait)
+6. Setze confluenceWithOtherTimeframes auf false wenn der Trade gegen den höheren TF-Trend geht
 
 Antworte NUR mit diesem JSON:
 {

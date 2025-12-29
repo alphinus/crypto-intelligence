@@ -52,6 +52,7 @@ import { calculateLiquidationLevels } from '@/lib/liquidation-levels';
 import { playAlertSound } from '@/lib/alert-sound';
 import { HelpProvider, Avatar, OnboardingTour } from '@/components/Help';
 import { useTheme } from '@/contexts/ThemeContext';
+import { validateSignal, checkConfluence, adjustConfidence, type FullValidationInput, type IndicatorValues } from '@/lib/trade-validation';
 
 interface MarketResponse {
   success: boolean;
@@ -928,7 +929,58 @@ export default function Home() {
           }
         }
 
-        setTradeRecommendations(recommendations);
+        // =====================================================
+        // SIGNAL VALIDATION LAYER (Phase 6: RSI Veto + Confluence)
+        // =====================================================
+        // Apply rule-based validation to filter risky signals
+        const validatedRecommendations: Record<string, TimeframeTradeSetup | null> = {};
+
+        for (const tf of timeframeKeys) {
+          const signal = recommendations[tf];
+          if (!signal || signal.type === 'wait') {
+            validatedRecommendations[tf] = signal;
+            continue;
+          }
+
+          // Get RSI from timeframe data (momentum approximates RSI direction)
+          // TODO: Add actual RSI values from API response when available
+          const tfData = data.timeframes[tf];
+          const rsiValue = tfData?.rsi ?? (50 + (tfData?.momentum || 0) / 2); // Fallback: estimate from momentum
+
+          const indicators: IndicatorValues = {
+            rsi: rsiValue,
+            stochRsi: tfData?.stochRsi ? { k: tfData.stochRsi.k, d: tfData.stochRsi.d } : undefined,
+          };
+
+          const validationResult = validateSignal({
+            signal,
+            indicators,
+            allRecommendations: recommendations,
+            fundingRate: futuresData?.fundingRates?.btc ?? undefined,
+          });
+
+          if (validationResult.validatedType !== signal.type) {
+            // Signal was blocked or modified
+            console.log(`[Validation] ${tf}: ${signal.type} → ${validationResult.validatedType}`, validationResult.reasons);
+            validatedRecommendations[tf] = {
+              ...signal,
+              type: validationResult.validatedType,
+              confidence: adjustConfidence(signal.confidence, validationResult.confidenceAdjustment),
+              reasoning: signal.reasoning + ` [${validationResult.reasons.join(', ')}]`,
+            };
+          } else if (validationResult.confidenceAdjustment !== 0) {
+            // Confidence was downgraded
+            validatedRecommendations[tf] = {
+              ...signal,
+              confidence: adjustConfidence(signal.confidence, validationResult.confidenceAdjustment),
+              reasoning: signal.reasoning + ` [${validationResult.reasons.join(', ')}]`,
+            };
+          } else {
+            validatedRecommendations[tf] = signal;
+          }
+        }
+
+        setTradeRecommendations(validatedRecommendations);
 
         // Prepare sentiment data for score calculation
         const currentSentimentData: SentimentData | null = (marketData?.fearGreed || redditData?.overall || futuresData?.fundingRates) ? {
