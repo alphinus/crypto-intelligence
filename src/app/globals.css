@@ -13,8 +13,8 @@
 
 /* Light mode via class */
 :root.light {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #fbfbfb; /* Antigravity off-white */
+  --foreground: #1f1f1f;
 }
 
 @theme inline {

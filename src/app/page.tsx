@@ -39,6 +39,7 @@ import { SimulatorPanel } from '@/components/SimulatorPanel';
 import { SpotDCAPanel } from '@/components/SpotDCA';
 import { TabNavigation, type TabId } from '@/components/Layout/TabNavigation';
 import { TabPanel, TabPanelPersistent } from '@/components/Layout/TabPanel';
+import { Header } from '@/components/layout/Header';
 import { AnimatePresence } from 'framer-motion';
 import { AlertNotificationsContainer, AlertManager } from '@/components/Alerts';
 import { LiquidationFeed, LiquidationStats, LiquidationHeatmap, LiquidationMini } from '@/components/Liquidations';
@@ -107,30 +108,6 @@ interface DefiResponse {
   };
 }
 
-// System Clock Component (client-only to avoid hydration mismatch)
-function SystemClock() {
-  const [time, setTime] = useState<Date | null>(null);
-
-  useEffect(() => {
-    // Set initial time only on client to avoid hydration mismatch
-    setTime(new Date());
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded text-xs">
-      <Clock className="w-3 h-3 text-gray-400" />
-      <span className="font-mono text-gray-300">
-        {time ? time.toLocaleTimeString('de-DE', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        }) : '--:--:--'}
-      </span>
-    </div>
-  );
-}
 
 export default function Home() {
   const { theme } = useTheme();
@@ -1404,100 +1381,18 @@ export default function Home() {
     <HelpProvider>
       <div className="min-h-screen bg-gray-950 text-white">
         {/* Header */}
-        <header className="border-b border-gray-800 sticky top-0 bg-gray-950/95 backdrop-blur z-50">
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Brain className="w-7 h-7 text-blue-500" />
-                <div>
-                  <h1 className="text-lg font-bold">Crypto Intelligence</h1>
-                  <p className="text-[10px] text-gray-500">KI-gestützte Marktanalyse</p>
-                </div>
-              </div>
-
-              {/* Session Timer & Global Stats - Desktop */}
-              <div className="hidden lg:flex items-center gap-6">
-                <SessionTimer />
-
-                {marketData?.global && (
-                  <div className="flex items-center gap-4 text-[11px]">
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 uppercase text-[9px] font-bold tracking-wider">Vol 24h</span>
-                      <span className="text-white font-medium">${(marketData.global.totalVolume / 1e9).toFixed(1)}B</span>
-                    </div>
-                    <div className="w-px h-6 bg-gray-800" />
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 uppercase text-[9px] font-bold tracking-wider">BTC Dom</span>
-                      <span className="text-yellow-400 font-medium">{marketData.global.btcDominance.toFixed(1)}%</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Global Stats - Mobile (compact) */}
-              {marketData?.global && (
-                <div className="flex md:hidden items-center gap-2 text-[10px]">
-                  <span className="text-yellow-400 font-medium">
-                    BTC {marketData.global.btcDominance.toFixed(1)}%
-                  </span>
-                  <span className="text-gray-600">|</span>
-                  <span className="text-white font-medium">
-                    ${(marketData.global.totalMarketCap / 1e12).toFixed(1)}T
-                  </span>
-                </div>
-              )}
-
-              <div className="flex items-center gap-2">
-                {/* Mobile Menu Button */}
-                <button
-                  onClick={() => setMobileDrawerOpen(true)}
-                  className="lg:hidden p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
-                  aria-label="Menü öffnen"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-
-                {/* WebSocket Status */}
-                <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded text-xs" title={`WebSocket: ${connectionState}`}>
-                  <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' :
-                    connectionState === 'connecting' ? 'bg-yellow-500 animate-pulse' :
-                      'bg-red-500'
-                    }`}></div>
-                  <span className="text-gray-400 text-[10px]">LIVE</span>
-                </div>
-
-                {/* System Clock */}
-                <SystemClock />
-
-                {/* Report Button - Always visible */}
-                <button
-                  onClick={generateIntelligenceReport}
-                  disabled={analyzing}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 rounded-lg text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-                  aria-label="KI-Report generieren"
-                  data-tour="report-button"
-                >
-                  <Brain className={`w-3.5 h-3.5 ${analyzing ? 'animate-pulse' : ''}`} />
-                  <span className="hidden sm:inline">{analyzing ? 'Analysiere...' : 'Report'}</span>
-                </button>
-
-                {/* Header Menu - Consolidates Refresh, Theme, Settings */}
-                <div data-tour="header-menu">
-                  <HeaderMenu
-                    onRefresh={() => {
-                      fetchData();
-                      fetchTradeRecommendations();
-                      setLastUpdated(new Date());
-                    }}
-                    isRefreshing={loading}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
+        <Header
+          marketData={marketData}
+          setMobileDrawerOpen={setMobileDrawerOpen}
+          isConnected={isConnected}
+          connectionState={connectionState}
+          analyzing={analyzing}
+          generateIntelligenceReport={generateIntelligenceReport}
+          loading={loading}
+          fetchData={fetchData}
+          fetchTradeRecommendations={() => selectedAnalysisCoin && fetchTradeRecommendations(selectedAnalysisCoin.symbol)}
+          setLastUpdated={setLastUpdated}
+        />
 
         {/* News Ticker */}
         <NewsTicker headlines={newsHeadlines} />
