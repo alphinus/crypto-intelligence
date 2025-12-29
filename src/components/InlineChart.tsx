@@ -1118,7 +1118,6 @@ export function InlineChart({
             : '0.00';
 
           return (
-          return (
             <div className={`absolute bottom-2 right-2 ${styles.overlayBg} p-3 rounded-lg text-xs border ${styles.header} min-w-[200px]`}>
               <div className={`font-bold text-sm mb-2 pb-2 border-b border-gray-700 ${tradeSetup.type === 'long' ? 'text-green-500' : 'text-red-500'}`}>
                 {tradeSetup.type.toUpperCase()} Trade

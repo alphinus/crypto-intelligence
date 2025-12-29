@@ -104,7 +104,6 @@ function SubredditCard({ subreddit }: { subreddit: SubredditData }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-  return (
     <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}

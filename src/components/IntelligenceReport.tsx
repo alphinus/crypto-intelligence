@@ -130,8 +130,8 @@ export function IntelligenceReport({
               <button
                 onClick={handleAudioToggle}
                 className={`p-2 rounded-lg transition-colors ${isAudioPlaying
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                 title="Audio abspielen"
               >
@@ -296,7 +296,7 @@ export function IntelligenceReport({
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Trend</div>
                   <div className={`text-lg font-semibold ${report.technicalAnalysis.currentTrend === 'bullish' ? 'text-green-400' :
-                      report.technicalAnalysis.currentTrend === 'bearish' ? 'text-red-400' : 'text-yellow-400'
+                    report.technicalAnalysis.currentTrend === 'bearish' ? 'text-red-400' : 'text-yellow-400'
                     }`}>
                     {report.technicalAnalysis.currentTrend === 'bullish' ? 'Aufwärts' :
                       report.technicalAnalysis.currentTrend === 'bearish' ? 'Abwärts' : 'Seitwärts'}
@@ -308,7 +308,7 @@ export function IntelligenceReport({
                     <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className={`h-full ${report.technicalAnalysis.trendStrength > 60 ? 'bg-green-500' :
-                            report.technicalAnalysis.trendStrength > 40 ? 'bg-yellow-500' : 'bg-red-500'
+                          report.technicalAnalysis.trendStrength > 40 ? 'bg-yellow-500' : 'bg-red-500'
                           }`}
                         style={{ width: `${report.technicalAnalysis.trendStrength}%` }}
                       />
@@ -352,31 +352,23 @@ export function IntelligenceReport({
           {/* Trade Empfehlung */}
           {report.tradeRecommendation && (
             <div className={`p-4 rounded-lg border ${report.tradeRecommendation.type === 'long'
-                ? 'bg-green-500/10 border-green-500/30'
-                : report.tradeRecommendation.type === 'short'
-                  ? 'bg-red-500/10 border-red-500/30'
-                  : 'bg-gray-800/50 border-gray-700'
+              ? 'bg-green-500/10 border-green-500/30'
+              : report.tradeRecommendation.type === 'short'
+                ? 'bg-red-500/10 border-red-500/30'
+                : 'bg-gray-800/50 border-gray-700'
               }`}>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-gray-300">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Trade-Empfehlung
                 </h3>
                 <span className={`px-2 py-1 rounded text-xs font-bold ${report.tradeRecommendation.type === 'long'
-                    ? 'bg-green-500/20 text-green-400'
-                    : report.tradeRecommendation.type === 'short'
-                      ? 'bg-green-500/10 border-green-500/30'
-                      : report.tradeRecommendation.type === 'short'
-                        ? 'bg-red-500/10 border-red-500/30'
-                        : 'bg-gray-100 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'
+                  ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400'
+                  : report.tradeRecommendation.type === 'short'
+                    ? 'bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400'
+                    : 'bg-gray-100 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300'
                   }`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Trade-Empfehlung
-                    </h3>
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${{
-                        report.tradeRecommendation.type === 'long' ? 'LONG' :
-                          report.tradeRecommendation.type === 'short' ? 'SHORT' : 'ABWARTEN'
-                      }
+                  {report.tradeRecommendation.type === 'long' ? 'LONG' :
+                    report.tradeRecommendation.type === 'short' ? 'SHORT' : 'ABWARTEN'}
                 </span>
               </div>
 
@@ -414,8 +406,8 @@ export function IntelligenceReport({
                   <div className="mt-2 flex items-center gap-2">
                     <span className="text-xs text-gray-500">Konfidenz:</span>
                     <span className={`text-xs px-2 py-0.5 rounded ${report.tradeRecommendation.confidence === 'high' ? 'bg-green-500/20 text-green-400' :
-                        report.tradeRecommendation.confidence === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
+                      report.tradeRecommendation.confidence === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                        'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
                       }`}>
                       {report.tradeRecommendation.confidence}
                     </span>
