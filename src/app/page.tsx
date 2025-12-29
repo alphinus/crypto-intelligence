@@ -28,7 +28,6 @@ import { calculateMultipleEMAs } from '@/lib/binance-klines';
 import { useBinanceWebSocket } from '@/hooks/useBinanceWebSocket';
 import type { Kline } from '@/lib/binance-klines';
 import { YouTubeSection } from '@/components/YouTubeSection';
-import { GuruWatcher } from '@/components/GuruWatcher';
 import { TelegramSentiment } from '@/components/TelegramSentiment';
 import { HeaderMenu } from '@/components/HeaderMenu';
 import { SessionTimer } from '@/components/SessionTimer';
@@ -1705,9 +1704,6 @@ export default function Home() {
                       oiChange24h: 0,
                     } : undefined}
                   />
-
-                  {/* Guru Watcher - Twitter Influencer Sentiment */}
-                  <GuruWatcher />
 
                   {/* Telegram Sentiment */}
                   <TelegramSentiment />
