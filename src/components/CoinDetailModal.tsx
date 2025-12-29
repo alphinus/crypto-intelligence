@@ -175,10 +175,10 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
   const timeframes: TimeframeKey[] = ['1H', '24H', '7D', '30D', '1Y'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-gray-900 border border-gray-700 rounded-xl shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm dark:bg-black/80">
+      <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-gray-900 border-b border-gray-800">
+        <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-3">
             <img
               src={coin.image}
@@ -187,19 +187,18 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
             />
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-white">{coin.name}</h2>
-                <span className="px-2 py-0.5 text-xs font-medium text-gray-400 bg-gray-800 rounded">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{coin.name}</h2>
+                <span className="px-2 py-0.5 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded">
                   {coin.symbol.toUpperCase()}
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-lg font-semibold text-white">
+                <span className="text-lg font-semibold text-gray-900 dark:text-white">
                   {formatPrice(coin.price)}
                 </span>
                 <span
-                  className={`flex items-center gap-1 text-sm font-medium ${
-                    isPositive ? 'text-green-400' : 'text-red-400'
-                  }`}
+                  className={`flex items-center gap-1 text-sm font-medium ${isPositive ? 'text-green-400' : 'text-red-400'
+                    }`}
                 >
                   {isPositive ? (
                     <TrendingUp className="w-4 h-4" />
@@ -214,74 +213,71 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-4 p-4 border-b border-gray-800">
-          <div className="p-3 bg-gray-800/50 rounded-lg">
+        <div className="grid grid-cols-3 gap-4 p-4 border-b border-gray-200 dark:border-gray-800">
+          <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
             <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
               <DollarSign className="w-3.5 h-3.5" />
               Marktkapitalisierung
             </div>
-            <div className="text-lg font-semibold text-white">
+            <div className="text-lg font-semibold text-gray-900 dark:text-white">
               {formatMarketCap(coin.marketCap)}
             </div>
           </div>
-          <div className="p-3 bg-gray-800/50 rounded-lg">
+          <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
             <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
               <Activity className="w-3.5 h-3.5" />
               24h Volumen
             </div>
-            <div className="text-lg font-semibold text-white">
+            <div className="text-lg font-semibold text-gray-900 dark:text-white">
               {formatVolume(coin.volume24h)}
             </div>
           </div>
-          <div className="p-3 bg-gray-800/50 rounded-lg">
+          <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
             <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
               <BarChart3 className="w-3.5 h-3.5" />
               Vol/MCap Ratio
             </div>
-            <div className="text-lg font-semibold text-white">
+            <div className="text-lg font-semibold text-gray-900 dark:text-white">
               {((coin.volume24h / coin.marketCap) * 100).toFixed(2)}%
             </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-4 p-4 border-b border-gray-800">
+        <div className="flex items-center gap-4 p-4 border-b border-gray-200 dark:border-gray-800">
           <button
             onClick={() => setActiveTab('tradingview')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'tradingview'
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'tradingview'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            }`}
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
           >
             <BarChart3 className="w-4 h-4" />
             TradingView
           </button>
           <button
             onClick={() => setActiveTab('levels')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'levels'
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'levels'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            }`}
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
           >
             <Layers className="w-4 h-4" />
             Level-Chart
           </button>
           <button
             onClick={() => setActiveTab('trade')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'trade'
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'trade'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            }`}
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
           >
             <Target className="w-4 h-4" />
             Trade-Setup
@@ -295,11 +291,10 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
-                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                    timeframe === tf
-                      ? 'bg-gray-700 text-white'
-                      : 'text-gray-400 hover:bg-gray-700'
-                  }`}
+                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${timeframe === tf
+                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
                 >
                   {tf}
                 </button>
@@ -315,11 +310,10 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                 <button
                   key={interval}
                   onClick={() => setSelectedInterval(interval)}
-                  className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${
-                    selectedInterval === interval
+                  className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${selectedInterval === interval
                       ? 'bg-blue-600 text-white'
-                      : 'text-gray-400 hover:bg-gray-700'
-                  }`}
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
                 >
                   {INTERVAL_LABELS[interval]}
                 </button>
@@ -353,7 +347,7 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                     showLevels={true}
                     showFibonacci={true}
                     showTradeSetup={false}
-                    theme="dark"
+                    theme="dark" // Always dark for charting consistency or wire up dynamic
                   />
                 )}
               </div>
@@ -363,8 +357,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                 {levels && (
                   <>
                     {/* Key Levels */}
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <h4 className="text-xs text-gray-400 mb-2">Key Levels</h4>
+                    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
+                      <h4 className="text-xs text-gray-500 dark:text-gray-400 mb-2">Key Levels</h4>
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-gray-400 text-sm">Support</span>
@@ -383,8 +377,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
 
                     {/* All Supports */}
                     {levels.supports.length > 0 && (
-                      <div className="bg-gray-800/50 rounded-lg p-3">
-                        <h4 className="text-xs text-gray-400 mb-2">Support Level</h4>
+                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
+                        <h4 className="text-xs text-gray-500 dark:text-gray-400 mb-2">Support Level</h4>
                         {levels.supports.slice(0, 4).map((s, i) => (
                           <div key={i} className="flex justify-between items-center py-1">
                             <span className="text-green-400 font-mono text-sm">
@@ -402,8 +396,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
 
                     {/* All Resistances */}
                     {levels.resistances.length > 0 && (
-                      <div className="bg-gray-800/50 rounded-lg p-3">
-                        <h4 className="text-xs text-gray-400 mb-2">Resistance Level</h4>
+                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
+                        <h4 className="text-xs text-gray-500 dark:text-gray-400 mb-2">Resistance Level</h4>
                         {levels.resistances.slice(0, 4).map((r, i) => (
                           <div key={i} className="flex justify-between items-center py-1">
                             <span className="text-red-400 font-mono text-sm">
@@ -421,8 +415,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
 
                     {/* Fibonacci */}
                     {levels.fibonacci.length > 0 && (
-                      <div className="bg-gray-800/50 rounded-lg p-3">
-                        <h4 className="text-xs text-gray-400 mb-2">Fibonacci</h4>
+                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
+                        <h4 className="text-xs text-gray-500 dark:text-gray-400 mb-2">Fibonacci</h4>
                         {levels.fibonacci
                           .filter((f) => [0.236, 0.382, 0.5, 0.618, 0.786].includes(f.ratio))
                           .map((f, i) => (
@@ -452,28 +446,26 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                   <div
                     key={interval}
                     onClick={() => setSelectedInterval(interval)}
-                    className={`p-3 rounded-lg cursor-pointer transition-all ${
-                      isSelected ? 'bg-blue-600/20 border-2 border-blue-500' : 'bg-gray-800/50 border-2 border-transparent hover:border-gray-600'
-                    }`}
+                    className={`p-3 rounded-lg cursor-pointer transition-all ${isSelected ? 'bg-blue-600/20 border-2 border-blue-500' : 'bg-gray-100 dark:bg-gray-800/50 border-2 border-transparent hover:border-gray-200 dark:hover:border-gray-600'
+                      }`}
                   >
                     <div className="text-center mb-2">
-                      <div className="text-base font-bold text-white">{INTERVAL_LABELS[interval]}</div>
-                      <div className="text-[10px] text-gray-400">
+                      <div className="text-base font-bold text-gray-900 dark:text-white">{INTERVAL_LABELS[interval]}</div>
+                      <div className="text-[10px] text-gray-500 dark:text-gray-400">
                         {interval === '1m' || interval === '3m' ? 'Scalping' :
-                         interval === '5m' ? 'Scalping' :
-                         interval === '15m' ? 'Intraday' :
-                         interval === '1h' ? 'Swing' :
-                         interval === '4h' ? 'Position' : 'Trend'}
+                          interval === '5m' ? 'Scalping' :
+                            interval === '15m' ? 'Intraday' :
+                              interval === '1h' ? 'Swing' :
+                                interval === '4h' ? 'Position' : 'Trend'}
                       </div>
                     </div>
 
                     {setup ? (
                       <>
-                        <div className={`text-center py-1.5 rounded-lg mb-2 ${
-                          setup.type === 'long' ? 'bg-green-500/20 text-green-400' :
-                          setup.type === 'short' ? 'bg-red-500/20 text-red-400' :
-                          'bg-gray-500/20 text-gray-400'
-                        }`}>
+                        <div className={`text-center py-1.5 rounded-lg mb-2 ${setup.type === 'long' ? 'bg-green-500/20 text-green-400' :
+                            setup.type === 'short' ? 'bg-red-500/20 text-red-400' :
+                              'bg-gray-500/20 text-gray-400'
+                          }`}>
                           <div className="font-bold text-sm">{setup.type.toUpperCase()}</div>
                           <div className="text-[10px]">{setup.confidence}</div>
                         </div>
@@ -495,8 +487,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                               <span className="text-green-400 font-mono">${setup.takeProfit[0]?.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-400">RR</span>
-                              <span className="text-white font-mono">1:{setup.riskReward.toFixed(1)}</span>
+                              <span className="text-gray-500 dark:text-gray-400">RR</span>
+                              <span className="text-gray-900 dark:text-white font-mono">1:{setup.riskReward.toFixed(1)}</span>
                             </div>
                           </div>
                         )}
@@ -523,7 +515,7 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-gray-900 border-t border-gray-800">
+        <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
           <p className="text-xs text-gray-500 text-center">
             Chart powered by TradingView. Daten zu Informationszwecken - keine Anlageberatung.
           </p>

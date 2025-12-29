@@ -22,7 +22,7 @@ export function LiquidationFeed({ liquidations, maxItems = 20 }: LiquidationFeed
   const getHighlightClass = (usdValue: number): string => {
     if (usdValue >= 500000) return 'bg-yellow-500/20 border-yellow-500/50';
     if (usdValue >= 100000) return 'bg-orange-500/10 border-orange-500/30';
-    return 'bg-gray-800/50 border-gray-700/50';
+    return 'bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700/50';
   };
 
   const formatTime = (timestamp: number): string => {
@@ -44,7 +44,7 @@ export function LiquidationFeed({ liquidations, maxItems = 20 }: LiquidationFeed
   }
 
   return (
-    <div className="space-y-1 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700">
+    <div className="space-y-1 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700">
       <AnimatePresence initial={false}>
         {displayedLiquidations.map((liq) => (
           <motion.div
@@ -65,26 +65,24 @@ export function LiquidationFeed({ liquidations, maxItems = 20 }: LiquidationFeed
             </div>
 
             {/* Symbol */}
-            <span className="font-medium text-white w-12">{liq.symbol}</span>
+            <span className="font-medium text-gray-900 dark:text-white w-12">{liq.symbol}</span>
 
             {/* Side */}
             <span
-              className={`text-xs px-1.5 py-0.5 rounded ${
-                liq.side === 'LONG' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
-              }`}
+              className={`text-xs px-1.5 py-0.5 rounded ${liq.side === 'LONG' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
+                }`}
             >
               {liq.side}
             </span>
 
             {/* Value */}
-            <span className={`flex-1 text-right ${getSizeClass(liq.usdValue)} ${
-              liq.side === 'LONG' ? 'text-red-400' : 'text-green-400'
-            }`}>
+            <span className={`flex-1 text-right ${getSizeClass(liq.usdValue)} ${liq.side === 'LONG' ? 'text-red-400' : 'text-green-400'
+              }`}>
               {formatLiquidationValue(liq.usdValue)}
             </span>
 
             {/* Price */}
-            <span className="text-xs text-gray-400 w-20 text-right">
+            <span className="text-xs text-gray-500 dark:text-gray-400 w-20 text-right">
               @${liq.price.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </span>
 

@@ -8,12 +8,14 @@ interface LiquidationHeatmapProps {
   levels: LiquidationLevel[];
   currentPrice: number;
   height?: number;
+  theme?: 'dark' | 'light';
 }
 
 export function LiquidationHeatmap({
   levels,
   currentPrice,
   height = 200,
+  theme = 'dark',
 }: LiquidationHeatmapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -62,7 +64,7 @@ export function LiquidationHeatmap({
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
     // Clear
-    ctx.fillStyle = 'rgba(17, 24, 39, 0.5)';
+    ctx.fillStyle = theme === 'dark' ? 'rgba(17, 24, 39, 0.5)' : 'rgba(255, 255, 255, 1)';
     ctx.fillRect(0, 0, width, height);
 
     const padding = { top: 20, right: 60, bottom: 30, left: 10 };
@@ -116,7 +118,7 @@ export function LiquidationHeatmap({
       padding.top +
       ((currentPrice - minPrice) / (maxPrice - minPrice)) * chartHeight;
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(17, 24, 39, 0.8)';
     ctx.lineWidth = 2;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
@@ -126,7 +128,7 @@ export function LiquidationHeatmap({
     ctx.setLineDash([]);
 
     // Draw price labels
-    ctx.fillStyle = 'rgba(156, 163, 175, 0.8)';
+    ctx.fillStyle = theme === 'dark' ? 'rgba(156, 163, 175, 0.8)' : 'rgba(107, 114, 128, 0.8)';
     ctx.font = '10px system-ui';
     ctx.textAlign = 'right';
 
@@ -138,7 +140,7 @@ export function LiquidationHeatmap({
     );
 
     // Current price
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(17, 24, 39, 0.9)';
     ctx.fillText(
       `$${currentPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
       width - 5,
@@ -146,7 +148,7 @@ export function LiquidationHeatmap({
     );
 
     // Bottom price
-    ctx.fillStyle = 'rgba(156, 163, 175, 0.8)';
+    ctx.fillStyle = theme === 'dark' ? 'rgba(156, 163, 175, 0.8)' : 'rgba(107, 114, 128, 0.8)';
     ctx.fillText(
       `$${minPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
       width - 5,
@@ -160,12 +162,12 @@ export function LiquidationHeatmap({
     ctx.fillText('Long Liqs', padding.left + chartWidth / 4, height - 5);
     ctx.fillStyle = 'rgba(34, 197, 94, 0.8)';
     ctx.fillText('Short Liqs', padding.left + (chartWidth * 3) / 4, height - 5);
-  }, [groupedData, currentPrice, height]);
+  }, [groupedData, currentPrice, height, theme]);
 
   if (!levels.length) {
     return (
       <div
-        className="flex items-center justify-center bg-gray-900/50 rounded-lg"
+        className="flex items-center justify-center bg-white dark:bg-gray-900/50 rounded-lg"
         style={{ height }}
       >
         <span className="text-gray-500 text-sm">Keine Daten verfügbar</span>
@@ -174,7 +176,7 @@ export function LiquidationHeatmap({
   }
 
   return (
-    <div ref={containerRef} className="w-full bg-gray-900/50 rounded-lg overflow-hidden">
+    <div ref={containerRef} className="w-full bg-white dark:bg-gray-900/50 rounded-lg overflow-hidden">
       <canvas ref={canvasRef} />
     </div>
   );

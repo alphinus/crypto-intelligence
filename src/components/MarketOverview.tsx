@@ -30,10 +30,10 @@ export function MarketOverview({ coins, fearGreed, onCoinClick }: MarketOverview
     <div className="space-y-4">
       {/* Fear & Greed Index */}
       {fearGreed && (
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Gauge className="w-5 h-5 text-gray-400" />
-            <h3 className="font-semibold text-white">Fear & Greed Index</h3>
+            <Gauge className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <h3 className="font-semibold text-gray-900 dark:text-white">Fear & Greed Index</h3>
           </div>
           <div className="flex items-center gap-4">
             <div
@@ -50,7 +50,7 @@ export function MarketOverview({ coins, fearGreed, onCoinClick }: MarketOverview
               </div>
             </div>
           </div>
-          <div className="mt-3 h-2 bg-gray-800 rounded-full overflow-hidden">
+          <div className="mt-3 h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
             <div
               className={`h-full ${getFearGreedBg(fearGreed.value)} transition-all`}
               style={{ width: `${fearGreed.value}%` }}
@@ -64,14 +64,14 @@ export function MarketOverview({ coins, fearGreed, onCoinClick }: MarketOverview
       )}
 
       {/* Top Coins */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-        <h3 className="font-semibold text-white mb-3">Top Coins</h3>
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Top Coins</h3>
         <div className="space-y-2">
           {coins.slice(0, 10).map((coin) => (
             <button
               key={coin.symbol}
               onClick={() => onCoinClick?.(coin)}
-              className="w-full flex items-center justify-between py-2 border-b border-gray-800 last:border-0 hover:bg-gray-800/50 rounded-lg px-2 -mx-2 transition-colors group"
+              className="w-full flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg px-2 -mx-2 transition-colors group"
             >
               <div className="flex items-center gap-2">
                 <img
@@ -88,16 +88,15 @@ export function MarketOverview({ coins, fearGreed, onCoinClick }: MarketOverview
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-right">
-                  <div className="font-medium text-white text-sm">
+                  <div className="font-medium text-gray-900 dark:text-white text-sm">
                     ${coin.price.toLocaleString('de-DE', {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: coin.price < 1 ? 6 : 2,
                     })}
                   </div>
                   <div
-                    className={`flex items-center justify-end gap-1 text-xs ${
-                      coin.change24h >= 0 ? 'text-green-500' : 'text-red-500'
-                    }`}
+                    className={`flex items-center justify-end gap-1 text-xs ${coin.change24h >= 0 ? 'text-green-500' : 'text-red-500'
+                      }`}
                   >
                     {coin.change24h >= 0 ? (
                       <TrendingUp className="w-3 h-3" />
@@ -107,7 +106,7 @@ export function MarketOverview({ coins, fearGreed, onCoinClick }: MarketOverview
                     {coin.change24h.toFixed(2)}%
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-600 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors" />
               </div>
             </button>
           ))}

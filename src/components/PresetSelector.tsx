@@ -32,9 +32,9 @@ export default function PresetSelector({
   };
 
   return (
-    <div className="bg-[#1a1a2e] rounded-lg border border-gray-800 overflow-hidden">
+    <div className="bg-white dark:bg-[#1a1a2e] rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-gray-400 text-sm">Indikator-Preset</span>
           {recommendedPresetId && recommendedPresetId !== selectedPreset.id && (
@@ -68,8 +68,8 @@ export default function PresetSelector({
                   ${isSelected
                     ? 'bg-blue-600 text-white'
                     : isRecommended
-                      ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 hover:bg-yellow-500/30'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300'
+                      ? 'bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30 hover:bg-yellow-500/20 dark:hover:bg-yellow-500/30'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-300'
                   }
                 `}
               >
@@ -101,15 +101,15 @@ export default function PresetSelector({
       </div>
 
       {/* Active Preset Info */}
-      <div className="px-4 py-3 bg-gray-900/50 border-t border-gray-800">
+      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-white font-medium">{selectedPreset.name}</span>
+            <span className="text-gray-900 dark:text-white font-medium">{selectedPreset.name}</span>
             <span className="text-gray-500 text-sm ml-2">
               Optimal: {selectedPreset.targetTimeframes.join(', ')}
             </span>
           </div>
-          <span className="text-xs px-2 py-1 rounded bg-gray-800 text-gray-400">
+          <span className="text-xs px-2 py-1 rounded bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
             {selectedPreset.tradingStyle}
           </span>
         </div>
@@ -118,7 +118,7 @@ export default function PresetSelector({
 
       {/* Expanded Details */}
       {showDetails && (
-        <div className="px-4 py-3 border-t border-gray-800 space-y-4">
+        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800 space-y-4">
           {/* Active Indicators */}
           <div>
             <h4 className="text-gray-400 text-xs uppercase tracking-wider mb-2">
@@ -213,7 +213,7 @@ function WeightBar({ label, value, color }: { label: string; value: number; colo
   return (
     <div className="flex items-center gap-3">
       <span className="text-gray-500 text-xs w-20">{label}</span>
-      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+      <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
         <div
           className={`h-full ${colorClasses[color] || 'bg-gray-500'} transition-all`}
           style={{ width: `${value}%` }}

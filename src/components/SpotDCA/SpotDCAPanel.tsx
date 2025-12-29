@@ -17,6 +17,7 @@ import { calculateEMA } from '@/lib/binance-klines';
 import type { Kline, Interval } from '@/lib/binance-klines';
 import type { FearGreedIndex, MarketData } from '@/types/news';
 import type { TechnicalLevels } from '@/lib/technical-levels';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Note: Binance API doesn't support 1M directly, so we use 1w with more candles for monthly analysis
 type SpotTimeframe = '1d' | '1w';
@@ -40,6 +41,7 @@ export function SpotDCAPanel({
     const [technicalLevels, setTechnicalLevels] = useState<TechnicalLevels | undefined>();
     const [loading, setLoading] = useState(false);
     const [showPresetMenu, setShowPresetMenu] = useState(false);
+    const { theme } = useTheme();
 
     // Default to BTC if no coin selected
     const activeCoin = selectedCoin || coins.find(c => c.symbol.toLowerCase() === 'btc') || coins[0];
@@ -185,10 +187,11 @@ export function SpotDCAPanel({
                         onTimeframeChange={setTimeframe}
                         dcaZone={currentZone || undefined}
                         height={450}
+                        theme={theme === 'dark' ? 'dark' : 'light'}
                     />
 
                     {loading && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-950/40 backdrop-blur-[1px] rounded-lg z-10">
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/40 dark:bg-gray-950/40 backdrop-blur-[1px] rounded-lg z-10">
                             <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
                         </div>
                     )}
@@ -199,9 +202,9 @@ export function SpotDCAPanel({
                             {Object.entries(dcaCalculation.factors).map(([key, factor]) => (
                                 <div
                                     key={key}
-                                    className="bg-gray-800/50 rounded-lg p-3 text-center"
+                                    className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-3 text-center"
                                 >
-                                    <div className="text-xs text-gray-400 uppercase mb-1">
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-1">
                                         {key === 'ema' ? 'EMA' : key === 'fearGreed' ? 'F&G' : key === 'rsi' ? 'RSI' : 'Fib'}
                                     </div>
                                     <div className={`text-lg font-bold ${factor.score >= 60 ? 'text-green-400' :

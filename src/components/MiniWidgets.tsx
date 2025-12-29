@@ -45,23 +45,22 @@ export function MiniWidgets({ reddit, defi, futures }: MiniWidgetsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       {/* Reddit Sentiment */}
-      <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-3">
+      <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
         <div className="flex items-center gap-2 mb-2">
           <MessageCircle className="w-4 h-4 text-orange-400" />
-          <span className="text-xs text-gray-400 uppercase">Reddit</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 uppercase">Reddit</span>
         </div>
         {reddit ? (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-lg">{getSentimentEmoji(reddit.sentiment)}</span>
               <span
-                className={`text-sm font-medium ${
-                  reddit.sentiment === 'bullish'
+                className={`text-sm font-medium ${reddit.sentiment === 'bullish'
                     ? 'text-green-400'
                     : reddit.sentiment === 'bearish'
-                    ? 'text-red-400'
-                    : 'text-yellow-400'
-                }`}
+                      ? 'text-red-400'
+                      : 'text-yellow-400'
+                  }`}
               >
                 {reddit.sentiment.toUpperCase()}
               </span>
@@ -78,20 +77,19 @@ export function MiniWidgets({ reddit, defi, futures }: MiniWidgetsProps) {
       </div>
 
       {/* DeFi TVL */}
-      <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-3">
+      <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
         <div className="flex items-center gap-2 mb-2">
           <Layers className="w-4 h-4 text-purple-400" />
-          <span className="text-xs text-gray-400 uppercase">DeFi TVL</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 uppercase">DeFi TVL</span>
         </div>
         {defi ? (
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-white">
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
               {formatNumber(defi.tvl)}
             </span>
             <span
-              className={`flex items-center gap-0.5 text-xs ${
-                defi.tvlChange24h >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}
+              className={`flex items-center gap-0.5 text-xs ${defi.tvlChange24h >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}
             >
               {defi.tvlChange24h >= 0 ? (
                 <TrendingUp className="w-3 h-3" />
@@ -107,20 +105,19 @@ export function MiniWidgets({ reddit, defi, futures }: MiniWidgetsProps) {
       </div>
 
       {/* Futures Open Interest */}
-      <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-3">
+      <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
         <div className="flex items-center gap-2 mb-2">
           <BarChart3 className="w-4 h-4 text-blue-400" />
-          <span className="text-xs text-gray-400 uppercase">Futures OI</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 uppercase">Futures OI</span>
         </div>
         {futures ? (
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-white">
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
               {formatNumber(futures.openInterest)}
             </span>
             <span
-              className={`flex items-center gap-0.5 text-xs ${
-                futures.oiChange24h >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}
+              className={`flex items-center gap-0.5 text-xs ${futures.oiChange24h >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}
             >
               {futures.oiChange24h >= 0 ? (
                 <TrendingUp className="w-3 h-3" />

@@ -68,7 +68,7 @@ export function TrendingSidebar({
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-900/50 border-r border-gray-800 z-20">
+    <div className="h-full flex flex-col bg-white dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-800 z-20">
       {/* Fear & Greed Section - Compact Premium */}
       {fearGreed && (
         <FearGreedCompact
@@ -78,7 +78,7 @@ export function TrendingSidebar({
       )}
 
       {/* Add Custom Coin Section */}
-      <div className="p-3 border-b border-gray-800">
+      <div className="p-3 border-b border-gray-200 dark:border-gray-800">
         {showAddCoin ? (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -88,7 +88,7 @@ export function TrendingSidebar({
                 onChange={(e) => setCustomSymbol(e.target.value.toUpperCase())}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddCoin()}
                 placeholder="z.B. PEPE, WIF..."
-                className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-2 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                 autoFocus
               />
               <button
@@ -100,7 +100,7 @@ export function TrendingSidebar({
               </button>
               <button
                 onClick={() => { setShowAddCoin(false); setAddError(null); }}
-                className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded text-white"
+                className="p-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded text-gray-700 dark:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -112,7 +112,7 @@ export function TrendingSidebar({
         ) : (
           <button
             onClick={() => setShowAddCoin(true)}
-            className="flex items-center gap-2 w-full px-3 py-2 bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 border-dashed rounded-lg text-xs text-gray-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 w-full px-3 py-2 bg-gray-100 dark:bg-gray-800/50 hover:bg-gray-200 dark:hover:bg-gray-700/50 border border-gray-300 dark:border-gray-700 border-dashed rounded-lg text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <Plus className="w-4 h-4" />
             Eigenen Coin hinzufügen
@@ -122,7 +122,7 @@ export function TrendingSidebar({
 
       {/* Custom Coins Section */}
       {customCoins.length > 0 && (
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
           <h3 className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-3">
             Eigene Coins
           </h3>
@@ -132,7 +132,7 @@ export function TrendingSidebar({
                 key={`custom-${coin.symbol}`}
                 className={`flex items-center gap-2 p-2 rounded-lg transition-all ${isSelected(coin)
                   ? 'bg-purple-600/20 border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.3)]'
-                  : 'hover:bg-gray-800/50 border border-transparent'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-800/50 border border-transparent'
                   }`}
               >
                 <button
@@ -140,7 +140,7 @@ export function TrendingSidebar({
                   className="flex-1 flex items-center gap-3 text-left min-w-0"
                 >
                   <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected(coin) ? 'border-purple-500 bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'border-gray-600'
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected(coin) ? 'border-purple-500 bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'border-gray-300 dark:border-gray-600'
                       }`}
                   >
                     {isSelected(coin) && <Check className="w-3 h-3 text-white" />}
@@ -183,7 +183,7 @@ export function TrendingSidebar({
                   </div>
 
                   <div className="text-right flex-shrink-0">
-                    <div className="text-xs font-mono text-white tracking-tight">{formatPrice(coin.price)}</div>
+                    <div className="text-xs font-mono text-gray-900 dark:text-white tracking-tight">{formatPrice(coin.price)}</div>
                     <div className={`text-[10px] font-medium ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {formatChange(coin.change24h)}
                     </div>
@@ -191,7 +191,7 @@ export function TrendingSidebar({
                 </button>
                 <button
                   onClick={() => onCoinDetailClick(coin)}
-                  className="p-1.5 rounded-md hover:bg-gray-700/50 text-gray-400 hover:text-white"
+                  className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700/50 text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -213,7 +213,7 @@ export function TrendingSidebar({
                 key={coin.id || `coin-${coin.symbol}-${index}`}
                 className={`flex items-center gap-2 p-2 rounded-lg transition-all ${isSelected(coin)
                   ? 'bg-blue-600/20 border border-blue-500/50'
-                  : 'hover:bg-gray-800/50 border border-transparent'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-800/50 border border-transparent'
                   }`}
               >
                 {/* Main clickable area - selects coin for analysis */}
@@ -226,7 +226,7 @@ export function TrendingSidebar({
                   <div
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected(coin)
                       ? 'border-blue-500 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]'
-                      : 'border-gray-600 hover:border-gray-500'
+                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                       }`}
                   >
                     {isSelected(coin) && <Check className="w-3 h-3 text-white" />}
@@ -282,7 +282,7 @@ export function TrendingSidebar({
 
                   {/* Price & Change */}
                   <div className="text-right flex-shrink-0">
-                    <div className="text-xs font-mono text-white tracking-tight">{formatPrice(coin.price)}</div>
+                    <div className="text-xs font-mono text-gray-900 dark:text-white tracking-tight">{formatPrice(coin.price)}</div>
                     <div
                       className={`text-[10px] font-medium ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'
                         }`}
@@ -298,7 +298,7 @@ export function TrendingSidebar({
                     e.stopPropagation();
                     onCoinDetailClick(coin);
                   }}
-                  className="p-1.5 rounded-md hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors flex-shrink-0"
+                  className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700/50 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex-shrink-0"
                   title="Chart & Details öffnen"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -310,7 +310,7 @@ export function TrendingSidebar({
       </div>
 
       {/* Legend */}
-      <div className="p-3 border-t border-gray-800 space-y-1">
+      <div className="p-3 border-t border-gray-200 dark:border-gray-800 space-y-1">
         <div className="flex items-center gap-2 text-[10px] text-gray-500">
           <div className="w-3 h-3 rounded-full border-2 border-blue-500 bg-blue-500 flex items-center justify-center">
             <Check className="w-2 h-2 text-white" />

@@ -36,14 +36,14 @@ export function LiquidationMini({ stats, levels, currentPrice, isConnected, onCl
 
   return (
     <div
-      className="bg-gray-900/50 border border-gray-800 rounded-lg p-3 cursor-pointer hover:border-yellow-500/50 transition-colors"
+      className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-3 cursor-pointer hover:border-yellow-500/50 transition-colors"
       onClick={onClick}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-yellow-400" />
-          <span className="text-xs font-medium text-gray-400">Liquidations</span>
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Liquidations</span>
         </div>
         <div className="flex items-center gap-1">
           <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
@@ -58,7 +58,7 @@ export function LiquidationMini({ stats, levels, currentPrice, isConnected, onCl
           <span className="text-red-400">Long {formatLiquidationValue(stats.totalLongUsd)}</span>
           <span className="text-green-400">Short {formatLiquidationValue(stats.totalShortUsd)}</span>
         </div>
-        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden flex">
+        <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden flex">
           <div
             className="bg-gradient-to-r from-red-500 to-red-400 transition-all duration-500"
             style={{ width: `${longPercentage}%` }}
@@ -78,7 +78,7 @@ export function LiquidationMini({ stats, levels, currentPrice, isConnected, onCl
               <span className="text-gray-500">Above</span>
             </div>
             <div>
-              <span className="text-gray-300 font-mono">{formatPrice(nearestAbove.price)}</span>
+              <span className="text-gray-900 dark:text-gray-300 font-mono">{formatPrice(nearestAbove.price)}</span>
               <span className="text-gray-500 ml-1">{calcDistance(nearestAbove.price)}</span>
             </div>
           </div>
@@ -90,7 +90,7 @@ export function LiquidationMini({ stats, levels, currentPrice, isConnected, onCl
               <span className="text-gray-500">Below</span>
             </div>
             <div>
-              <span className="text-gray-300 font-mono">{formatPrice(nearestBelow.price)}</span>
+              <span className="text-gray-900 dark:text-gray-300 font-mono">{formatPrice(nearestBelow.price)}</span>
               <span className="text-gray-500 ml-1">{calcDistance(nearestBelow.price)}</span>
             </div>
           </div>
@@ -98,7 +98,7 @@ export function LiquidationMini({ stats, levels, currentPrice, isConnected, onCl
       </div>
 
       {/* Count */}
-      <div className="mt-2 pt-2 border-t border-gray-800 flex justify-between text-[10px]">
+      <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-800 flex justify-between text-[10px]">
         <span className="text-gray-500">{stats.count} liquidations</span>
         {stats.largestLiquidation && (
           <span className="text-yellow-400">

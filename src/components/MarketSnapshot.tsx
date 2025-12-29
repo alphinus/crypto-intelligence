@@ -21,7 +21,7 @@ interface MarketSnapshotProps {
 
 // Skeleton component for loading state
 function SkeletonBox() {
-  return <div className="h-4 w-16 bg-gray-700 rounded animate-pulse" />;
+  return <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />;
 }
 
 export function MarketSnapshot({
@@ -54,7 +54,7 @@ export function MarketSnapshot({
   return (
     <div className="grid grid-cols-3 gap-2 mb-4">
       {/* Funding Rate - Compact */}
-      <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-2">
+      <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <BarChart3 className="w-3.5 h-3.5 text-gray-500" />
@@ -65,9 +65,8 @@ export function MarketSnapshot({
           ) : fundingRate ? (
             <div className="flex items-center gap-1">
               <span
-                className={`text-sm font-bold ${
-                  fundingRate.btc >= 0 ? 'text-green-400' : 'text-red-400'
-                }`}
+                className={`text-sm font-bold ${fundingRate.btc >= 0 ? 'text-green-400' : 'text-red-400'
+                  }`}
               >
                 {formatFunding(fundingRate.btc)}
               </span>
@@ -91,7 +90,7 @@ export function MarketSnapshot({
       </div>
 
       {/* Sentiment - Compact */}
-      <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-2">
+      <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             {sentiment?.type === 'bullish' ? (
@@ -119,13 +118,13 @@ export function MarketSnapshot({
         </div>
         {sentiment && (
           <div className="text-[10px] text-gray-500 mt-0.5 text-right">
-            Score: <span className="text-gray-300">{sentiment.score}</span>
+            Score: <span className="text-gray-600 dark:text-gray-300">{sentiment.score}</span>
           </div>
         )}
       </div>
 
       {/* BTC Key Levels - Compact */}
-      <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-2">
+      <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Target className="w-3.5 h-3.5 text-gray-500" />
@@ -138,18 +137,18 @@ export function MarketSnapshot({
               {keyLevels.support && (
                 <span>
                   <span className="text-green-400">S:</span>
-                  <span className="text-gray-300 ml-0.5">{formatPrice(keyLevels.support)}</span>
+                  <span className="text-gray-600 dark:text-gray-300 ml-0.5">{formatPrice(keyLevels.support)}</span>
                 </span>
               )}
               {keyLevels.resistance && (
                 <span>
                   <span className="text-red-400">R:</span>
-                  <span className="text-gray-300 ml-0.5">{formatPrice(keyLevels.resistance)}</span>
+                  <span className="text-gray-600 dark:text-gray-300 ml-0.5">{formatPrice(keyLevels.resistance)}</span>
                 </span>
               )}
             </div>
           ) : btcPrice ? (
-            <span className="text-gray-300 text-xs">{formatPrice(btcPrice)}</span>
+            <span className="text-gray-600 dark:text-gray-300 text-xs">{formatPrice(btcPrice)}</span>
           ) : (
             <span className="text-gray-500 text-xs">-</span>
           )}

@@ -147,15 +147,15 @@ export function TelegramSentiment() {
   }
 
   return (
-    <div className="bg-gray-900/50 border border-gray-800 rounded-lg overflow-hidden mt-4">
+    <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden mt-4">
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-800/50 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
       >
         <div className="flex items-center gap-3">
           <MessageCircle className="w-5 h-5 text-blue-400" />
-          <span className="font-medium text-white">Telegram Sentiment</span>
+          <span className="font-medium text-gray-900 dark:text-white">Telegram Sentiment</span>
 
           {data && (
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${getSentimentColor(data.overall.sentiment)}`}>
@@ -186,21 +186,19 @@ export function TelegramSentiment() {
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setActiveTab('channels')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                activeTab === 'channels'
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeTab === 'channels'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:text-white'
-              }`}
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
             >
               Channels ({data.channels.length})
             </button>
             <button
               onClick={() => setActiveTab('whales')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                activeTab === 'whales'
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${activeTab === 'whales'
                   ? 'bg-purple-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:text-white'
-              }`}
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
             >
               <Anchor className="w-3 h-3" />
               Whale Alerts ({data.whaleAlerts.length})
@@ -213,13 +211,13 @@ export function TelegramSentiment() {
               {data.channels.map((channel) => (
                 <div
                   key={channel.handle}
-                  className="bg-gray-800/50 rounded-lg p-2 flex items-center justify-between"
+                  className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-2 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-2">
                     {getSentimentIcon(channel.recentSentiment)}
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-white">
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
                           {channel.name}
                         </span>
                         <span className={`text-[10px] px-1.5 py-0.5 rounded ${getTierBadge(channel.tier)}`}>
@@ -232,10 +230,9 @@ export function TelegramSentiment() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs font-bold ${
-                      channel.sentimentScore > 0 ? 'text-green-400' :
-                      channel.sentimentScore < 0 ? 'text-red-400' : 'text-gray-400'
-                    }`}>
+                    <span className={`text-xs font-bold ${channel.sentimentScore > 0 ? 'text-green-400' :
+                        channel.sentimentScore < 0 ? 'text-red-400' : 'text-gray-400'
+                      }`}>
                       {channel.sentimentScore > 0 ? '+' : ''}{channel.sentimentScore}
                     </span>
                     <a
@@ -258,19 +255,19 @@ export function TelegramSentiment() {
               {data.whaleAlerts.map((alert, idx) => (
                 <div
                   key={idx}
-                  className="bg-gray-800/50 rounded-lg p-3 flex items-center justify-between"
+                  className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-3 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
                     <span className={`px-2 py-1 rounded text-[10px] font-medium uppercase ${getAlertTypeColor(alert.type)}`}>
                       {alert.type}
                     </span>
                     <div>
-                      <span className="text-sm font-bold text-white">
+                      <span className="text-sm font-bold text-gray-900 dark:text-white">
                         {alert.amount} {alert.asset}
                       </span>
                       <span className="text-xs text-gray-500 ml-2">
                         {alert.type === 'buy' ? 'gekauft' :
-                         alert.type === 'sell' ? 'verkauft' : 'transferiert'}
+                          alert.type === 'sell' ? 'verkauft' : 'transferiert'}
                       </span>
                     </div>
                   </div>
@@ -283,7 +280,7 @@ export function TelegramSentiment() {
           )}
 
           {/* Stats */}
-          <div className="mt-3 pt-3 border-t border-gray-700/50 flex items-center justify-between text-[10px] text-gray-500">
+          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700/50 flex items-center justify-between text-[10px] text-gray-500">
             <span>{data.overall.totalMessages} Nachrichten analysiert</span>
             <span>Aktualisiert alle 5 Min</span>
           </div>

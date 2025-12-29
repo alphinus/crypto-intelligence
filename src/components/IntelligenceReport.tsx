@@ -109,16 +109,16 @@ export function IntelligenceReport({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-gray-900 border border-gray-700 rounded-xl shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm dark:bg-black/80">
+      <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-gray-900 border-b border-gray-800">
+        <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
               <Brain className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Market Intelligence Report</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Market Intelligence Report</h2>
               <p className="text-xs text-gray-500">
                 {new Date(report.timestamp).toLocaleString('de-DE')}
               </p>
@@ -129,11 +129,10 @@ export function IntelligenceReport({
             {isSpeechSupported() && (
               <button
                 onClick={handleAudioToggle}
-                className={`p-2 rounded-lg transition-colors ${
-                  isAudioPlaying
+                className={`p-2 rounded-lg transition-colors ${isAudioPlaying
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                }`}
+                    : 'text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
                 title="Audio abspielen"
               >
                 {isAudioPlaying ? (
@@ -148,7 +147,7 @@ export function IntelligenceReport({
             {onOpenPresentation && (
               <button
                 onClick={onOpenPresentation}
-                className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 title="Präsentation starten"
               >
                 <Presentation className="w-5 h-5" />
@@ -158,7 +157,7 @@ export function IntelligenceReport({
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -186,18 +185,18 @@ export function IntelligenceReport({
               </div>
             </div>
 
-            <div className="p-3 rounded-lg border border-gray-700 bg-gray-800/50">
-              <div className="flex items-center gap-2 mb-1 text-gray-400">
+            <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+              <div className="flex items-center gap-2 mb-1 text-gray-500 dark:text-gray-400">
                 <Zap className="w-4 h-4" />
                 <span className="text-xs font-medium">Konfidenz</span>
               </div>
-              <div className="text-lg font-bold text-white">
+              <div className="text-lg font-bold text-gray-900 dark:text-white">
                 {report.confidenceScore}%
               </div>
             </div>
 
-            <div className="p-3 rounded-lg border border-gray-700 bg-gray-800/50">
-              <div className="flex items-center gap-2 mb-1 text-gray-400">
+            <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+              <div className="flex items-center gap-2 mb-1 text-gray-500 dark:text-gray-400">
                 <Shield className="w-4 h-4" />
                 <span className="text-xs font-medium">Risiko</span>
               </div>
@@ -210,19 +209,19 @@ export function IntelligenceReport({
           {/* Market Phase */}
           <div className="p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg">
             <div className="text-xs text-purple-400 mb-1">Marktphase</div>
-            <div className="text-xl font-bold text-white">{report.marketPhase}</div>
+            <div className="text-xl font-bold text-gray-900 dark:text-white">{report.marketPhase}</div>
           </div>
 
           {/* Summary */}
-          <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-            <h3 className="text-sm font-semibold text-gray-300 mb-2">Zusammenfassung</h3>
-            <p className="text-white leading-relaxed">{report.summary}</p>
+          <div className="p-4 bg-gray-100 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Zusammenfassung</h3>
+            <p className="text-gray-900 dark:text-white leading-relaxed">{report.summary}</p>
           </div>
 
           {/* Signals */}
           {report.signals.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-300 mb-2">Signale</h3>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Signale</h3>
               <div className="space-y-2">
                 {report.signals.map((signal, i) => (
                   <div
@@ -232,8 +231,8 @@ export function IntelligenceReport({
                     <div className="flex items-start gap-2">
                       {getSignalIcon(signal.type)}
                       <div className="flex-1">
-                        <div className="font-medium text-white">{signal.title}</div>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <div className="font-medium text-gray-900 dark:text-white">{signal.title}</div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           {signal.description}
                         </p>
                         {signal.relevantCoins.length > 0 && (
@@ -241,7 +240,7 @@ export function IntelligenceReport({
                             {signal.relevantCoins.map((coin, j) => (
                               <span
                                 key={j}
-                                className="text-xs bg-gray-800 text-gray-300 px-2 py-0.5 rounded"
+                                className="text-xs bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded"
                               >
                                 {coin}
                               </span>
@@ -259,7 +258,7 @@ export function IntelligenceReport({
           {/* Top Narratives */}
           {report.topNarratives.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-300 mb-2">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Aktuelle Narratives
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -277,8 +276,8 @@ export function IntelligenceReport({
 
           {/* Technische Analyse */}
           {report.technicalAnalysis && (
-            <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">
+            <div className="p-4 bg-gray-100 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                 Technische Analyse
               </h3>
               <div className="grid grid-cols-2 gap-4">
@@ -296,23 +295,21 @@ export function IntelligenceReport({
                 </div>
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Trend</div>
-                  <div className={`text-lg font-semibold ${
-                    report.technicalAnalysis.currentTrend === 'bullish' ? 'text-green-400' :
-                    report.technicalAnalysis.currentTrend === 'bearish' ? 'text-red-400' : 'text-yellow-400'
-                  }`}>
+                  <div className={`text-lg font-semibold ${report.technicalAnalysis.currentTrend === 'bullish' ? 'text-green-400' :
+                      report.technicalAnalysis.currentTrend === 'bearish' ? 'text-red-400' : 'text-yellow-400'
+                    }`}>
                     {report.technicalAnalysis.currentTrend === 'bullish' ? 'Aufwärts' :
-                     report.technicalAnalysis.currentTrend === 'bearish' ? 'Abwärts' : 'Seitwärts'}
+                      report.technicalAnalysis.currentTrend === 'bearish' ? 'Abwärts' : 'Seitwärts'}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Trend-Stärke</div>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
-                        className={`h-full ${
-                          report.technicalAnalysis.trendStrength > 60 ? 'bg-green-500' :
-                          report.technicalAnalysis.trendStrength > 40 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
+                        className={`h-full ${report.technicalAnalysis.trendStrength > 60 ? 'bg-green-500' :
+                            report.technicalAnalysis.trendStrength > 40 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
                         style={{ width: `${report.technicalAnalysis.trendStrength}%` }}
                       />
                     </div>
@@ -325,8 +322,8 @@ export function IntelligenceReport({
 
           {/* Timeframe Analyse */}
           {report.timeframeAnalysis && (
-            <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">
+            <div className="p-4 bg-gray-100 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                 Timeframe-Analyse
               </h3>
               <div className="space-y-3">
@@ -345,7 +342,7 @@ export function IntelligenceReport({
                 {report.timeframeAnalysis.confluence && (
                   <div className="mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded">
                     <div className="text-xs text-blue-400 mb-1">Konfluenz</div>
-                    <div className="text-sm text-white">{report.timeframeAnalysis.confluence}</div>
+                    <div className="text-sm text-gray-900 dark:text-white">{report.timeframeAnalysis.confluence}</div>
                   </div>
                 )}
               </div>
@@ -354,26 +351,32 @@ export function IntelligenceReport({
 
           {/* Trade Empfehlung */}
           {report.tradeRecommendation && (
-            <div className={`p-4 rounded-lg border ${
-              report.tradeRecommendation.type === 'long'
+            <div className={`p-4 rounded-lg border ${report.tradeRecommendation.type === 'long'
                 ? 'bg-green-500/10 border-green-500/30'
                 : report.tradeRecommendation.type === 'short'
                   ? 'bg-red-500/10 border-red-500/30'
                   : 'bg-gray-800/50 border-gray-700'
-            }`}>
+              }`}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-gray-300">
                   Trade-Empfehlung
                 </h3>
-                <span className={`px-2 py-1 rounded text-xs font-bold ${
-                  report.tradeRecommendation.type === 'long'
+                <span className={`px-2 py-1 rounded text-xs font-bold ${report.tradeRecommendation.type === 'long'
                     ? 'bg-green-500/20 text-green-400'
                     : report.tradeRecommendation.type === 'short'
-                      ? 'bg-red-500/20 text-red-400'
-                      : 'bg-gray-700 text-gray-400'
-                }`}>
-                  {report.tradeRecommendation.type === 'long' ? 'LONG' :
-                   report.tradeRecommendation.type === 'short' ? 'SHORT' : 'ABWARTEN'}
+                      ? 'bg-green-500/10 border-green-500/30'
+                      : report.tradeRecommendation.type === 'short'
+                        ? 'bg-red-500/10 border-red-500/30'
+                        : 'bg-gray-100 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'
+                  }`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Trade-Empfehlung
+                    </h3>
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${{
+                        report.tradeRecommendation.type === 'long' ? 'LONG' :
+                          report.tradeRecommendation.type === 'short' ? 'SHORT' : 'ABWARTEN'
+                      }
                 </span>
               </div>
 
@@ -382,7 +385,7 @@ export function IntelligenceReport({
                   <div className="grid grid-cols-4 gap-2 mb-3">
                     <div className="text-center">
                       <div className="text-xs text-gray-500">Entry</div>
-                      <div className="text-sm font-mono text-white">
+                      <div className="text-sm font-mono text-gray-900 dark:text-white">
                         {report.tradeRecommendation.entry === 'market' ? 'Market' : `$${Number(report.tradeRecommendation.entry).toLocaleString()}`}
                       </div>
                     </div>
@@ -410,11 +413,10 @@ export function IntelligenceReport({
                   </div>
                   <div className="mt-2 flex items-center gap-2">
                     <span className="text-xs text-gray-500">Konfidenz:</span>
-                    <span className={`text-xs px-2 py-0.5 rounded ${
-                      report.tradeRecommendation.confidence === 'high' ? 'bg-green-500/20 text-green-400' :
-                      report.tradeRecommendation.confidence === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-gray-700 text-gray-400'
-                    }`}>
+                    <span className={`text-xs px-2 py-0.5 rounded ${report.tradeRecommendation.confidence === 'high' ? 'bg-green-500/20 text-green-400' :
+                        report.tradeRecommendation.confidence === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
+                      }`}>
                       {report.tradeRecommendation.confidence}
                     </span>
                     <span className="text-xs text-gray-500">Timeframe:</span>
@@ -427,13 +429,13 @@ export function IntelligenceReport({
 
           {/* Action Items */}
           {report.actionItems.length > 0 && (
-            <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-              <h3 className="text-sm font-semibold text-gray-300 mb-2">
+            <div className="p-4 bg-gray-100 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Handlungsempfehlungen
               </h3>
               <ul className="space-y-2">
                 {report.actionItems.map((action, i) => (
-                  <li key={i} className="flex items-start gap-2 text-white">
+                  <li key={i} className="flex items-start gap-2 text-gray-900 dark:text-white">
                     <span className="text-blue-400 mt-0.5">•</span>
                     {action}
                   </li>
@@ -444,7 +446,7 @@ export function IntelligenceReport({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 p-4 bg-gray-900 border-t border-gray-800">
+        <div className="sticky bottom-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
           <p className="text-xs text-gray-500 text-center">
             Dieser Bericht dient nur zu Informationszwecken und stellt keine Anlageberatung dar.
           </p>

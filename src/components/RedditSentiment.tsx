@@ -43,18 +43,16 @@ function SentimentBar({ score }: { score: number }) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+      <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
         <div
-          className={`h-full transition-all ${
-            isPositive ? 'bg-green-500' : 'bg-red-500'
-          }`}
+          className={`h-full transition-all ${isPositive ? 'bg-green-500' : 'bg-red-500'
+            }`}
           style={{ width: `${normalizedScore}%` }}
         />
       </div>
       <span
-        className={`text-xs font-medium min-w-[40px] text-right ${
-          isPositive ? 'text-green-400' : 'text-red-400'
-        }`}
+        className={`text-xs font-medium min-w-[40px] text-right ${isPositive ? 'text-green-400' : 'text-red-400'
+          }`}
       >
         {score > 0 ? '+' : ''}
         {score}
@@ -69,7 +67,7 @@ function PostCard({ post }: { post: RedditPost }) {
       href={post.permalink}
       target="_blank"
       rel="noopener noreferrer"
-      className="block p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition-colors"
+      className="block p-3 bg-gray-100 dark:bg-gray-800/50 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
     >
       <div className="flex items-start gap-3">
         <div className="flex flex-col items-center gap-1 text-xs text-gray-400">
@@ -77,7 +75,7 @@ function PostCard({ post }: { post: RedditPost }) {
           <span>{post.score}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-white line-clamp-2 mb-1">
+          <h4 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-1">
             {post.title}
           </h4>
           <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -106,14 +104,15 @@ function SubredditCard({ subreddit }: { subreddit: SubredditData }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="border border-gray-800 rounded-lg overflow-hidden">
+  return (
+    <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full p-3 flex items-center justify-between hover:bg-gray-900/50 transition-colors"
+        className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
       >
         <div className="flex items-center gap-3">
           <SentimentIcon sentiment={subreddit.sentiment || 'neutral'} />
-          <span className="font-medium text-white">{subreddit.displayName}</span>
+          <span className="font-medium text-gray-900 dark:text-white">{subreddit.displayName}</span>
           <span className="text-xs text-gray-500">
             ({subreddit.posts.length} Posts)
           </span>
@@ -170,11 +169,11 @@ export function RedditSentiment({ subreddits, overall }: RedditSentimentProps) {
   return (
     <div className="space-y-4">
       {/* Overall Sentiment */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5 text-orange-500" />
-            <h3 className="font-semibold text-white">Reddit Sentiment</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Reddit Sentiment</h3>
           </div>
           <span
             className={`px-2 py-1 rounded border text-xs font-medium ${getSentimentColor(

@@ -406,13 +406,13 @@ export function SpotDCAChart({
     };
 
     return (
-        <div className="bg-gray-900/50 border border-gray-800 rounded-lg overflow-hidden">
+        <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
             {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-gray-800">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-gray-200 dark:border-gray-800">
                 <div className="flex items-center gap-3">
                     <BarChart2 className="w-5 h-5 text-blue-400" />
-                    <span className="font-semibold text-white">{symbol.toUpperCase()}/USDT</span>
-                    <span className="text-lg font-bold text-white">
+                    <span className="font-semibold text-gray-900 dark:text-white">{symbol.toUpperCase()}/USDT</span>
+                    <span className="text-lg font-bold text-gray-900 dark:text-white">
                         ${formatPrice(currentPrice)}
                     </span>
                     <span className={`flex items-center gap-1 text-sm ${priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -430,7 +430,7 @@ export function SpotDCAChart({
                                 onClick={() => onTimeframeChange(tf.value)}
                                 className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${selectedTimeframe === tf.value
                                     ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
+                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                                     }`}
                             >
                                 {tf.label}
@@ -451,7 +451,7 @@ export function SpotDCAChart({
             </div>
 
             {/* Overlay Toggles */}
-            <div className="flex flex-wrap gap-2 px-4 py-2 border-b border-gray-800 bg-gray-900/30">
+            <div className="flex flex-wrap gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/30">
                 {[
                     { key: 'emas' as const, label: 'EMAs', color: '#f59e0b' },
                     { key: 'supportResistance' as const, label: 'S/R', color: '#22c55e' },
@@ -462,8 +462,8 @@ export function SpotDCAChart({
                         toggle-id={key}
                         onClick={() => toggleOverlay(key)}
                         className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors ${overlayVisibility[key]
-                            ? 'bg-gray-700 text-white shadow-sm'
-                            : 'bg-gray-800/50 text-gray-500'
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                            : 'bg-gray-100 dark:bg-gray-800/50 text-gray-400 dark:text-gray-500'
                             }`}
                     >
                         {overlayVisibility[key] ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}

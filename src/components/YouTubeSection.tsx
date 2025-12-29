@@ -93,15 +93,15 @@ export function YouTubeSection() {
   };
 
   return (
-    <div className="bg-gray-900/50 border border-gray-800 rounded-lg overflow-hidden mt-6">
+    <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden mt-6">
       {/* Header - always visible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-800/50 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
       >
         <div className="flex items-center gap-2">
           <Youtube className="w-5 h-5 text-red-500" />
-          <span className="font-medium text-white">YouTube Player</span>
+          <span className="font-medium text-gray-900 dark:text-white">YouTube Player</span>
           {!isExpanded && videoId !== DEFAULT_VIDEO_ID && (
             <span className="text-xs text-gray-500 ml-2">Custom Video</span>
           )}
@@ -125,7 +125,7 @@ export function YouTubeSection() {
                 onChange={(e) => setInputUrl(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
                 placeholder="YouTube URL eingeben (z.B. https://youtube.com/watch?v=...)"
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
               />
               <button
                 onClick={handleUrlSubmit}
@@ -135,7 +135,7 @@ export function YouTubeSection() {
               </button>
               <button
                 onClick={handleReset}
-                className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors"
+                className="px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-sm transition-colors"
                 title="Zurücksetzen auf Default"
               >
                 <RefreshCw className="w-4 h-4" />

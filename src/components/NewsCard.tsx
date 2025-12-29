@@ -34,7 +34,7 @@ export function NewsCard({ article, onAnalyze }: NewsCardProps) {
   };
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-700 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
@@ -57,16 +57,16 @@ export function NewsCard({ article, onAnalyze }: NewsCardProps) {
             )}
           </div>
 
-          <h3 className="font-semibold text-white mb-2 line-clamp-2">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
             {article.title}
           </h3>
 
           {article.summary ? (
-            <p className="text-sm text-gray-400 mb-3 line-clamp-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
               {article.summary}
             </p>
           ) : (
-            <p className="text-sm text-gray-400 mb-3 line-clamp-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
               {article.description}
             </p>
           )}
@@ -76,7 +76,7 @@ export function NewsCard({ article, onAnalyze }: NewsCardProps) {
               {article.entities.slice(0, 5).map((entity, i) => (
                 <span
                   key={i}
-                  className="text-xs bg-gray-800 text-gray-300 px-2 py-0.5 rounded"
+                  className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded"
                 >
                   {entity}
                 </span>
@@ -97,7 +97,7 @@ export function NewsCard({ article, onAnalyze }: NewsCardProps) {
             {onAnalyze && !article.sentiment && (
               <button
                 onClick={() => onAnalyze(article)}
-                className="text-sm text-gray-400 hover:text-white"
+                className="text-sm text-gray-400 hover:text-gray-900 dark:hover:text-white"
               >
                 Analysieren
               </button>

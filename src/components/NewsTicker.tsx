@@ -50,7 +50,7 @@ export function NewsTicker({ headlines }: NewsTickerProps) {
   const duplicatedHeadlines = [...headlines, ...headlines];
 
   return (
-    <div className="relative z-30 bg-gray-900/80 border-b border-gray-800 overflow-hidden">
+    <div className="relative z-30 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-800 overflow-hidden">
       <div className="flex items-center">
         {/* Label */}
         <div className="flex-shrink-0 px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase tracking-wider z-10">
@@ -78,10 +78,10 @@ export function NewsTicker({ headlines }: NewsTickerProps) {
                 rel="noopener noreferrer"
                 className={`flex items-center gap-2 px-3 py-1 rounded-full border ${getSentimentColor(
                   headline.sentiment
-                )} bg-gray-800/50 hover:bg-gray-700/50 transition-colors whitespace-nowrap group`}
+                )} bg-gray-100 dark:bg-gray-800/50 hover:bg-gray-200 dark:hover:bg-gray-700/50 transition-colors whitespace-nowrap group`}
               >
                 {getSentimentIcon(headline.sentiment)}
-                <span className="text-sm text-gray-200 max-w-[300px] truncate">
+                <span className="text-sm text-gray-800 dark:text-gray-200 max-w-[300px] truncate">
                   {headline.title}
                 </span>
                 <span className="text-xs text-gray-500">{headline.source}</span>
