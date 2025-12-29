@@ -75,18 +75,18 @@ export function MobileDrawer({
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className={`
               fixed top-0 ${side}-0 h-full ${width} max-w-[85vw]
-              bg-gray-900 border-${side === 'left' ? 'r' : 'l'} border-gray-800
+              bg-white dark:bg-gray-900 border-${side === 'left' ? 'r' : 'l'} border-gray-200 dark:border-gray-800
               z-50 flex flex-col shadow-2xl
             `}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
               {title && (
-                <h2 className="text-lg font-semibold text-white">{title}</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
               )}
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors ml-auto"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors ml-auto"
               >
                 <X className="w-5 h-5" />
               </button>

@@ -107,8 +107,8 @@ export function HeaderMenu({
         className={`
           p-2 rounded-lg transition-colors
           ${isOpen
-            ? 'bg-gray-700 text-white'
-            : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
+            ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+            : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
           }
         `}
         whileHover={{ scale: 1.05 }}
@@ -124,21 +124,21 @@ export function HeaderMenu({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden z-50"
+            className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
           >
             {/* User info if logged in */}
             {user && (
-              <div className="p-3 border-b border-gray-700">
+              <div className="p-3 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
                     <User className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {user.name || 'User'}
                     </p>
                     {user.email && (
-                      <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                     )}
                   </div>
                 </div>
@@ -149,12 +149,12 @@ export function HeaderMenu({
             <div className="py-1">
               {menuItems.map((item, index) => {
                 if ('type' in item && item.type === 'divider') {
-                  return <div key={index} className="my-1 border-t border-gray-700" />;
+                  return <div key={index} className="my-1 border-t border-gray-200 dark:border-gray-700" />;
                 }
 
                 const Icon = item.icon;
                 const content = (
-                  <div className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
+                  <div className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">
                     <Icon className={`w-4 h-4 ${item.spinning ? 'animate-spin' : ''}`} />
                     <span className="flex-1 text-sm">{item.label}</span>
                     {item.href && <ChevronRight className="w-4 h-4 opacity-50" />}
@@ -179,13 +179,13 @@ export function HeaderMenu({
               {/* Logout button if user is logged in */}
               {user && onLogout && (
                 <>
-                  <div className="my-1 border-t border-gray-700" />
+                  <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
                   <button
                     onClick={() => {
                       onLogout();
                       setIsOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-red-400 hover:bg-red-500/10 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     <span className="text-sm">Logout</span>
