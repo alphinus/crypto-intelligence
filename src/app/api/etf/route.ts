@@ -15,7 +15,7 @@ interface ETFFlowData {
 }
 
 // Cache for ETF data (5 minute TTL)
-let cache: {
+const cache: {
     btc: { data: ETFFlowData[]; timestamp: number } | null;
     eth: { data: ETFFlowData[]; timestamp: number } | null;
 } = {

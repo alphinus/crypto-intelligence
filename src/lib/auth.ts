@@ -69,7 +69,6 @@ export const {
     async session({ session, token }) {
       return {
         ...session,
-        accessToken: token.accessToken as string,
         provider: token.provider as string,
       };
     },
@@ -77,6 +76,5 @@ export const {
   session: {
     strategy: 'jwt',
   },
-  // Use a fallback secret in development to prevent crashes
-  secret: process.env.NEXTAUTH_SECRET || 'development-secret-change-in-production',
+  secret: process.env.NEXTAUTH_SECRET,
 });

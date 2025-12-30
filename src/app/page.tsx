@@ -2,16 +2,14 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { RefreshCw, Brain, AlertCircle, Clock, Sparkles, AlertTriangle, TrendingUp, Zap, Bell, LayoutList, PanelRight } from 'lucide-react';
+import { Brain, AlertCircle, Sparkles, TrendingUp, Zap, Bell } from 'lucide-react';
 import { NewsTicker } from '@/components/NewsTicker';
 import { TrendingSidebar } from '@/components/TrendingSidebar';
 import { TradeRecommendations } from '@/components/TradeRecommendations';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { MiniWidgets } from '@/components/MiniWidgets';
-import { GlobalStats } from '@/components/GlobalStats';
 import { IntelligenceReport } from '@/components/IntelligenceReport';
-import { SkeletonChart, SkeletonCard, SkeletonReport } from '@/components/ui/Skeleton';
-import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { SkeletonChart, SkeletonCard } from '@/components/ui/Skeleton';
 
 // Lazy load heavy components for better initial page load
 const CoinDetailModal = dynamic(() => import('@/components/CoinDetailModal').then(mod => ({ default: mod.CoinDetailModal })), {
@@ -43,8 +41,6 @@ import { calculateMultipleEMAs } from '@/lib/binance-klines';
 import { useBinanceWebSocket } from '@/hooks/useBinanceWebSocket';
 import type { Kline } from '@/lib/binance-klines';
 import { YouTubeSection } from '@/components/YouTubeSection';
-import { HeaderMenu } from '@/components/HeaderMenu';
-import { SessionTimer } from '@/components/SessionTimer';
 import { MobileDrawer } from '@/components/MobileDrawer';
 import { ETFFlowWidget } from '@/components/ETFFlowWidget';
 import { SignalHistoryPanel } from '@/components/SignalHistory';
@@ -66,7 +62,7 @@ import { calculateLiquidationLevels } from '@/lib/liquidation-levels';
 import { playAlertSound } from '@/lib/alert-sound';
 import { HelpProvider, Avatar, OnboardingTour } from '@/components/Help';
 import { useTheme } from '@/contexts/ThemeContext';
-import { validateSignal, checkConfluence, adjustConfidence, type FullValidationInput, type IndicatorValues } from '@/lib/trade-validation';
+import { validateSignal, adjustConfidence, type IndicatorValues } from '@/lib/trade-validation';
 
 interface MarketResponse {
   success: boolean;
