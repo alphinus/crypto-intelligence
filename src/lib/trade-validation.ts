@@ -613,10 +613,11 @@ export function validateSignal(input: FullValidationInput): FullValidationResult
         total: rsiResult.malus.rsiExtreme + confluenceMalus + fundingMalus + macdMalus + emaMalus + volumeMalus + slMalus,
     };
 
-    // Step 9: Adjust score (if signal has a score)
+    // Step 9: Adjust score (if signal has a score - some signals may have it via ScoredTradeSetup)
     let adjustedScore: number | null = null;
-    if (signal.score) {
-        adjustedScore = Math.max(0, Math.min(100, signal.score.total + totalMalus.total));
+    const signalWithScore = signal as { score?: { total: number } };
+    if (signalWithScore.score?.total !== undefined) {
+        adjustedScore = Math.max(0, Math.min(100, signalWithScore.score.total + totalMalus.total));
     }
 
     return {

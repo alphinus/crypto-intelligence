@@ -7,10 +7,17 @@ import { NextResponse } from 'next/server';
  * Currently uses mock data - can be extended to use CoinGlass/SoSoValue APIs
  */
 
+interface ETFFlowData {
+    date: string;
+    netFlow: number;
+    totalNetAssets: number;
+    providers: { name: string; ticker: string; netFlow: number; totalAssets: number }[];
+}
+
 // Cache for ETF data (5 minute TTL)
 let cache: {
-    btc: { data: any; timestamp: number } | null;
-    eth: { data: any; timestamp: number } | null;
+    btc: { data: ETFFlowData[]; timestamp: number } | null;
+    eth: { data: ETFFlowData[]; timestamp: number } | null;
 } = {
     btc: null,
     eth: null,
@@ -77,7 +84,7 @@ export async function GET(request: Request) {
 
         // In production, this would call CoinGlass or SoSoValue API
         // For now, use mock data
-        let flows;
+        let flows: ETFFlowData[];
 
         if (asset === 'btc') {
             // TODO: Replace with actual API call

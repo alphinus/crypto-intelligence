@@ -48,6 +48,7 @@ export default function LightweightChart({
   showLiquidations = false,
   theme = 'dark',
 }: LightweightChartProps) {
+  const isDark = theme === 'dark';
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

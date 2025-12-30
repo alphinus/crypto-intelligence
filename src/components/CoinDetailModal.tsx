@@ -13,7 +13,8 @@ import {
   Target,
   Layers,
 } from 'lucide-react';
-import { TradingViewChart } from './TradingViewChart';
+// TradingViewChart temporarily disabled - file not present
+// import { TradingViewChart } from './TradingViewChart';
 import LightweightChart from './LightweightChart';
 import type { MarketData } from '@/types/news';
 import type { Kline, Interval } from '@/lib/binance-klines';
@@ -255,8 +256,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
           <button
             onClick={() => setActiveTab('tradingview')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'tradingview'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
           >
             <BarChart3 className="w-4 h-4" />
@@ -265,8 +266,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
           <button
             onClick={() => setActiveTab('levels')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'levels'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
           >
             <Layers className="w-4 h-4" />
@@ -275,8 +276,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
           <button
             onClick={() => setActiveTab('trade')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'trade'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
           >
             <Target className="w-4 h-4" />
@@ -292,8 +293,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                   key={tf}
                   onClick={() => setTimeframe(tf)}
                   className={`px-3 py-1 text-xs font-medium rounded transition-colors ${timeframe === tf
-                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                 >
                   {tf}
@@ -311,8 +312,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                   key={interval}
                   onClick={() => setSelectedInterval(interval)}
                   className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${selectedInterval === interval
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                 >
                   {INTERVAL_LABELS[interval]}
@@ -326,7 +327,12 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
         <div className="p-4">
           {/* TradingView Tab */}
           {activeTab === 'tradingview' && (
-            <TradingViewChart symbol={tvSymbol} height={450} />
+            <div className="h-[450px] flex items-center justify-center bg-gray-50 dark:bg-gray-800/30 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+              <div className="text-center">
+                <p className="text-gray-500 dark:text-gray-400">TradingView Chart Vorschau aktuell nicht verfügbar.</p>
+                <p className="text-xs text-gray-400 mt-1">Bitte nutze den Level-Chart Tab für technische Analysen.</p>
+              </div>
+            </div>
           )}
 
           {/* Level-Chart Tab */}
@@ -463,8 +469,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                     {setup ? (
                       <>
                         <div className={`text-center py-1.5 rounded-lg mb-2 ${setup.type === 'long' ? 'bg-green-500/20 text-green-400' :
-                            setup.type === 'short' ? 'bg-red-500/20 text-red-400' :
-                              'bg-gray-500/20 text-gray-400'
+                          setup.type === 'short' ? 'bg-red-500/20 text-red-400' :
+                            'bg-gray-500/20 text-gray-400'
                           }`}>
                           <div className="font-bold text-sm">{setup.type.toUpperCase()}</div>
                           <div className="text-[10px]">{setup.confidence}</div>
