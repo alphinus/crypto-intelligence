@@ -1,17 +1,32 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { RefreshCw, Brain, AlertCircle, Clock, Sparkles, AlertTriangle, TrendingUp, Zap, Bell, LayoutList, PanelRight } from 'lucide-react';
 import { NewsTicker } from '@/components/NewsTicker';
 import { TrendingSidebar } from '@/components/TrendingSidebar';
 import { TradeRecommendations } from '@/components/TradeRecommendations';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { MiniWidgets } from '@/components/MiniWidgets';
-import { CoinDetailModal } from '@/components/CoinDetailModal';
 import { GlobalStats } from '@/components/GlobalStats';
 import { IntelligenceReport } from '@/components/IntelligenceReport';
-import { PresentationMode } from '@/components/PresentationMode';
-import { InlineChart } from '@/components/InlineChart';
+import { SkeletonChart, SkeletonCard, SkeletonReport } from '@/components/ui/Skeleton';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+
+// Lazy load heavy components for better initial page load
+const CoinDetailModal = dynamic(() => import('@/components/CoinDetailModal').then(mod => ({ default: mod.CoinDetailModal })), {
+  loading: () => <SkeletonCard />,
+  ssr: false,
+});
+
+const PresentationMode = dynamic(() => import('@/components/PresentationMode').then(mod => ({ default: mod.PresentationMode })), {
+  ssr: false,
+});
+
+const InlineChart = dynamic(() => import('@/components/InlineChart').then(mod => ({ default: mod.InlineChart })), {
+  loading: () => <SkeletonChart height={400} />,
+  ssr: false,
+});
 import type { NewsArticle, MarketData, FearGreedIndex } from '@/types/news';
 import type { MarketIntelligenceReport, TimeframeTradeSetup, TradeScore, HedgeRecommendation, AnalysisWeights, IndicatorPreset, CoinIntelligenceReport as CoinReport } from '@/lib/groq';
 import { CoinIntelligenceReport } from '@/components/CoinIntelligenceReport';
@@ -28,7 +43,6 @@ import { calculateMultipleEMAs } from '@/lib/binance-klines';
 import { useBinanceWebSocket } from '@/hooks/useBinanceWebSocket';
 import type { Kline } from '@/lib/binance-klines';
 import { YouTubeSection } from '@/components/YouTubeSection';
-import { TelegramSentiment } from '@/components/TelegramSentiment';
 import { HeaderMenu } from '@/components/HeaderMenu';
 import { SessionTimer } from '@/components/SessionTimer';
 import { MobileDrawer } from '@/components/MobileDrawer';
@@ -1704,9 +1718,6 @@ export default function Home() {
                       oiChange24h: 0,
                     } : undefined}
                   />
-
-                  {/* Telegram Sentiment */}
-                  <TelegramSentiment />
 
                   {/* Bitcoin On-Chain Data (nur wenn BTC ausgewählt) */}
                   {selectedAnalysisCoin?.symbol?.toLowerCase() === 'btc' && bitcoinData && (
