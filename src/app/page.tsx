@@ -1448,6 +1448,7 @@ export default function Home() {
         {/* Header */}
         <Header
           marketData={marketData}
+          fundingRates={futuresData?.fundingRates}
           setMobileDrawerOpen={setMobileDrawerOpen}
           isConnected={isConnected}
           connectionState={connectionState}

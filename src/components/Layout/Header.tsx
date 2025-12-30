@@ -6,9 +6,15 @@ import { Brain } from "lucide-react";
 import { SessionTimer } from "@/components/SessionTimer";
 import { HeaderMenu } from "@/components/HeaderMenu";
 import { SystemClock } from "@/components/SystemClock";
+import { MultiFundingWidget } from "@/components/FundingRateWidget";
 
 interface HeaderProps {
     marketData: any;
+    fundingRates?: {
+        btc?: number;
+        eth?: number;
+        sol?: number;
+    } | null;
     setMobileDrawerOpen: (open: boolean) => void;
     isConnected: boolean;
     connectionState: string;
@@ -22,6 +28,7 @@ interface HeaderProps {
 
 export function Header({
     marketData,
+    fundingRates,
     setMobileDrawerOpen,
     isConnected,
     connectionState,
@@ -89,6 +96,9 @@ export function Header({
                                 </div>
                             </div>
                         )}
+
+                        {/* Funding Rates Widget */}
+                        {fundingRates && <MultiFundingWidget fundingRates={fundingRates} />}
                     </div>
 
                     {/* Global Stats - Mobile (compact) */}
