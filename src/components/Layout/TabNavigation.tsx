@@ -1,9 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { BarChart2, MessageSquare, Brain, Rocket, PiggyBank } from 'lucide-react';
+import { BarChart2, MessageSquare, Brain, Rocket, PiggyBank, Building2, History } from 'lucide-react';
 
-export type TabId = 'trading' | 'sentiment' | 'reports' | 'memecoins' | 'simulator' | 'spotdca';
+export type TabId = 'trading' | 'sentiment' | 'reports' | 'etf' | 'history' | 'simulator' | 'spotdca';
 
 interface Tab {
   id: TabId;
@@ -29,11 +29,18 @@ const TABS: Tab[] = [
     description: 'Markt-Stimmung, On-Chain, Social, YouTube',
   },
   {
-    id: 'memecoins',
-    label: 'Meme Coins',
-    shortLabel: 'Memes',
-    icon: <Rocket className="w-4 h-4" />,
-    description: 'Meme Coins: DOGE, SHIB, PEPE, BONK, WIF',
+    id: 'etf',
+    label: 'ETF Flows',
+    shortLabel: 'ETF',
+    icon: <Building2 className="w-4 h-4 text-green-400" />,
+    description: 'Bitcoin & Ethereum Spot ETF In-/Outflows',
+  },
+  {
+    id: 'history',
+    label: 'Historie',
+    shortLabel: 'History',
+    icon: <History className="w-4 h-4 text-purple-400" />,
+    description: 'Signal-Historie mit Performance-Statistiken',
   },
   {
     id: 'simulator',

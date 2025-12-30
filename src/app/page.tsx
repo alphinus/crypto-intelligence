@@ -46,7 +46,8 @@ import { YouTubeSection } from '@/components/YouTubeSection';
 import { HeaderMenu } from '@/components/HeaderMenu';
 import { SessionTimer } from '@/components/SessionTimer';
 import { MobileDrawer } from '@/components/MobileDrawer';
-import { MemeCoinsPanel } from '@/components/MemeCoinsPanel';
+import { ETFFlowWidget } from '@/components/ETFFlowWidget';
+import { SignalHistoryPanel } from '@/components/SignalHistory';
 import { CoinSelectorBar } from '@/components/CoinSelectorBar';
 import { SimulatorPanel } from '@/components/SimulatorPanel';
 import { SpotDCAPanel } from '@/components/SpotDCA';
@@ -1754,23 +1755,17 @@ export default function Home() {
                 </div>
               </TabPanel>
 
-              {/* TAB 3: Meme Coins */}
-              <TabPanel id="memecoins" activeTab={activeTab}>
-                <div data-tour="memecoins-tab">
-                  <MemeCoinsPanel
-                    onCoinSelect={(symbol) => {
-                      // Find or create the coin in our list and select it
-                      const existingCoin = marketData?.coins.find(c => c.symbol === symbol);
-                      if (existingCoin) {
-                        handleCoinSelect(existingCoin);
-                        setActiveTab('trading');
-                      } else {
-                        // Add as custom coin
-                        handleAddCustomCoin(symbol);
-                        setActiveTab('trading');
-                      }
-                    }}
-                  />
+              {/* TAB 3: ETF Flows */}
+              <TabPanel id="etf" activeTab={activeTab}>
+                <div data-tour="etf-tab" className="max-w-4xl mx-auto">
+                  <ETFFlowWidget />
+                </div>
+              </TabPanel>
+
+              {/* TAB 4: Signal History */}
+              <TabPanel id="history" activeTab={activeTab}>
+                <div data-tour="history-tab" className="max-w-4xl mx-auto">
+                  <SignalHistoryPanel />
                 </div>
               </TabPanel>
 
