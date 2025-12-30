@@ -381,3 +381,289 @@ export const DCA_PRESET_LABELS: Record<DCAPreset, { label: string; description: 
     fibonacci: { label: 'Fibonacci', description: 'Basierend auf Fib Retracements' },
     combined: { label: 'Kombiniert', description: 'Alle Faktoren gewichtet (Empfohlen)' },
 };
+
+// =====================================================
+// PRICE ZONE TARGETS
+// =====================================================
+
+export interface PriceZoneTarget {
+    name: string;
+    price: number;
+    discountPercent: number;
+    tier: 'optimal' | 'good' | 'fair' | 'premium';
+    color: string;
+    budgetMultiplier: number; // 0.5 = use 50% of budget, 2 = use 200%
+}
+
+export interface SmartDCAResult {
+    currentPriceAnalysis: {
+        discountFromEma50: number;
+        discountFromEma200: number;
+        position: 'deep_discount' | 'discount' | 'fair_value' | 'premium' | 'overheated';
+    };
+    priceZones: PriceZoneTarget[];
+    recommendedBudget: {
+        base: number;
+        adjusted: number;
+        multiplier: number;
+        reason: string;
+    };
+    limitOrders: LimitOrderSuggestion[];
+}
+
+export interface LimitOrderSuggestion {
+    price: number;
+    budgetPercent: number;
+    budgetAmount: number;
+    coinAmount: number;
+    tier: string;
+    discountPercent: number;
+}
+
+/**
+ * Calculate price zone targets based on EMA levels
+ */
+export function calculatePriceZones(params: {
+    currentPrice: number;
+    ema50: number | null;
+    ema200: number | null;
+    ema300?: number | null;
+}): PriceZoneTarget[] {
+    const zones: PriceZoneTarget[] = [];
+    const { currentPrice, ema50, ema200, ema300 } = params;
+
+    // EMA 50 Zone
+    if (ema50) {
+        const discount = ((currentPrice - ema50) / currentPrice) * 100;
+        zones.push({
+            name: 'EMA 50',
+            price: ema50,
+            discountPercent: -discount,
+            tier: discount > 0 ? 'good' : 'fair',
+            color: '#3b82f6',
+            budgetMultiplier: discount > 5 ? 1.5 : discount > 0 ? 1.25 : 1.0,
+        });
+    }
+
+    // EMA 200 Zone (Major support)
+    if (ema200) {
+        const discount = ((currentPrice - ema200) / currentPrice) * 100;
+        zones.push({
+            name: 'EMA 200',
+            price: ema200,
+            discountPercent: -discount,
+            tier: discount > 0 ? 'optimal' : 'good',
+            color: '#22c55e',
+            budgetMultiplier: discount > 10 ? 2.0 : discount > 5 ? 1.5 : 1.0,
+        });
+    }
+
+    // EMA 300 Zone (Deep value)
+    if (ema300) {
+        const discount = ((currentPrice - ema300) / currentPrice) * 100;
+        zones.push({
+            name: 'EMA 300',
+            price: ema300,
+            discountPercent: -discount,
+            tier: 'optimal',
+            color: '#16a34a',
+            budgetMultiplier: 2.5,
+        });
+    }
+
+    // Add intermediate zones
+    if (ema50 && ema200) {
+        const midpoint = (ema50 + ema200) / 2;
+        const discount = ((currentPrice - midpoint) / currentPrice) * 100;
+        zones.push({
+            name: 'EMA 50/200 Mitte',
+            price: midpoint,
+            discountPercent: -discount,
+            tier: 'good',
+            color: '#84cc16',
+            budgetMultiplier: 1.25,
+        });
+    }
+
+    // Sort by price descending
+    return zones.sort((a, b) => b.price - a.price);
+}
+
+/**
+ * Calculate discount/premium from EMAs
+ */
+export function calculateEMADiscount(
+    currentPrice: number,
+    ema50: number | null,
+    ema200: number | null
+): { discountFromEma50: number; discountFromEma200: number; position: SmartDCAResult['currentPriceAnalysis']['position'] } {
+    const discountFromEma50 = ema50 ? ((ema50 - currentPrice) / ema50) * 100 : 0;
+    const discountFromEma200 = ema200 ? ((ema200 - currentPrice) / ema200) * 100 : 0;
+
+    let position: SmartDCAResult['currentPriceAnalysis']['position'];
+
+    if (discountFromEma200 > 15) {
+        position = 'deep_discount';
+    } else if (discountFromEma200 > 0 || discountFromEma50 > 10) {
+        position = 'discount';
+    } else if (discountFromEma50 > -10) {
+        position = 'fair_value';
+    } else if (discountFromEma50 > -25) {
+        position = 'premium';
+    } else {
+        position = 'overheated';
+    }
+
+    return { discountFromEma50, discountFromEma200, position };
+}
+
+/**
+ * Calculate dynamic budget recommendation based on zone score
+ */
+export function calculateDynamicBudget(
+    baseBudget: number,
+    zoneScore: number,
+    position: SmartDCAResult['currentPriceAnalysis']['position']
+): SmartDCAResult['recommendedBudget'] {
+    let multiplier: number;
+    let reason: string;
+
+    // Score-based multiplier (0-100 score)
+    if (zoneScore >= 80) {
+        multiplier = 2.0;
+        reason = 'Exzellente Kaufgelegenheit - Budget verdoppeln';
+    } else if (zoneScore >= 65) {
+        multiplier = 1.5;
+        reason = 'Gute Kaufgelegenheit - 50% mehr investieren';
+    } else if (zoneScore >= 50) {
+        multiplier = 1.0;
+        reason = 'Standard DCA - normales Budget';
+    } else if (zoneScore >= 35) {
+        multiplier = 0.5;
+        reason = 'Vorsicht - Budget halbieren';
+    } else {
+        multiplier = 0.25;
+        reason = 'Markt überhitzt - nur 25% oder pausieren';
+    }
+
+    // Position-based adjustment
+    if (position === 'deep_discount') {
+        multiplier = Math.min(3.0, multiplier * 1.5);
+        reason = 'Starker Rabatt - zusätzlich erhöhen!';
+    } else if (position === 'overheated') {
+        multiplier = Math.min(0.25, multiplier * 0.5);
+        reason = 'Markt extrem überhitzt - stark reduzieren';
+    }
+
+    return {
+        base: baseBudget,
+        adjusted: Math.round(baseBudget * multiplier),
+        multiplier,
+        reason,
+    };
+}
+
+/**
+ * Generate limit order suggestions for smart DCA
+ */
+export function generateLimitOrders(params: {
+    totalBudget: number;
+    currentPrice: number;
+    priceZones: PriceZoneTarget[];
+    coinSymbol: string;
+}): LimitOrderSuggestion[] {
+    const { totalBudget, currentPrice, priceZones } = params;
+    const orders: LimitOrderSuggestion[] = [];
+
+    // Always include a market order for immediate execution
+    const marketOrderPercent = 40;
+    orders.push({
+        price: currentPrice,
+        budgetPercent: marketOrderPercent,
+        budgetAmount: totalBudget * (marketOrderPercent / 100),
+        coinAmount: (totalBudget * (marketOrderPercent / 100)) / currentPrice,
+        tier: 'Market',
+        discountPercent: 0,
+    });
+
+    // Distribute remaining 60% across price zones below current price
+    const zonesBelow = priceZones
+        .filter(z => z.price < currentPrice * 0.995) // At least 0.5% below
+        .slice(0, 3); // Max 3 limit orders
+
+    if (zonesBelow.length > 0) {
+        const remainingBudget = totalBudget * 0.6;
+        const perZoneBudget = remainingBudget / zonesBelow.length;
+
+        zonesBelow.forEach((zone, index) => {
+            const budgetPercent = 60 / zonesBelow.length;
+            const budgetAmount = perZoneBudget;
+            orders.push({
+                price: zone.price,
+                budgetPercent,
+                budgetAmount,
+                coinAmount: budgetAmount / zone.price,
+                tier: zone.name,
+                discountPercent: zone.discountPercent,
+            });
+        });
+    } else {
+        // No zones below - use percentage drops
+        const drops = [3, 7, 12]; // 3%, 7%, 12% drops
+        const remainingBudget = totalBudget * 0.6;
+        const perDropBudget = remainingBudget / drops.length;
+
+        drops.forEach((drop, index) => {
+            const price = currentPrice * (1 - drop / 100);
+            orders.push({
+                price,
+                budgetPercent: 20,
+                budgetAmount: perDropBudget,
+                coinAmount: perDropBudget / price,
+                tier: `-${drop}%`,
+                discountPercent: drop,
+            });
+        });
+    }
+
+    return orders;
+}
+
+/**
+ * Complete Smart DCA analysis
+ */
+export function calculateSmartDCA(params: {
+    currentPrice: number;
+    ema50: number | null;
+    ema200: number | null;
+    ema300?: number | null;
+    baseBudget: number;
+    zoneScore: number;
+    coinSymbol: string;
+}): SmartDCAResult {
+    const { currentPrice, ema50, ema200, ema300, baseBudget, zoneScore, coinSymbol } = params;
+
+    // 1. Price position analysis
+    const currentPriceAnalysis = calculateEMADiscount(currentPrice, ema50, ema200);
+
+    // 2. Calculate price zones
+    const priceZones = calculatePriceZones({ currentPrice, ema50, ema200, ema300 });
+
+    // 3. Dynamic budget recommendation
+    const recommendedBudget = calculateDynamicBudget(baseBudget, zoneScore, currentPriceAnalysis.position);
+
+    // 4. Generate limit orders
+    const limitOrders = generateLimitOrders({
+        totalBudget: recommendedBudget.adjusted,
+        currentPrice,
+        priceZones,
+        coinSymbol,
+    });
+
+    return {
+        currentPriceAnalysis,
+        priceZones,
+        recommendedBudget,
+        limitOrders,
+    };
+}

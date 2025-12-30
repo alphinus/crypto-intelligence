@@ -6,6 +6,7 @@ import { PiggyBank, RefreshCw, Settings2 } from 'lucide-react';
 import { SpotDCAChart } from './SpotDCAChart';
 import { DCACalculator } from './DCACalculator';
 import { ZoneIndicator } from './ZoneIndicator';
+import { SmartDCAPanel } from './SmartDCAPanel';
 import {
     calculateCombinedDCAScore,
     calculateZoneByPreset,
@@ -233,6 +234,21 @@ export function SpotDCAPanel({
                         />
                     )}
                 </div>
+
+                {/* Smart DCA Panel - Full Width */}
+                {dcaCalculation && dcaParams && (
+                    <div className="mt-6">
+                        <SmartDCAPanel
+                            currentPrice={dcaParams.currentPrice}
+                            ema50={dcaParams.ema50}
+                            ema200={dcaParams.ema200}
+                            ema300={dcaParams.ema300}
+                            baseBudget={100}
+                            zoneScore={dcaCalculation.combinedScore}
+                            coinSymbol={activeCoin?.symbol.toUpperCase() || 'BTC'}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
