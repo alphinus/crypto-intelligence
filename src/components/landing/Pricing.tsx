@@ -39,7 +39,7 @@ const tiers: PricingTier[] = [
             { text: 'API-Zugang', included: false },
         ],
         cta: 'Kostenlos starten',
-        ctaLink: '/app',
+        ctaLink: '/dashboard',
     },
     {
         name: 'Pro',

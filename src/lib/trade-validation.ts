@@ -509,6 +509,7 @@ export interface FullValidationInput {
     indicators: IndicatorValues;
     allRecommendations?: Record<string, TimeframeTradeSetup | null>;
     fundingRate?: number;
+    score?: { total: number }; // Optional trade score for adjustment
 }
 
 export interface FullValidationResult extends ValidationResult {

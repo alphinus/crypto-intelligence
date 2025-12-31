@@ -70,7 +70,7 @@ export function Hero() {
                     className="flex flex-col sm:flex-row items-center justify-center gap-4"
                 >
                     <Link
-                        href="/app"
+                        href="/dashboard"
                         className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl text-white font-semibold text-lg transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
                     >
                         <Brain className="w-5 h-5" />

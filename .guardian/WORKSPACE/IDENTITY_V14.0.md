@@ -6,7 +6,7 @@
 | **Origin** | legacy (auto-discovered) |
 | **Protocol** | V14.0 [THE EXECUTABLE] |
 | **Integrity** | UNLOCKED |
-| **Migration** | 2025-12-29 (Auto-Init) |
+| **Migration** | 2025-12-30 (Auto-Init) |
 
 ---
 

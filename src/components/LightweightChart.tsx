@@ -59,8 +59,6 @@ export default function LightweightChart({
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    const isDark = theme === 'dark';
-
     // Theme styles
     const styles = {
       overlayBg: isDark ? 'bg-gray-900/80' : 'bg-white/80 shadow-sm',

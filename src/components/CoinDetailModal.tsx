@@ -13,8 +13,6 @@ import {
   Target,
   Layers,
 } from 'lucide-react';
-// TradingViewChart temporarily disabled - file not present
-// import { TradingViewChart } from './TradingViewChart';
 import LightweightChart from './LightweightChart';
 import type { MarketData } from '@/types/news';
 import type { Kline, Interval } from '@/lib/binance-klines';
@@ -325,14 +323,18 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
 
         {/* Tab Content */}
         <div className="p-4">
-          {/* TradingView Tab */}
+          {/* Chart Tab */}
           {activeTab === 'tradingview' && (
-            <div className="h-[450px] flex items-center justify-center bg-gray-50 dark:bg-gray-800/30 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-              <div className="text-center">
-                <p className="text-gray-500 dark:text-gray-400">TradingView Chart Vorschau aktuell nicht verfügbar.</p>
-                <p className="text-xs text-gray-400 mt-1">Bitte nutze den Level-Chart Tab für technische Analysen.</p>
-              </div>
-            </div>
+            <LightweightChart
+              symbol={coin.symbol}
+              interval={selectedInterval}
+              klines={klines}
+              height={450}
+              showLevels={false}
+              showFibonacci={false}
+              showTradeSetup={false}
+              theme="dark"
+            />
           )}
 
           {/* Level-Chart Tab */}
