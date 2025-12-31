@@ -1,10 +1,10 @@
-# 🆔 IDENTITY V14.0
+# 🆔 IDENTITY V14.1
 
 | Attribute | Value |
 |:---|:---|
 | **Role** | CLIENT_APP |
 | **Origin** | legacy (auto-discovered) |
-| **Protocol** | V14.0 [THE EXECUTABLE] |
+| **Protocol** | V14.1 [THE EXECUTABLE] |
 | **Integrity** | UNLOCKED |
 | **Migration** | 2025-12-31 (Auto-Init) |
 
