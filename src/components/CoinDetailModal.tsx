@@ -8,7 +8,6 @@ import {
   BarChart3,
   DollarSign,
   Activity,
-  Clock,
   LineChart,
   Target,
   Layers,
@@ -25,49 +24,6 @@ interface CoinDetailModalProps {
   tradeRecommendations?: Record<string, TimeframeTradeSetup | null>;
 }
 
-// Map CoinGecko IDs to TradingView symbols
-const symbolMap: Record<string, string> = {
-  bitcoin: 'BINANCE:BTCUSDT',
-  ethereum: 'BINANCE:ETHUSDT',
-  tether: 'BINANCE:USDTUSD',
-  'binance-coin': 'BINANCE:BNBUSDT',
-  binancecoin: 'BINANCE:BNBUSDT',
-  solana: 'BINANCE:SOLUSDT',
-  'usd-coin': 'BINANCE:USDCUSD',
-  ripple: 'BINANCE:XRPUSDT',
-  cardano: 'BINANCE:ADAUSDT',
-  avalanche: 'BINANCE:AVAXUSDT',
-  'avalanche-2': 'BINANCE:AVAXUSDT',
-  dogecoin: 'BINANCE:DOGEUSDT',
-  polkadot: 'BINANCE:DOTUSDT',
-  'matic-network': 'BINANCE:MATICUSDT',
-  polygon: 'BINANCE:MATICUSDT',
-  chainlink: 'BINANCE:LINKUSDT',
-  'wrapped-bitcoin': 'BINANCE:WBTCUSDT',
-  tron: 'BINANCE:TRXUSDT',
-  litecoin: 'BINANCE:LTCUSDT',
-  'shiba-inu': 'BINANCE:SHIBUSDT',
-  uniswap: 'BINANCE:UNIUSDT',
-  cosmos: 'BINANCE:ATOMUSDT',
-  stellar: 'BINANCE:XLMUSDT',
-  monero: 'BINANCE:XMRUSDT',
-  'ethereum-classic': 'BINANCE:ETCUSDT',
-  arbitrum: 'BINANCE:ARBUSDT',
-  optimism: 'BINANCE:OPUSDT',
-  aptos: 'BINANCE:APTUSDT',
-  sui: 'BINANCE:SUIUSDT',
-  pepe: 'BINANCE:PEPEUSDT',
-  render: 'BINANCE:RENDERUSDT',
-  'render-token': 'BINANCE:RENDERUSDT',
-  near: 'BINANCE:NEARUSDT',
-  injective: 'BINANCE:INJUSDT',
-  'injective-protocol': 'BINANCE:INJUSDT',
-  filecoin: 'BINANCE:FILUSDT',
-  'hedera-hashgraph': 'BINANCE:HBARUSDT',
-  hedera: 'BINANCE:HBARUSDT',
-  'internet-computer': 'BINANCE:ICPUSDT',
-  kaspa: 'BINANCE:KASUSDT',
-};
 
 function formatPrice(price: number): string {
   if (price >= 1000) {
@@ -103,8 +59,7 @@ function formatVolume(value: number): string {
   return `$${value.toLocaleString('de-DE')}`;
 }
 
-type TimeframeKey = '1H' | '24H' | '7D' | '30D' | '1Y';
-type TabType = 'tradingview' | 'levels' | 'trade';
+type TabType = 'levels' | 'trade';
 
 const INTERVALS: Interval[] = ['5m', '15m', '1h', '4h', '1d'];
 const INTERVAL_LABELS: Record<Interval, string> = {
@@ -120,7 +75,6 @@ const TRADING_STYLE_LABELS: Record<string, string> = {
 };
 
 export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDetailModalProps) {
-  const [timeframe, setTimeframe] = useState<TimeframeKey>('24H');
   const [activeTab, setActiveTab] = useState<TabType>('levels');
   const [selectedInterval, setSelectedInterval] = useState<Interval>('1h');
 
@@ -156,22 +110,6 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
     }
   }, [activeTab, selectedInterval, fetchLevelData]);
 
-  // Get TradingView symbol - try exact match first, then by symbol
-  const getTradingViewSymbol = (): string => {
-    // Check symbol map with coin name (lowercased)
-    const coinId = coin.name.toLowerCase().replace(/\s+/g, '-');
-    if (symbolMap[coinId]) {
-      return symbolMap[coinId];
-    }
-
-    // Fallback: construct from symbol
-    const symbol = coin.symbol.toUpperCase();
-    return `BINANCE:${symbol}USDT`;
-  };
-
-  const tvSymbol = getTradingViewSymbol();
-
-  const timeframes: TimeframeKey[] = ['1H', '24H', '7D', '30D', '1Y'];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm dark:bg-black/80">
@@ -252,16 +190,6 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
         {/* Tab Navigation */}
         <div className="flex items-center gap-4 p-4 border-b border-gray-200 dark:border-gray-800">
           <button
-            onClick={() => setActiveTab('tradingview')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'tradingview'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-          >
-            <BarChart3 className="w-4 h-4" />
-            TradingView
-          </button>
-          <button
             onClick={() => setActiveTab('levels')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'levels'
               ? 'bg-blue-600 text-white'
@@ -282,24 +210,6 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
             Trade-Setup
           </button>
 
-          {/* Timeframe für TradingView */}
-          {activeTab === 'tradingview' && (
-            <div className="flex items-center gap-2 ml-auto">
-              <Clock className="w-4 h-4 text-gray-400" />
-              {timeframes.map((tf) => (
-                <button
-                  key={tf}
-                  onClick={() => setTimeframe(tf)}
-                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${timeframe === tf
-                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                >
-                  {tf}
-                </button>
-              ))}
-            </div>
-          )}
 
           {/* Interval für Level-Chart und Trade */}
           {(activeTab === 'levels' || activeTab === 'trade') && (
@@ -323,19 +233,6 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
 
         {/* Tab Content */}
         <div className="p-4">
-          {/* Chart Tab */}
-          {activeTab === 'tradingview' && (
-            <LightweightChart
-              symbol={coin.symbol}
-              interval={selectedInterval}
-              klines={klines}
-              height={450}
-              showLevels={false}
-              showFibonacci={false}
-              showTradeSetup={false}
-              theme="dark"
-            />
-          )}
 
           {/* Level-Chart Tab */}
           {activeTab === 'levels' && (
