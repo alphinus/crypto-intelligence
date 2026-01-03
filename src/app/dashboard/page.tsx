@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Brain, AlertCircle, Sparkles, TrendingUp, Zap, Bell } from 'lucide-react';
+import { Brain, AlertCircle, Sparkles, TrendingUp, Zap, Bell, Activity, Shield, GraduationCap, User } from 'lucide-react';
 import { NewsTicker } from '@/components/NewsTicker';
 import { TrendingSidebar } from '@/components/TrendingSidebar';
 import { TradeRecommendations } from '@/components/TradeRecommendations';
@@ -66,6 +66,7 @@ import { validateSignal, adjustConfidence, type IndicatorValues } from '@/lib/tr
 // NEW: Signal Intelligence System imports
 import { calculateIndicatorSnapshot } from '@/lib/indicator-engine';
 import { saveSignal, type IndicatorSnapshot } from '@/lib/signal-storage';
+import { PerspectiveSelector, type ExpertiseLevel, type TradingPersona } from '@/components/PerspectiveSelector';
 
 interface MarketResponse {
   success: boolean;
@@ -157,7 +158,23 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('trading');
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [tradeSignalsLayout, setTradeSignalsLayout] = useState<'below' | 'sidebar'>('below');
+  const [tradeSignalsLayout, setTradeSignalsLayout] = useState<'below' | 'sidebar'>('sidebar');
+
+  // NEW: Global Perspective Context
+  const [expertiseLevel, setExpertiseLevel] = useState<ExpertiseLevel>('standard');
+  const [tradingPersona, setTradingPersona] = useState<TradingPersona>('daytrader');
+
+  // Sync Persona with Chart Timeframe
+  const handlePersonaChange = useCallback((newPersona: TradingPersona) => {
+    setTradingPersona(newPersona);
+    const intervals: Record<TradingPersona, Interval> = {
+      scalper: '5m',
+      daytrader: '1h',
+      swingtrader: '4h',
+      position: '1d',
+    };
+    setChartTimeframe(intervals[newPersona]);
+  }, []);
 
   // Sentiment Mode: how sentiment affects trade direction
   // - 'filter': Only show trades where sentiment agrees with technical
@@ -1531,6 +1548,16 @@ export default function Home() {
         {/* News Ticker */}
         <NewsTicker headlines={newsHeadlines} />
 
+        {/* Unified Dashboard Control */}
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <PerspectiveSelector
+            expertiseLevel={expertiseLevel}
+            setExpertiseLevel={setExpertiseLevel}
+            tradingPersona={tradingPersona}
+            setTradingPersona={handlePersonaChange}
+          />
+        </div>
+
         {/* Gainer/Loser Ticker */}
         {marketData?.coins && marketData.coins.length > 0 && (
           <div data-tour="gainer-ticker">
@@ -1558,7 +1585,7 @@ export default function Home() {
               {marketData && (
                 <TrendingSidebar
                   coins={marketData.coins}
-                  fearGreed={marketData.fearGreed}
+                  fearGreed={['beginner', 'standard', 'expert'].includes(expertiseLevel) ? marketData.fearGreed : null}
                   selectedCoin={selectedAnalysisCoin}
                   onCoinSelect={handleCoinSelect}
                   onCoinDetailClick={(coin) => setModalCoin(coin)}
@@ -1678,15 +1705,17 @@ export default function Home() {
                           </div>
                         )}
 
-                        {/* Liquidations Mini in Sidebar */}
-                        <div data-tour="liquidations">
-                          <LiquidationMini
-                            stats={liquidationStats}
-                            levels={liquidationLevels}
-                            currentPrice={multiTimeframe?.currentPrice || 0}
-                            isConnected={liquidationConnected}
-                          />
-                        </div>
+                        {/* Liquidations Mini in Sidebar - Experts Only */}
+                        {['expert', 'intelligence'].includes(expertiseLevel) && (
+                          <div data-tour="liquidations">
+                            <LiquidationMini
+                              stats={liquidationStats}
+                              levels={liquidationLevels}
+                              currentPrice={multiTimeframe?.currentPrice || 0}
+                              isConnected={liquidationConnected}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1771,22 +1800,24 @@ export default function Home() {
               {/* TAB 2: Sentiment & On-Chain */}
               <TabPanel id="sentiment" activeTab={activeTab}>
                 <div data-tour="sentiment">
-                  {/* Mini Widgets */}
-                  <MiniWidgets
-                    reddit={redditData?.overall ? {
-                      sentiment: redditData.overall.sentiment,
-                      score: redditData.overall.sentimentScore,
-                      topTopic: redditData.overall.trendingTopics[0],
-                    } : undefined}
-                    defi={defiData ? {
-                      tvl: defiData.totalTvl,
-                      tvlChange24h: defiData.totalTvlChange24h,
-                    } : undefined}
-                    futures={futuresData ? {
-                      openInterest: totalOI,
-                      oiChange24h: 0,
-                    } : undefined}
-                  />
+                  {/* Mini Widgets - Hidden for Beginners */}
+                  {expertiseLevel !== 'beginner' && (
+                    <MiniWidgets
+                      reddit={redditData?.overall ? {
+                        sentiment: redditData.overall.sentiment,
+                        score: redditData.overall.sentimentScore,
+                        topTopic: redditData.overall.trendingTopics[0],
+                      } : undefined}
+                      defi={defiData ? {
+                        tvl: defiData.totalTvl,
+                        tvlChange24h: defiData.totalTvlChange24h,
+                      } : undefined}
+                      futures={futuresData ? {
+                        openInterest: totalOI,
+                        oiChange24h: 0,
+                      } : undefined}
+                    />
+                  )}
 
                   {/* Bitcoin On-Chain Data (nur wenn BTC ausgewählt) */}
                   {selectedAnalysisCoin?.symbol?.toLowerCase() === 'btc' && bitcoinData && (
@@ -1815,17 +1846,28 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* YouTube Crypto News */}
-                  <div className="mt-6">
-                    <YouTubeSection />
-                  </div>
+                  {/* YouTube Crypto News - Beginners/Standard Focus */}
+                  {['beginner', 'standard'].includes(expertiseLevel) && (
+                    <div className="mt-6">
+                      <YouTubeSection />
+                    </div>
+                  )}
                 </div>
               </TabPanel>
 
               {/* TAB 3: ETF Flows */}
               <TabPanel id="etf" activeTab={activeTab}>
                 <div data-tour="etf-tab" className="max-w-4xl mx-auto">
-                  <ETFFlowWidget />
+                  {['standard', 'expert', 'intelligence'].includes(expertiseLevel) ? (
+                    <ETFFlowWidget />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-12 text-center bg-gray-900/50 rounded-2xl border border-gray-800">
+                      <Activity className="w-12 h-12 text-blue-500 mb-4 opacity-20" />
+                      <h3 className="text-xl font-bold mb-2">ETF Flows sind für Fortgeschrittene</h3>
+                      <p className="text-gray-400 max-w-md">Diese Daten sind im Standard- oder Experten-Level verfügbar.</p>
+                      <button onClick={() => setExpertiseLevel('standard')} className="mt-4 px-4 py-2 bg-blue-600 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors">Level Up</button>
+                    </div>
+                  )}
                 </div>
               </TabPanel>
 
@@ -1836,9 +1878,18 @@ export default function Home() {
                 </div>
               </TabPanel>
 
-              {/* TAB 4: Simulator */}
+              {/* TAB 4: Simulator - Pro Only */}
               <TabPanel id="simulator" activeTab={activeTab}>
-                <SimulatorPanel />
+                {['standard', 'expert', 'intelligence'].includes(expertiseLevel) ? (
+                  <SimulatorPanel />
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-12 text-center bg-gray-900/50 rounded-2xl border border-gray-800">
+                    <Zap className="w-12 h-12 text-yellow-500 mb-4 opacity-20" />
+                    <h3 className="text-xl font-bold mb-2">Simulator ist ein Pro-Feature</h3>
+                    <p className="text-gray-400 max-w-md">Schalte auf das Standard- oder Experten-Level um, um den Trading-Simulator zu nutzen.</p>
+                    <button onClick={() => setExpertiseLevel('standard')} className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-bold hover:bg-yellow-700 transition-colors">Level Up</button>
+                  </div>
+                )}
               </TabPanel>
 
               {/* TAB 5: Spot DCA */}
@@ -2043,6 +2094,7 @@ export default function Home() {
             <CoinDetailModal
               coin={modalCoin}
               onClose={() => setModalCoin(null)}
+              initialPersona={tradingPersona}
               tradeRecommendations={
                 modalCoin.symbol === selectedAnalysisCoin?.symbol
                   ? tradeRecommendations

@@ -24,6 +24,7 @@ interface CoinDetailModalProps {
   coin: MarketData;
   onClose: () => void;
   tradeRecommendations?: Record<string, TimeframeTradeSetup | null>;
+  initialPersona?: string;
 }
 
 
@@ -81,8 +82,8 @@ const TRADING_STYLE_LABELS: Record<string, string> = {
   position: 'Position',
 };
 
-export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDetailModalProps) {
-  const [selectedPersonaId, setSelectedPersonaId] = useState('daytrader');
+export function CoinDetailModal({ coin, onClose, tradeRecommendations, initialPersona }: CoinDetailModalProps) {
+  const [selectedPersonaId, setSelectedPersonaId] = useState(initialPersona || 'daytrader');
   const activePersona = PERSONAS.find(p => p.id === selectedPersonaId) || PERSONAS[1];
   const selectedInterval = activePersona.interval;
 
