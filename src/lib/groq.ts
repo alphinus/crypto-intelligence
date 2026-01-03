@@ -1,6 +1,7 @@
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
 import type { AnalysisResult } from '@/types/news';
+import type { SignalSource } from './signal-storage';
 
 // Lazy initialization - wird nur bei Bedarf erstellt
 let groqClient: Groq | null = null;
@@ -134,6 +135,7 @@ export interface TradeSetup {
   riskReward: number;
   reasoning: string;
   timeframe: string;
+  source: SignalSource; // Hinzugefügt
 }
 
 // Timeframe-spezifisches Trade Setup
@@ -790,6 +792,12 @@ Gib für JEDEN Timeframe eine passende Empfehlung:
 - 4h: Swing-Stops, 5-10% Targets
 - Daily: Position-Stops, 10%+ Targets
 
+Ordne jedem Setup einen der 4 Modi zu:
+- INDICATOR: Wenn das Signal rein auf technischen Indikatoren basiert.
+- AI: Wenn das Signal auf Marktstimmung/News ohne klare Tech-Bestätigung basiert.
+- AI_FUSION: Wenn KI-Analyse durch technische Snapshots gestützt wird (bevorzugt).
+- HYBRID: Wenn sowohl Indikatoren als auch KI ein starkes, identisches Signal geben.
+
 WICHTIGE VETO-REGELN (STRIKT EINHALTEN):
 1. NIEMALS Long-Signal wenn RSI > 70 (Überkauft) - stattdessen "wait" oder Short erwägen
 2. NIEMALS Short-Signal wenn RSI < 30 (Überverkauft) - stattdessen "wait" oder Long erwägen
@@ -805,6 +813,7 @@ Antworte NUR mit diesem JSON:
       "timeframe": "5m",
       "type": "long" | "short" | "wait",
       "confidence": "high" | "medium" | "low",
+      "source": "INDICATOR" | "AI" | "AI_FUSION" | "HYBRID",
       "entry": <Preis oder "market">,
       "stopLoss": <Preis>,
       "takeProfit": [<TP1>, <TP2>],
@@ -852,6 +861,7 @@ Antworte NUR mit diesem JSON:
       takeProfit: [data.currentPrice * 1.02],
       riskReward: 1,
       reasoning: 'Analyse nicht verfügbar - warte auf besseres Setup',
+      source: 'AI', // Hinzugefügt
       confluenceWithOtherTimeframes: false,
       tradingStyle: style,
     });
@@ -962,6 +972,7 @@ export interface CoinIntelligenceReport {
   tradeRecommendation: {
     type: 'long' | 'short' | 'wait';
     confidence: 'high' | 'medium' | 'low';
+    source: SignalSource; // Hinzugefügt
     entry: number | 'market';
     stopLoss: number;
     takeProfit: number[];
@@ -1114,6 +1125,7 @@ Antworte NUR mit diesem JSON-Format (kein Markdown drumherum!):
   "tradeRecommendation": {
     "type": "long" | "short" | "wait",
     "confidence": "high" | "medium" | "low",
+    "source": "INDICATOR" | "AI" | "AI_FUSION" | "HYBRID",
     "entry": number | "market",
     "stopLoss": number,
     "takeProfit": [number],
@@ -1205,6 +1217,7 @@ Befülle die optionalen Felder derivativesAnalysis (fundingRate, fundingSignal, 
       tradeRecommendation: {
         type: 'wait',
         confidence: 'low',
+        source: 'AI',
         entry: 'market',
         stopLoss: data.currentPrice * 0.95,
         takeProfit: [data.currentPrice * 1.05],

@@ -474,8 +474,19 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                           setup.type === 'short' ? 'bg-red-500/20 text-red-400' :
                             'bg-gray-500/20 text-gray-400'
                           }`}>
-                          <div className="font-bold text-sm">{setup.type.toUpperCase()}</div>
-                          <div className="text-[10px]">{setup.confidence}</div>
+                          <div className="font-bold text-sm uppercase">{setup.type}</div>
+                          <div className="flex flex-col items-center gap-0.5 mt-0.5">
+                            <div className="text-[10px] opacity-80">{setup.confidence.toUpperCase()} CONFIDENCE</div>
+                            {setup.source && (
+                              <div className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${setup.source === 'HYBRID' ? 'bg-purple-500/20 border-purple-500/50 text-purple-400' :
+                                setup.source === 'AI_FUSION' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' :
+                                  setup.source === 'INDICATOR' ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' :
+                                    'bg-gray-500/20 border-gray-500/50 text-gray-400'
+                                }`}>
+                                {setup.source}
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {setup.type !== 'wait' && (

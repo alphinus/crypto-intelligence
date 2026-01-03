@@ -411,7 +411,21 @@ export function IntelligenceReport({
                       }`}>
                       {report.tradeRecommendation.confidence}
                     </span>
-                    <span className="text-xs text-gray-500">Timeframe:</span>
+
+                    {report.tradeRecommendation.source && (
+                      <>
+                        <span className="text-xs text-gray-500">Modus:</span>
+                        <span className={`text-xs px-2 py-0.5 rounded font-bold border ${report.tradeRecommendation.source === 'HYBRID' ? 'bg-purple-500/20 border-purple-500/50 text-purple-400' :
+                          report.tradeRecommendation.source === 'AI_FUSION' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' :
+                            report.tradeRecommendation.source === 'INDICATOR' ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' :
+                              'bg-gray-500/20 border-gray-500/50 text-gray-400'
+                          }`}>
+                          {report.tradeRecommendation.source}
+                        </span>
+                      </>
+                    )}
+
+                    <span className="text-xs text-gray-500 ml-auto">Timeframe:</span>
                     <span className="text-xs text-gray-400">{report.tradeRecommendation.timeframe}</span>
                   </div>
                 </>
