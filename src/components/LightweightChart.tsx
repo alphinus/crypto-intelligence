@@ -178,9 +178,10 @@ export default function LightweightChart({
           color: '#22c55e',
           lineWidth: 1,
           lineStyle: LineStyle.Dashed,
-          priceLineVisible: false,
-          lastValueVisible: false,
+          priceLineVisible: true,
+          lastValueVisible: true,
           crosshairMarkerVisible: false,
+          title: 'Supp',
         });
 
         series.setData([
@@ -197,9 +198,10 @@ export default function LightweightChart({
           color: '#ef4444',
           lineWidth: 1,
           lineStyle: LineStyle.Dashed,
-          priceLineVisible: false,
-          lastValueVisible: false,
+          priceLineVisible: true,
+          lastValueVisible: true,
           crosshairMarkerVisible: false,
+          title: 'Res',
         });
 
         series.setData([
@@ -220,9 +222,10 @@ export default function LightweightChart({
           color: '#3b82f6',
           lineWidth: 1,
           lineStyle: LineStyle.Dotted,
-          priceLineVisible: false,
-          lastValueVisible: false,
+          priceLineVisible: true,
+          lastValueVisible: true,
           crosshairMarkerVisible: false,
+          title: fib.label,
         });
 
         series.setData([
@@ -250,9 +253,10 @@ export default function LightweightChart({
       color: '#eab308',
       lineWidth: 2,
       lineStyle: LineStyle.Solid,
-      priceLineVisible: false,
-      lastValueVisible: false,
+      priceLineVisible: true,
+      lastValueVisible: true,
       crosshairMarkerVisible: false,
+      title: 'ENTRY',
     });
 
     entrySeries.setData([
@@ -265,9 +269,10 @@ export default function LightweightChart({
       color: '#dc2626',
       lineWidth: 2,
       lineStyle: LineStyle.Solid,
-      priceLineVisible: false,
-      lastValueVisible: false,
+      priceLineVisible: true,
+      lastValueVisible: true,
       crosshairMarkerVisible: false,
+      title: 'SL',
     });
 
     slSeries.setData([
@@ -281,9 +286,10 @@ export default function LightweightChart({
         color: index === 0 ? '#16a34a' : '#4ade80',
         lineWidth: 2,
         lineStyle: LineStyle.Solid,
-        priceLineVisible: false,
-        lastValueVisible: false,
+        priceLineVisible: true,
+        lastValueVisible: true,
         crosshairMarkerVisible: false,
+        title: `TP${index + 1}`,
       });
 
       tpSeries.setData([
@@ -303,24 +309,22 @@ export default function LightweightChart({
 
     // Draw liquidation levels
     liquidationLevels.forEach((level) => {
-      // Color based on type: red for long liqs, green for short liqs
       const color = level.type === 'long' ? '#ef4444' : '#22c55e';
-      // Opacity based on leverage (higher leverage = more transparent)
       const opacity = Math.max(0.3, 1 - (level.leverage - 10) / 120);
       const colorWithOpacity = level.type === 'long'
         ? `rgba(239, 68, 68, ${opacity})`
         : `rgba(34, 197, 94, ${opacity})`;
 
-      // Line style based on leverage
       const lineStyle = level.leverage <= 25 ? LineStyle.Dashed : LineStyle.Dotted;
 
       const series = chartRef.current!.addSeries(LineSeries, {
         color: colorWithOpacity,
         lineWidth: level.leverage <= 25 ? 2 : 1,
         lineStyle,
-        priceLineVisible: false,
-        lastValueVisible: false,
+        priceLineVisible: true,
+        lastValueVisible: true,
         crosshairMarkerVisible: false,
+        title: `LIQ ${level.leverage}x`,
       });
 
       series.setData([

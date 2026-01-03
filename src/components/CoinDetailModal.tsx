@@ -280,23 +280,23 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
 
                           {setup.type !== 'wait' && (
                             <div className="grid grid-cols-2 gap-2">
-                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800">
-                                <div className="text-[10px] text-gray-500 mb-1 uppercase">Entry</div>
-                                <div className="text-sm font-mono font-bold text-yellow-500">
+                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800 flex flex-col">
+                                <span className="text-[10px] text-gray-500 mb-1 uppercase">Entry</span>
+                                <span className="text-sm font-mono font-bold text-yellow-500 text-right">
                                   {typeof setup.entry === 'number' ? `$${setup.entry.toLocaleString()}` : 'Market'}
-                                </div>
+                                </span>
                               </div>
-                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800">
-                                <div className="text-[10px] text-gray-500 mb-1 uppercase">R:R Ratio</div>
-                                <div className="text-sm font-mono font-bold text-blue-400">1:{setup.riskReward.toFixed(1)}</div>
+                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800 flex flex-col">
+                                <span className="text-[10px] text-gray-500 mb-1 uppercase">R:R Ratio</span>
+                                <span className="text-sm font-mono font-bold text-blue-400 text-right">1:{setup.riskReward.toFixed(1)}</span>
                               </div>
-                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800">
-                                <div className="text-[10px] text-red-500 mb-1 uppercase">Stop Loss</div>
-                                <div className="text-sm font-mono font-bold text-red-500">${setup.stopLoss.toLocaleString()}</div>
+                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800 flex flex-col">
+                                <span className="text-[10px] text-red-500 mb-1 uppercase">Stop Loss</span>
+                                <span className="text-sm font-mono font-bold text-red-500 text-right">${setup.stopLoss.toLocaleString()}</span>
                               </div>
-                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800">
-                                <div className="text-[10px] text-green-500 mb-1 uppercase">Take Profit</div>
-                                <div className="text-sm font-mono font-bold text-green-500">${setup.takeProfit[0]?.toLocaleString()}</div>
+                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800 flex flex-col">
+                                <span className="text-[10px] text-green-500 mb-1 uppercase">Take Profit</span>
+                                <span className="text-sm font-mono font-bold text-green-500 text-right">${setup.takeProfit[0]?.toLocaleString()}</span>
                               </div>
                             </div>
                           )}
@@ -330,13 +330,13 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                   {levels ? (
                     <>
                       <div className="grid grid-cols-2 gap-2">
-                        <div className="text-center p-2 bg-green-500/5 rounded border border-green-500/10">
-                          <div className="text-[9px] text-green-500 uppercase font-bold mb-1">Support</div>
-                          <div className="text-sm font-mono font-bold text-green-400">${levels.keySupport?.toLocaleString() || '-'}</div>
+                        <div className="p-2 bg-green-500/5 rounded border border-green-500/10 flex flex-col">
+                          <span className="text-[9px] text-green-500 uppercase font-bold mb-1">Support</span>
+                          <span className="text-sm font-mono font-bold text-green-400 text-right">${levels.keySupport?.toLocaleString() || '-'}</span>
                         </div>
-                        <div className="text-center p-2 bg-red-500/5 rounded border border-red-500/10">
-                          <div className="text-[9px] text-red-500 uppercase font-bold mb-1">Resistance</div>
-                          <div className="text-sm font-mono font-bold text-red-400">${levels.keyResistance?.toLocaleString() || '-'}</div>
+                        <div className="p-2 bg-red-500/5 rounded border border-red-500/10 flex flex-col">
+                          <span className="text-[9px] text-red-500 uppercase font-bold mb-1">Resistance</span>
+                          <span className="text-sm font-mono font-bold text-red-400 text-right">${levels.keyResistance?.toLocaleString() || '-'}</span>
                         </div>
                       </div>
 
