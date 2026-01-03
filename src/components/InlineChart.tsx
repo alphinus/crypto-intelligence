@@ -364,6 +364,7 @@ export function InlineChart({
           top: 0.1,
           bottom: 0.1,
         },
+        minimumWidth: 80, // Ensure consistent width for alignment with indicators
       },
       timeScale: {
         borderColor: isDark ? '#1f2937' : '#e5e7eb',

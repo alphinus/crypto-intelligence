@@ -60,6 +60,7 @@ export function StochRSIIndicator({
             rightPriceScale: {
                 borderColor: isDark ? '#1f2937' : '#e5e7eb',
                 scaleMargins: { top: 0.1, bottom: 0.1 },
+                minimumWidth: 80, // Match main chart price scale width for alignment
             },
             timeScale: {
                 borderColor: isDark ? '#1f2937' : '#e5e7eb',
