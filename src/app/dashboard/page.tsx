@@ -1585,7 +1585,7 @@ export default function Home() {
               {marketData && (
                 <TrendingSidebar
                   coins={marketData.coins}
-                  fearGreed={['beginner', 'standard', 'expert'].includes(expertiseLevel) ? marketData.fearGreed : null}
+                  fearGreed={marketData.fearGreed}
                   selectedCoin={selectedAnalysisCoin}
                   onCoinSelect={handleCoinSelect}
                   onCoinDetailClick={(coin) => setModalCoin(coin)}
@@ -1705,17 +1705,15 @@ export default function Home() {
                           </div>
                         )}
 
-                        {/* Liquidations Mini in Sidebar - Experts Only */}
-                        {['expert', 'intelligence'].includes(expertiseLevel) && (
-                          <div data-tour="liquidations">
-                            <LiquidationMini
-                              stats={liquidationStats}
-                              levels={liquidationLevels}
-                              currentPrice={multiTimeframe?.currentPrice || 0}
-                              isConnected={liquidationConnected}
-                            />
-                          </div>
-                        )}
+                        {/* Liquidations Mini in Sidebar */}
+                        <div data-tour="liquidations">
+                          <LiquidationMini
+                            stats={liquidationStats}
+                            levels={liquidationLevels}
+                            currentPrice={multiTimeframe?.currentPrice || 0}
+                            isConnected={liquidationConnected}
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1800,24 +1798,22 @@ export default function Home() {
               {/* TAB 2: Sentiment & On-Chain */}
               <TabPanel id="sentiment" activeTab={activeTab}>
                 <div data-tour="sentiment">
-                  {/* Mini Widgets - Hidden for Beginners */}
-                  {expertiseLevel !== 'beginner' && (
-                    <MiniWidgets
-                      reddit={redditData?.overall ? {
-                        sentiment: redditData.overall.sentiment,
-                        score: redditData.overall.sentimentScore,
-                        topTopic: redditData.overall.trendingTopics[0],
-                      } : undefined}
-                      defi={defiData ? {
-                        tvl: defiData.totalTvl,
-                        tvlChange24h: defiData.totalTvlChange24h,
-                      } : undefined}
-                      futures={futuresData ? {
-                        openInterest: totalOI,
-                        oiChange24h: 0,
-                      } : undefined}
-                    />
-                  )}
+                  {/* Mini Widgets */}
+                  <MiniWidgets
+                    reddit={redditData?.overall ? {
+                      sentiment: redditData.overall.sentiment,
+                      score: redditData.overall.sentimentScore,
+                      topTopic: redditData.overall.trendingTopics[0],
+                    } : undefined}
+                    defi={defiData ? {
+                      tvl: defiData.totalTvl,
+                      tvlChange24h: defiData.totalTvlChange24h,
+                    } : undefined}
+                    futures={futuresData ? {
+                      openInterest: totalOI,
+                      oiChange24h: 0,
+                    } : undefined}
+                  />
 
                   {/* Bitcoin On-Chain Data (nur wenn BTC ausgewählt) */}
                   {selectedAnalysisCoin?.symbol?.toLowerCase() === 'btc' && bitcoinData && (
@@ -1846,28 +1842,17 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* YouTube Crypto News - Beginners/Standard Focus */}
-                  {['beginner', 'standard'].includes(expertiseLevel) && (
-                    <div className="mt-6">
-                      <YouTubeSection />
-                    </div>
-                  )}
+                  {/* YouTube Crypto News */}
+                  <div className="mt-6">
+                    <YouTubeSection />
+                  </div>
                 </div>
               </TabPanel>
 
               {/* TAB 3: ETF Flows */}
               <TabPanel id="etf" activeTab={activeTab}>
                 <div data-tour="etf-tab" className="max-w-4xl mx-auto">
-                  {['standard', 'expert', 'intelligence'].includes(expertiseLevel) ? (
-                    <ETFFlowWidget />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center p-12 text-center bg-gray-900/50 rounded-2xl border border-gray-800">
-                      <Activity className="w-12 h-12 text-blue-500 mb-4 opacity-20" />
-                      <h3 className="text-xl font-bold mb-2">ETF Flows sind für Fortgeschrittene</h3>
-                      <p className="text-gray-400 max-w-md">Diese Daten sind im Standard- oder Experten-Level verfügbar.</p>
-                      <button onClick={() => setExpertiseLevel('standard')} className="mt-4 px-4 py-2 bg-blue-600 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors">Level Up</button>
-                    </div>
-                  )}
+                  <ETFFlowWidget />
                 </div>
               </TabPanel>
 
@@ -1878,18 +1863,9 @@ export default function Home() {
                 </div>
               </TabPanel>
 
-              {/* TAB 4: Simulator - Pro Only */}
+              {/* TAB 4: Simulator */}
               <TabPanel id="simulator" activeTab={activeTab}>
-                {['standard', 'expert', 'intelligence'].includes(expertiseLevel) ? (
-                  <SimulatorPanel />
-                ) : (
-                  <div className="flex flex-col items-center justify-center p-12 text-center bg-gray-900/50 rounded-2xl border border-gray-800">
-                    <Zap className="w-12 h-12 text-yellow-500 mb-4 opacity-20" />
-                    <h3 className="text-xl font-bold mb-2">Simulator ist ein Pro-Feature</h3>
-                    <p className="text-gray-400 max-w-md">Schalte auf das Standard- oder Experten-Level um, um den Trading-Simulator zu nutzen.</p>
-                    <button onClick={() => setExpertiseLevel('standard')} className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-bold hover:bg-yellow-700 transition-colors">Level Up</button>
-                  </div>
-                )}
+                <SimulatorPanel />
               </TabPanel>
 
               {/* TAB 5: Spot DCA */}
