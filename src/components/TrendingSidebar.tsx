@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, TrendingDown, ChevronRight, Check, Plus, Search, X, Loader2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, ChevronRight, Plus, X, Loader2 } from 'lucide-react';
 import { FearGreedCompact } from './FearGreedCompact';
 import type { MarketData, FearGreedIndex } from '@/types/news';
 
@@ -139,12 +139,7 @@ export function TrendingSidebar({
                   onClick={() => onCoinSelect(coin)}
                   className="flex-1 flex items-center gap-3 text-left min-w-0"
                 >
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected(coin) ? 'border-purple-500 bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'border-gray-300 dark:border-gray-600'
-                      }`}
-                  >
-                    {isSelected(coin) && <Check className="w-3 h-3 text-white" />}
-                  </div>
+
 
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="relative flex-shrink-0">
@@ -222,15 +217,7 @@ export function TrendingSidebar({
                   className="flex-1 flex items-center gap-3 text-left min-w-0"
                   title={`${coin.name} für Trade-Empfehlungen auswählen`}
                 >
-                  {/* Selection indicator */}
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected(coin)
-                      ? 'border-blue-500 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]'
-                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                      }`}
-                  >
-                    {isSelected(coin) && <Check className="w-3 h-3 text-white" />}
-                  </div>
+
 
                   {/* Coin Icon & Info */}
                   <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -311,12 +298,6 @@ export function TrendingSidebar({
 
       {/* Legend */}
       <div className="p-3 border-t border-gray-200 dark:border-gray-800 space-y-1">
-        <div className="flex items-center gap-2 text-[10px] text-gray-500">
-          <div className="w-3 h-3 rounded-full border-2 border-blue-500 bg-blue-500 flex items-center justify-center">
-            <Check className="w-2 h-2 text-white" />
-          </div>
-          <span>= Trade-Empfehlung aktiv</span>
-        </div>
         <div className="flex items-center gap-2 text-[10px] text-gray-500">
           <ChevronRight className="w-3 h-3" />
           <span>= Chart & Setup öffnen</span>
