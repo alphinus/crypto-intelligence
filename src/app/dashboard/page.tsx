@@ -1236,6 +1236,9 @@ export default function Home() {
         const recommendation = data.report?.tradeRecommendation;
         if (recommendation && recommendation.type !== 'wait') {
           try {
+            // Mapping source based on data presence
+            const finalSource = indicatorSnapshot ? 'AI_FUSION' : 'AI';
+
             saveSignal({
               coin: symbol + 'USDT',
               type: recommendation.type,
@@ -1246,10 +1249,10 @@ export default function Home() {
               confidence: recommendation.confidence,
               timeframe: recommendation.bestTimeframe || chartTimeframe,
               reasoning: recommendation.reasoning,
-              source: indicatorSnapshot ? 'AI_FUSION' : 'AI',
+              source: finalSource,
               indicatorSnapshot: indicatorSnapshot || undefined,
             });
-            console.log('[Signal Intelligence] Signal saved to historie:', recommendation.type, symbol);
+            console.log(`[Signal Intelligence] Signal saved to historie (${finalSource}):`, recommendation.type, symbol);
           } catch (saveErr) {
             console.error('[Signal Intelligence] Failed to save signal:', saveErr);
           }
@@ -1328,6 +1331,23 @@ export default function Home() {
 
           setTechnicalLevels(levels);
         }
+      }
+
+      // Re-calculate technical levels if missing
+      if (!technicalLevels && klinesData?.currentPrice) {
+        // Fallback if technicalLevels are null
+        const levels: TechnicalLevels = {
+          currentPrice: klinesData.currentPrice,
+          supports: [],
+          resistances: [],
+          fibonacci: [],
+          psychological: [],
+          keySupport: klinesData.currentPrice * 0.95,
+          keyResistance: klinesData.currentPrice * 1.05,
+          swingHigh: klinesData.currentPrice * 1.1,
+          swingLow: klinesData.currentPrice * 0.9,
+        };
+        setTechnicalLevels(levels);
       }
 
       const newsHeadlines = articles.slice(0, 10).map((a) => a.title);

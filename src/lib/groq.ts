@@ -431,38 +431,41 @@ export async function generateMarketIntelligenceReport(data: {
   topProtocols: string[];
 }): Promise<MarketIntelligenceReport> {
   try {
-    const prompt = `Du bist ein erfahrener Crypto-Analyst. Erstelle einen umfassenden Markt-Intelligence-Bericht basierend auf diesen Echtzeitdaten:
+    const { newsHeadlines, redditTrending, redditSentiment, topCoins, fearGreedIndex, defiTvlChange, topProtocols } = data;
+    const prompt = `Du bist ein erfahrener Crypto-Analyst. Erstelle einen umfassenden Markt-Intelligence-Bericht (Source: AI) basierend auf diesen Echtzeitdaten:
 
-NEWS HEADLINES (letzte Stunden):
-${data.newsHeadlines.slice(0, 8).map((h) => `- ${h}`).join('\n')}
+DATEN:
+- News Headlines: ${newsHeadlines.join(', ') || 'Keine aktuellen News'}
+- Reddit Trending: ${redditTrending.join(', ') || 'Keine Trends'}
+- Reddit Sentiment: ${JSON.stringify(redditSentiment)}
+- Top Coins (24h): ${topCoins.map(c => `${c.symbol} (${c.change24h > 0 ? '+' : ''}${c.change24h.toFixed(1)}%)`).join(', ')}
+- Fear & Greed Index: ${fearGreedIndex}/100
+- DeFi TVL Change: ${defiTvlChange.toFixed(2)}%
+- Top Protokolle: ${topProtocols.join(', ')}
 
-REDDIT TRENDING TOPICS: ${data.redditTrending.join(', ')}
-REDDIT SENTIMENT: ${data.redditSentiment.sentiment} (Score: ${data.redditSentiment.score})
+ANWEISUNG:
+1. Analysiere das Zusammenspiel zwischen News, Social-Sentiment (Reddit) und Preisbewegungen.
+2. Identifiziere die aktuell dominierenden Narratives.
+3. Bestimme die Marktphase (z.B. Euphorie, Angst, Akkumulation, Verteilung).
+4. Gib konkrete Handlungsempfehlungen.
 
-TOP COINS 24H PERFORMANCE:
-${data.topCoins.slice(0, 5).map((c) => `- ${c.symbol.toUpperCase()}: ${c.change24h > 0 ? '+' : ''}${c.change24h.toFixed(2)}%`).join('\n')}
-
-FEAR & GREED INDEX: ${data.fearGreedIndex}/100
-DEFI TVL 24H CHANGE: ${data.defiTvlChange > 0 ? '+' : ''}${data.defiTvlChange.toFixed(2)}%
-TOP DEFI PROTOCOLS: ${data.topProtocols.slice(0, 5).join(', ')}
-
-Analysiere alle Daten und erstelle einen DEUTSCHEN Marktbericht. Antworte NUR mit diesem JSON:
+Antworte NUR mit diesem JSON-Format auf DEUTSCH:
 {
   "overallSentiment": "bullish" | "bearish" | "neutral",
   "confidenceScore": <0-100>,
-  "marketPhase": "<z.B. 'Akkumulation', 'Korrektur', 'Euphorie', 'Kapitulation', 'Seitwärts'>",
-  "summary": "<3-4 Sätze Zusammenfassung der aktuellen Marktlage auf Deutsch>",
+  "marketPhase": "<Phase>",
+  "summary": "<3-4 Sätze Analyse>",
   "signals": [
     {
       "type": "opportunity" | "warning" | "info",
-      "title": "<Kurzer Signal-Titel>",
-      "description": "<1-2 Sätze Erklärung>",
-      "relevantCoins": ["BTC", "ETH", ...]
+      "title": "<Kurz-Titel>",
+      "description": "<Beschreibung>",
+      "relevantCoins": ["BTC", "ETH", etc.]
     }
   ],
-  "topNarratives": ["<Top 3-5 aktuelle Narratives/Trends>"],
+  "topNarratives": ["Narrative 1", "Narrative 2"],
   "riskLevel": "low" | "medium" | "high",
-  "actionItems": ["<2-4 konkrete Handlungsempfehlungen>"]
+  "actionItems": ["Handlung 1", "Handlung 2"]
 }`;
 
     const completion = await getGroqClient().chat.completions.create({
@@ -569,7 +572,7 @@ FUTURES DATEN:
 ${data.futuresData.longShortRatio ? `- Long/Short Ratio: ${data.futuresData.longShortRatio.btc.long.toFixed(1)}% Long / ${data.futuresData.longShortRatio.btc.short.toFixed(1)}% Short` : ''}`
       : '';
 
-    const prompt = `Du bist ein erfahrener Crypto-Trader und Analyst. Erstelle einen umfassenden Markt-Intelligence-Bericht mit HANDLUNGSEMPFEHLUNGEN.
+    const prompt = `Du bist ein erfahrener Crypto-Trader und Analyst. Erstelle einen umfassenden Markt-Intelligence-Bericht (Source: AI_ENHANCED) mit HANDLUNGSEMPFEHLUNGEN.
 
 NEWS HEADLINES:
 ${data.newsHeadlines.slice(0, 8).map((h) => `- ${h}`).join('\n')}
@@ -586,51 +589,50 @@ ${timeframeStr}
 ${levelsStr}
 ${futuresStr}
 
-Analysiere ALLE Daten. Beachte besonders:
-1. Stimmen die Timeframes überein (Konfluenz) oder divergieren sie?
-2. Sind wichtige Support/Resistance Level in der Nähe?
-3. Was signalisieren Funding Rates und Long/Short Ratio?
-4. Gib eine KONKRETE Trade-Empfehlung wenn ein Setup erkennbar ist.
+VETO-REGELN (Ignoriere diese nur bei extremen News-Events):
+1. Wenn Fear & Greed > 80: Keine neuen Long-Signale für Small Caps!
+2. Wenn BTC-Dominanz stark steigt: Fokus auf BTC, vorsichtig bei Alts.
+3. Wenn Funding Rates extrem positiv: Erhöhtes Risiko für Long-Squeezes.
 
-WICHTIGE VETO-REGELN:
-- NIEMALS Long wenn RSI > 70 oder bei extremer Greed (>80)
-- NIEMALS Short wenn RSI < 30 oder bei extremer Fear (<20)
-- Priorisiere "wait" wenn Timeframes divergieren
-- Funding Rate > 0.03% = Risiko für Long, < -0.03% = Risiko für Short
-
-Antworte NUR mit diesem JSON:
+Antworte NUR mit diesem JSON-Format auf DEUTSCH:
 {
   "overallSentiment": "bullish" | "bearish" | "neutral",
   "confidenceScore": <0-100>,
-  "marketPhase": "<Akkumulation/Korrektur/Euphorie/Kapitulation/Seitwärts>",
-  "summary": "<3-4 Sätze Zusammenfassung auf Deutsch>",
-  "signals": [{"type": "opportunity"|"warning"|"info", "title": "<>", "description": "<>", "relevantCoins": []}],
-  "topNarratives": ["<3-5 Trends>"],
-  "riskLevel": "low" | "medium" | "high",
-  "actionItems": ["<2-4 Empfehlungen>"],
+  "marketPhase": "<Phase>",
+  "summary": "<Kurze, prägnante Markteinschätzung>",
   "technicalAnalysis": {
-    "keySupport": <Preis>,
-    "keyResistance": <Preis>,
     "currentTrend": "bullish" | "bearish" | "neutral",
-    "trendStrength": <0-100>
+    "trendStrength": <0-100>,
+    "keySupport": ${data.technicalLevels?.keySupport || 0},
+    "keyResistance": ${data.technicalLevels?.keyResistance || 0}
   },
   "timeframeAnalysis": {
-    "shortTerm": "<15m-1h Outlook>",
-    "mediumTerm": "<4h Outlook>",
-    "longTerm": "<Daily Outlook>",
-    "confluence": "<Wo stimmen Timeframes überein? Oder: Divergenz?>",
+    "shortTerm": "<15m-1h View>",
+    "mediumTerm": "<4h View>",
+    "longTerm": "<Daily View>",
+    "confluence": "<Wo stimmen die Timeframes überein?>"
   },
+  "signals": [
+    {
+      "type": "opportunity" | "warning" | "info",
+      "title": "<Titel>",
+      "description": "<Beschreibung>",
+      "relevantCoins": ["A", "B"]
+    }
+  ],
   "tradeRecommendation": {
     "type": "long" | "short" | "wait",
     "confidence": "high" | "medium" | "low",
-    "entry": <Preis oder "market">,
+    "entry": <Einstiegsbereich oder "market">,
     "stopLoss": <Preis>,
     "takeProfit": [<TP1>, <TP2>],
     "riskReward": <Ratio>,
-    "reasoning": "<Warum dieses Setup?>",
-    "timeframe": "<Welcher TF für den Trade?>"
+    "reasoning": "<Warum dieser Trade?>",
+    "timeframe": "<Best TF for this setup>"
   },
-  "audioSummary": "<Kompakte 2-3 Sätze für Sprachausgabe, natürlich klingend>"
+  "topNarratives": ["N1", "N2"],
+  "riskLevel": "low" | "medium" | "high",
+  "actionItems": ["Action 1", "Action 2"]
 }`;
 
     const completion = await getGroqClient().chat.completions.create({
@@ -968,6 +970,10 @@ export async function generateCoinIntelligenceReport(
 - Signal: ${data.fundingRate! > 0.01 ? 'Overleveraged Long' : data.fundingRate! < -0.01 ? 'Overleveraged Short' : 'Neutral'}`
       : '';
 
+    // Social Sentiment
+    const socialScore = data.redditSentiment?.sentimentScore || 0;
+    const socialSentiment = data.redditSentiment?.sentiment || 'neutral';
+
     // BTC On-Chain Section
     const isBTC = symbol === 'BTC';
     const onChainSection = isBTC && data.bitcoinOnChain
@@ -976,10 +982,6 @@ export async function generateCoinIntelligenceReport(
 - Fees: ${data.bitcoinOnChain.fees?.fastestFee || 'N/A'} sat/vB (fast)
 - Difficulty Change: ${data.bitcoinOnChain.difficulty?.difficultyChange?.toFixed(2) || 'N/A'}%`
       : '';
-
-    // Social Sentiment
-    const socialScore = data.redditSentiment?.sentimentScore || 0;
-    const socialSentiment = data.redditSentiment?.sentiment || 'neutral';
 
     // NEW: Indicators section for AI
     const hasIndicators = data.indicators && data.indicators.rsi !== undefined;
@@ -1004,7 +1006,10 @@ STRIKTE VETO-REGELN (MÜSSEN EINGEHALTEN WERDEN):
 6. MACD Histogram positiv + RSI steigend: Bevorzuge Long oder Wait.`
       : '';
 
-    const prompt = `Du bist ein erfahrener Crypto-Analyst. Erstelle einen detaillierten Analyse-Report für ${symbol}.
+    const source = hasIndicators ? 'AI_FUSION' : 'AI';
+
+    const prompt = `Du bist ein erfahrener Crypto-Analyst. Erstelle einen detaillierten Analyse-Report für ${symbol} (Source: ${source}).
+${hasIndicators ? 'DEINE AUFGABE IST ES, DIE TECHNISCHEN INDIKATOREN (INDICATOR-SETUP) MIT DEINER KI-ANALYSE ZU FUSIONIEREN (AI-SETUP).' : ''}
 
 TECHNISCHE DATEN:
 - Aktueller Preis: $${data.currentPrice.toLocaleString()}
@@ -1023,7 +1028,14 @@ ${fundingSection}
 ${onChainSection}
 ${vetoRulesSection}
 
-Analysiere alle Daten und erstelle einen DEUTSCHEN Report. Antworte NUR mit diesem JSON:
+Analysiere alle Daten und erstelle einen DEUTSCHEN Report. 
+Berücksichtige dabei die 4 Signal-Generation-Setups:
+- INDICATOR: Rein regelbasiert (RSI, MACD, etc.)
+- AI: Rein modellbasiert (Sentiment, Narratives)
+- AI_FUSION: Kombination aus AI und technischen Snapshots
+- HYBRID: Bestätigung durch mehrere unabhängige Quellen
+
+Antworte NUR mit diesem JSON:
 {
   "symbol": "${symbol}",
   "overallSentiment": "bullish" | "bearish" | "neutral",
@@ -1065,7 +1077,7 @@ Analysiere alle Daten und erstelle einen DEUTSCHEN Report. Antworte NUR mit dies
     "stopLoss": <Preis>,
     "takeProfit": [<TP1>, <TP2>, <TP3>],
     "riskReward": <Ratio>,
-    "reasoning": "<Warum dieses Setup?>",
+    "reasoning": "<Warum dieses Setup? Beziehe dich auf INDICATOR vs AI Sicht wenn möglich.>",
     "bestTimeframe": "<Optimaler TF für den Trade>"
   },
   "riskFactors": ["<2-4 Risiken für diesen Coin>"],

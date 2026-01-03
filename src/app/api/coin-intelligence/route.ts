@@ -18,6 +18,7 @@ export async function POST(request: Request) {
       twitterSentiment,
       fearGreed,
       bitcoinOnChain,
+      indicators,
     } = body;
 
     // Validierung
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
       twitterSentiment,
       fearGreed,
       bitcoinOnChain,
+      indicators,
     };
 
     // Report generieren
