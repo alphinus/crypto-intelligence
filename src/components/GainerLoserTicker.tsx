@@ -73,18 +73,6 @@ export function GainerLoserTicker({ coins, onCoinClick }: GainerLoserTickerProps
   return (
     <div className="relative z-30 bg-white/80 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-800 overflow-hidden backdrop-blur-sm">
       <div className="flex items-center">
-        {/* Labels */}
-        <div className="flex-shrink-0 flex">
-          <div className="px-3 py-1.5 bg-green-100/80 dark:bg-green-600/80 text-green-700 dark:text-white text-[10px] font-bold uppercase tracking-wider z-10 flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" />
-            Top
-          </div>
-          <div className="px-3 py-1.5 bg-red-100/80 dark:bg-red-600/80 text-red-700 dark:text-white text-[10px] font-bold uppercase tracking-wider z-10 flex items-center gap-1">
-            <TrendingDown className="w-3 h-3" />
-            Flop
-          </div>
-        </div>
-
         {/* Ticker Container */}
         <div
           ref={containerRef}

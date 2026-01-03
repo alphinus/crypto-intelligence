@@ -52,11 +52,6 @@ export function NewsTicker({ headlines }: NewsTickerProps) {
   return (
     <div className="relative z-30 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-800 overflow-hidden">
       <div className="flex items-center">
-        {/* Label */}
-        <div className="flex-shrink-0 px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase tracking-wider z-10">
-          News
-        </div>
-
         {/* Ticker Container */}
         <div
           ref={containerRef}
