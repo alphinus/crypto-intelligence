@@ -11,6 +11,8 @@ import {
   LineChart,
   Target,
   Layers,
+  Shield,
+  Zap,
 } from 'lucide-react';
 import LightweightChart from './LightweightChart';
 import type { MarketData } from '@/types/news';
@@ -59,7 +61,12 @@ function formatVolume(value: number): string {
   return `$${value.toLocaleString('de-DE')}`;
 }
 
-type TabType = 'levels' | 'trade';
+const PERSONAS = [
+  { id: 'scalper', name: 'Scalper', interval: '5m' as Interval, icon: <Zap className="w-4 h-4" />, description: 'Schnelle Moves' },
+  { id: 'daytrader', name: 'Day-Trader', interval: '1h' as Interval, icon: <Activity className="w-4 h-4" />, description: 'Intraday Fokus' },
+  { id: 'swingtrader', name: 'Swing-Trader', interval: '4h' as Interval, icon: <TrendingUp className="w-4 h-4" />, description: 'Mehrtägig' },
+  { id: 'positiontrader', name: 'Position', interval: '1d' as Interval, icon: <Shield className="w-4 h-4" />, description: 'Langfristig' },
+];
 
 const INTERVALS: Interval[] = ['5m', '15m', '1h', '4h', '1d'];
 const INTERVAL_LABELS: Record<Interval, string> = {
@@ -75,13 +82,13 @@ const TRADING_STYLE_LABELS: Record<string, string> = {
 };
 
 export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDetailModalProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('levels');
-  const [selectedInterval, setSelectedInterval] = useState<Interval>('1h');
+  const [selectedPersonaId, setSelectedPersonaId] = useState('daytrader');
+  const activePersona = PERSONAS.find(p => p.id === selectedPersonaId) || PERSONAS[1];
+  const selectedInterval = activePersona.interval;
 
   // Level-Chart State
   const [klines, setKlines] = useState<Kline[]>([]);
   const [levels, setLevels] = useState<TimeframeTechnicalLevels | null>(null);
-  const [recommendations, setRecommendations] = useState<MultiTimeframeRecommendations | null>(null);
   const [loadingLevels, setLoadingLevels] = useState(false);
 
   const isPositive = coin.change24h >= 0;
@@ -103,12 +110,10 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
     }
   }, [coin.symbol]);
 
-  // Beim Tab-Wechsel zu Levels/Trade Daten laden
+  // Daten laden wenn Persona (Interval) sich ändert
   useEffect(() => {
-    if (activeTab === 'levels' || activeTab === 'trade') {
-      fetchLevelData(selectedInterval);
-    }
-  }, [activeTab, selectedInterval, fetchLevelData]);
+    fetchLevelData(selectedInterval);
+  }, [selectedInterval, fetchLevelData]);
 
 
   return (
@@ -182,64 +187,51 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
               Vol/MCap Ratio
             </div>
             <div className="text-lg font-semibold text-gray-900 dark:text-white">
-              {((coin.volume24h / coin.marketCap) * 100).toFixed(2)}%
+              {coin.marketCap > 0 ? `${((coin.volume24h / coin.marketCap) * 100).toFixed(2)}%` : '-'}
             </div>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex items-center gap-4 p-4 border-b border-gray-200 dark:border-gray-800">
-          <button
-            onClick={() => setActiveTab('levels')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'levels'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-          >
-            <Layers className="w-4 h-4" />
-            Level-Chart
-          </button>
-          <button
-            onClick={() => setActiveTab('trade')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'trade'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-          >
-            <Target className="w-4 h-4" />
-            Trade-Setup
-          </button>
+        {/* Persona Selector Navigation */}
+        <div className="flex items-center gap-1 p-4 border-b border-gray-200 dark:border-gray-800 overflow-x-auto no-scrollbar">
+          {PERSONAS.map((persona) => (
+            <button
+              key={persona.id}
+              onClick={() => setSelectedPersonaId(persona.id)}
+              className={`flex flex-col items-center min-w-[120px] p-2 rounded-lg transition-all ${selectedPersonaId === persona.id
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                : 'bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                {persona.icon}
+                <span className="text-sm font-bold">{persona.name}</span>
+              </div>
+              <span className="text-[10px] opacity-70">{persona.description}</span>
+            </button>
+          ))}
 
-
-          {/* Interval für Level-Chart und Trade */}
-          {(activeTab === 'levels' || activeTab === 'trade') && (
-            <div className="flex items-center gap-1 ml-auto">
-              <LineChart className="w-4 h-4 text-gray-400 mr-1" />
-              {INTERVALS.map((interval) => (
-                <button
-                  key={interval}
-                  onClick={() => setSelectedInterval(interval)}
-                  className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${selectedInterval === interval
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                >
-                  {INTERVAL_LABELS[interval]}
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="ml-auto flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
+            <LineChart className="w-3.5 h-3.5 text-gray-400" />
+            <span className="text-xs font-mono text-gray-500">{INTERVAL_LABELS[selectedInterval]}</span>
+          </div>
         </div>
 
-        {/* Tab Content */}
-        <div className="p-4">
-
-          {/* Level-Chart Tab */}
-          {activeTab === 'levels' && (
-            <div className="flex gap-4">
-              <div className="flex-1">
+        {/* Central Cockpit Content */}
+        <div className="p-4 bg-gray-50 dark:bg-gray-900/50">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            {/* Chart Column (75%) */}
+            <div className="lg:col-span-3 space-y-4">
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+                <div className="p-2 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center text-[10px] text-gray-400">
+                  <span className="font-mono uppercase">{coin.symbol} / USDT • {activePersona.name} View</span>
+                  <span className="flex items-center gap-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    Live Data
+                  </span>
+                </div>
                 {loadingLevels ? (
-                  <div className="h-[400px] flex items-center justify-center">
+                  <div className="h-[450px] flex items-center justify-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                   </div>
                 ) : (
@@ -248,186 +240,131 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                     interval={selectedInterval}
                     klines={klines}
                     technicalLevels={levels || undefined}
-                    height={400}
+                    tradeSetup={tradeRecommendations?.[selectedInterval] || null}
+                    height={450}
                     showLevels={true}
                     showFibonacci={true}
-                    showTradeSetup={false}
-                    theme="dark" // Always dark for charting consistency or wire up dynamic
+                    showTradeSetup={true}
+                    theme="dark"
                   />
                 )}
               </div>
+            </div>
 
-              {/* Level Sidebar */}
-              <div className="w-64 space-y-4">
-                {levels && (
-                  <>
-                    {/* Key Levels */}
-                    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                      <h4 className="text-xs text-gray-500 dark:text-gray-400 mb-2">Key Levels</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400 text-sm">Support</span>
-                          <span className="text-green-400 font-mono text-sm">
-                            {levels.keySupport ? `$${levels.keySupport.toLocaleString()}` : '-'}
-                          </span>
+            {/* Trading Sidebar (25%) */}
+            <div className="space-y-4 lg:col-span-1">
+              {/* 1. Active Trade Setup for Persona */}
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+                <div className="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                    <Target className="w-3.5 h-3.5" />
+                    Persona Setup
+                  </h3>
+                </div>
+
+                <div className="p-4">
+                  {tradeRecommendations?.[selectedInterval] ? (
+                    (() => {
+                      const setup = tradeRecommendations[selectedInterval]!;
+                      return (
+                        <div className="space-y-4">
+                          <div className={`p-3 rounded-lg text-center ${setup.type === 'long' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                              setup.type === 'short' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                                'bg-gray-500/10 text-gray-400 border border-gray-500/20'
+                            }`}>
+                            <div className="text-xl font-black">{setup.type.toUpperCase()}</div>
+                            <div className="text-[10px] font-bold tracking-widest mt-1">
+                              {setup.source} • {setup.confidence.toUpperCase()}
+                            </div>
+                          </div>
+
+                          {setup.type !== 'wait' && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800">
+                                <div className="text-[10px] text-gray-500 mb-1 uppercase">Entry</div>
+                                <div className="text-sm font-mono font-bold text-yellow-500">
+                                  {typeof setup.entry === 'number' ? `$${setup.entry.toLocaleString()}` : 'Market'}
+                                </div>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800">
+                                <div className="text-[10px] text-gray-500 mb-1 uppercase">R:R Ratio</div>
+                                <div className="text-sm font-mono font-bold text-blue-400">1:{setup.riskReward.toFixed(1)}</div>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800">
+                                <div className="text-[10px] text-red-500 mb-1 uppercase">Stop Loss</div>
+                                <div className="text-sm font-mono font-bold text-red-500">${setup.stopLoss.toLocaleString()}</div>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded border border-gray-100 dark:border-gray-800">
+                                <div className="text-[10px] text-green-500 mb-1 uppercase">Take Profit</div>
+                                <div className="text-sm font-mono font-bold text-green-500">${setup.takeProfit[0]?.toLocaleString()}</div>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="text-[11px] text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/30 p-2 rounded italic leading-relaxed">
+                            "{setup.reasoning}"
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400 text-sm">Resistance</span>
-                          <span className="text-red-400 font-mono text-sm">
-                            {levels.keyResistance ? `$${levels.keyResistance.toLocaleString()}` : '-'}
-                          </span>
-                        </div>
+                      );
+                    })()
+                  ) : (
+                    <div className="text-center py-6">
+                      <div className="animate-pulse flex flex-col items-center gap-2">
+                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded" />
+                        <div className="text-xs text-gray-400">Generiere Empfehlung...</div>
                       </div>
                     </div>
+                  )}
+                </div>
+              </div>
 
-                    {/* All Supports */}
-                    {levels.supports.length > 0 && (
-                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                        <h4 className="text-xs text-gray-500 dark:text-gray-400 mb-2">Support Level</h4>
-                        {levels.supports.slice(0, 4).map((s, i) => (
-                          <div key={i} className="flex justify-between items-center py-1">
-                            <span className="text-green-400 font-mono text-sm">
-                              ${s.price.toLocaleString()}
-                            </span>
-                            <div className="flex gap-0.5">
-                              {[...Array(s.strength)].map((_, j) => (
-                                <div key={j} className="w-1.5 h-3 bg-green-500 rounded-full" />
+              {/* 2. Key Levels Container */}
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+                <div className="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                    <Layers className="w-3.5 h-3.5" />
+                    S/R Intelligence
+                  </h3>
+                </div>
+                <div className="p-3 space-y-3">
+                  {levels ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="text-center p-2 bg-green-500/5 rounded border border-green-500/10">
+                          <div className="text-[9px] text-green-500 uppercase font-bold mb-1">Support</div>
+                          <div className="text-sm font-mono font-bold text-green-400">${levels.keySupport.toLocaleString()}</div>
+                        </div>
+                        <div className="text-center p-2 bg-red-500/5 rounded border border-red-500/10">
+                          <div className="text-[9px] text-red-500 uppercase font-bold mb-1">Resistance</div>
+                          <div className="text-sm font-mono font-bold text-red-400">${levels.keyResistance.toLocaleString()}</div>
+                        </div>
+                      </div>
+
+                      {levels.fibonacci.length > 0 && (
+                        <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
+                          <div className="text-[10px] text-gray-400 mb-2 font-bold uppercase tracking-tighter">Golden Fib Levels</div>
+                          <div className="space-y-1.5">
+                            {levels.fibonacci
+                              .filter(f => [0.382, 0.5, 0.618].includes(f.ratio))
+                              .map((f, i) => (
+                                <div key={i} className="flex justify-between items-center bg-blue-500/5 p-1.5 rounded">
+                                  <span className="text-[10px] text-blue-400 font-bold">{f.label}</span>
+                                  <span className="text-xs font-mono text-gray-600 dark:text-gray-300">
+                                    ${f.price.toLocaleString()}
+                                  </span>
+                                </div>
                               ))}
-                            </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* All Resistances */}
-                    {levels.resistances.length > 0 && (
-                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                        <h4 className="text-xs text-gray-500 dark:text-gray-400 mb-2">Resistance Level</h4>
-                        {levels.resistances.slice(0, 4).map((r, i) => (
-                          <div key={i} className="flex justify-between items-center py-1">
-                            <span className="text-red-400 font-mono text-sm">
-                              ${r.price.toLocaleString()}
-                            </span>
-                            <div className="flex gap-0.5">
-                              {[...Array(r.strength)].map((_, j) => (
-                                <div key={j} className="w-1.5 h-3 bg-red-500 rounded-full" />
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Fibonacci */}
-                    {levels.fibonacci.length > 0 && (
-                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                        <h4 className="text-xs text-gray-500 dark:text-gray-400 mb-2">Fibonacci</h4>
-                        {levels.fibonacci
-                          .filter((f) => [0.236, 0.382, 0.5, 0.618, 0.786].includes(f.ratio))
-                          .map((f, i) => (
-                            <div key={i} className="flex justify-between items-center py-1">
-                              <span className="text-gray-400 text-xs">{f.label}</span>
-                              <span className="text-blue-400 font-mono text-sm">
-                                ${f.price.toLocaleString()}
-                              </span>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </>
-                )}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-4 text-gray-400 text-xs">Berechne Level...</div>
+                  )}
+                </div>
               </div>
             </div>
-          )}
-
-          {/* Trade-Setup Tab */}
-          {activeTab === 'trade' && (
-            <div className="grid grid-cols-7 gap-3">
-              {INTERVALS.map((interval) => {
-                const setup = tradeRecommendations?.[interval];
-                const isSelected = selectedInterval === interval;
-
-                return (
-                  <div
-                    key={interval}
-                    onClick={() => setSelectedInterval(interval)}
-                    className={`p-3 rounded-lg cursor-pointer transition-all ${isSelected ? 'bg-blue-600/20 border-2 border-blue-500' : 'bg-gray-100 dark:bg-gray-800/50 border-2 border-transparent hover:border-gray-200 dark:hover:border-gray-600'
-                      }`}
-                  >
-                    <div className="text-center mb-2">
-                      <div className="text-base font-bold text-gray-900 dark:text-white">{INTERVAL_LABELS[interval]}</div>
-                      <div className="text-[10px] text-gray-500 dark:text-gray-400">
-                        {interval === '1m' || interval === '3m' ? 'Scalping' :
-                          interval === '5m' ? 'Scalping' :
-                            interval === '15m' ? 'Intraday' :
-                              interval === '1h' ? 'Swing' :
-                                interval === '4h' ? 'Position' : 'Trend'}
-                      </div>
-                    </div>
-
-                    {setup ? (
-                      <>
-                        <div className={`text-center py-1.5 rounded-lg mb-2 ${setup.type === 'long' ? 'bg-green-500/20 text-green-400' :
-                          setup.type === 'short' ? 'bg-red-500/20 text-red-400' :
-                            'bg-gray-500/20 text-gray-400'
-                          }`}>
-                          <div className="font-bold text-sm uppercase">{setup.type}</div>
-                          <div className="flex flex-col items-center gap-0.5 mt-0.5">
-                            <div className="text-[10px] opacity-80">{setup.confidence.toUpperCase()} CONFIDENCE</div>
-                            {setup.source && (
-                              <div className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${setup.source === 'HYBRID' ? 'bg-purple-500/20 border-purple-500/50 text-purple-400' :
-                                setup.source === 'AI_FUSION' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' :
-                                  setup.source === 'INDICATOR' ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' :
-                                    'bg-gray-500/20 border-gray-500/50 text-gray-400'
-                                }`}>
-                                {setup.source}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {setup.type !== 'wait' && (
-                          <div className="space-y-0.5 text-[10px]">
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Entry</span>
-                              <span className="text-yellow-400 font-mono">
-                                {typeof setup.entry === 'number' ? `$${setup.entry.toLocaleString()}` : 'Mkt'}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">SL</span>
-                              <span className="text-red-400 font-mono">${setup.stopLoss.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">TP</span>
-                              <span className="text-green-400 font-mono">${setup.takeProfit[0]?.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500 dark:text-gray-400">RR</span>
-                              <span className="text-gray-900 dark:text-white font-mono">1:{setup.riskReward.toFixed(1)}</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {setup.confluenceWithOtherTimeframes && (
-                          <div className="mt-1 text-[10px] text-blue-400 flex items-center justify-center gap-1">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            MTF
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="text-center py-3 text-gray-500 text-xs">
-                        Keine Daten
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Footer */}
