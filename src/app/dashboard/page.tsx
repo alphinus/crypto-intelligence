@@ -433,6 +433,7 @@ export default function Home() {
         timeframe,
         confluenceWithOtherTimeframes: false,
         tradingStyle,
+        source: 'INDICATOR',
       };
     }
 
@@ -451,6 +452,7 @@ export default function Home() {
         timeframe,
         confluenceWithOtherTimeframes: false,
         tradingStyle,
+        source: 'INDICATOR',
       };
     }
 
@@ -479,6 +481,7 @@ export default function Home() {
         timeframe,
         confluenceWithOtherTimeframes: emaConfirm,
         tradingStyle,
+        source: 'INDICATOR',
       };
     } else {
       const sl = levels.keyResistance || price * 1.03;
@@ -498,6 +501,7 @@ export default function Home() {
         timeframe,
         confluenceWithOtherTimeframes: emaConfirm,
         tradingStyle,
+        source: 'INDICATOR',
       };
     }
   };
