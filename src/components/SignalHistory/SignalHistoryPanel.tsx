@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { History, Filter, Download, Trash2, ChevronDown, RefreshCw } from 'lucide-react';
-import { getSignals, getSignalStats, deleteSignal, clearAllSignals, exportSignals, type StoredSignal, type SignalStats, type SignalSource } from '@/lib/signal-storage';
+import { History, Filter, Download, Trash2, ChevronDown, RefreshCw, PlayCircle } from 'lucide-react';
+import { getSignals, getSignalStats, deleteSignal, clearAllSignals, exportSignals, initDemoSignals, type StoredSignal, type SignalStats, type SignalSource } from '@/lib/signal-storage';
 import { SignalCard } from './SignalCard';
 import { SignalStatsPanel } from './SignalStats';
 
@@ -83,6 +83,13 @@ export function SignalHistoryPanel() {
         URL.revokeObjectURL(url);
     };
 
+    const handleLoadDemo = () => {
+        const count = initDemoSignals();
+        if (count > 0) {
+            loadData();
+        }
+    };
+
     // Get source icon and label
     const getSourceDisplay = (source: SourceFilter) => {
         switch (source) {
@@ -144,6 +151,15 @@ export function SignalHistoryPanel() {
                     >
                         <Download className="w-4 h-4 text-gray-500" />
                     </button>
+                    {signals.length === 0 && (
+                        <button
+                            onClick={handleLoadDemo}
+                            className="p-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 transition-colors"
+                            title="Demo-Daten laden"
+                        >
+                            <PlayCircle className="w-4 h-4 text-purple-400" />
+                        </button>
+                    )}
                     {signals.length > 0 && (
                         <button
                             onClick={handleClearAll}
