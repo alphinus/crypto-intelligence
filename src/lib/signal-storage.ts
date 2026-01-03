@@ -9,6 +9,40 @@
 // TYPES
 // =====================================================
 
+/**
+ * Signal Source - tracks which strategy generated the signal
+ * - INDICATOR: Pure rule-based signals from technical indicators
+ * - AI: Legacy AI-only signals (without indicator data)
+ * - AI_FUSION: AI analysis with full indicator data input
+ * - HYBRID: Signal only when both indicators and AI agree
+ */
+export type SignalSource = 'INDICATOR' | 'AI' | 'AI_FUSION' | 'HYBRID';
+
+/**
+ * Indicator Snapshot - captures all indicator values at signal generation time
+ * Used for backtesting and performance analysis
+ */
+export interface IndicatorSnapshot {
+    rsi: number;
+    macd: {
+        line: number;
+        signal: number;
+        histogram: number;
+    };
+    stochRsi: {
+        k: number;
+        d: number;
+    };
+    atr: number;
+    atrPercent: number;  // ATR as percentage of price
+    emaPositions?: {
+        price: number;
+        ema20: number;
+        ema50: number;
+        ema200: number;
+    };
+}
+
 export interface StoredSignal {
     id: string;
     timestamp: string;
@@ -23,6 +57,9 @@ export interface StoredSignal {
     reasoning: string;
     status: 'active' | 'closed' | 'expired';
     result?: SignalResult;
+    // NEW: Source tracking
+    source?: SignalSource;
+    indicatorSnapshot?: IndicatorSnapshot;
 }
 
 export interface SignalResult {
@@ -43,6 +80,8 @@ export interface SignalStats {
     worstTrade: StoredSignal | null;
     byTimeframe: Record<string, { count: number; winRate: number }>;
     byCoin: Record<string, { count: number; winRate: number }>;
+    // NEW: Stats by source
+    bySource: Record<SignalSource, { count: number; winRate: number; avgPnl: number }>;
 }
 
 // =====================================================
@@ -210,6 +249,8 @@ export function getSignalStats(): SignalStats {
     // Stats by timeframe
     const byTimeframe: Record<string, { count: number; wins: number }> = {};
     const byCoin: Record<string, { count: number; wins: number }> = {};
+    // NEW: Stats by source
+    const bySourceRaw: Record<string, { count: number; wins: number; totalPnl: number }> = {};
 
     closedSignals.forEach(s => {
         // By timeframe
@@ -225,6 +266,32 @@ export function getSignalStats(): SignalStats {
         }
         byCoin[s.coin].count++;
         if (s.result?.outcome === 'win') byCoin[s.coin].wins++;
+
+        // NEW: By source
+        const source = s.source || 'AI';  // Default to 'AI' for legacy signals
+        if (!bySourceRaw[source]) {
+            bySourceRaw[source] = { count: 0, wins: 0, totalPnl: 0 };
+        }
+        bySourceRaw[source].count++;
+        if (s.result?.outcome === 'win') bySourceRaw[source].wins++;
+        bySourceRaw[source].totalPnl += s.result?.pnlPercent || 0;
+    });
+
+    // Initialize all sources with zero stats
+    const allSources: SignalSource[] = ['INDICATOR', 'AI', 'AI_FUSION', 'HYBRID'];
+    const bySource: Record<SignalSource, { count: number; winRate: number; avgPnl: number }> = {} as Record<SignalSource, { count: number; winRate: number; avgPnl: number }>;
+
+    allSources.forEach(source => {
+        const data = bySourceRaw[source];
+        if (data && data.count > 0) {
+            bySource[source] = {
+                count: data.count,
+                winRate: Math.round((data.wins / data.count) * 100),
+                avgPnl: Math.round((data.totalPnl / data.count) * 100) / 100,
+            };
+        } else {
+            bySource[source] = { count: 0, winRate: 0, avgPnl: 0 };
+        }
     });
 
     return {
@@ -248,6 +315,7 @@ export function getSignalStats(): SignalStats {
                 { count: data.count, winRate: Math.round((data.wins / data.count) * 100) }
             ])
         ),
+        bySource,
     };
 }
 

@@ -854,6 +854,14 @@ export interface CoinAnalysisInput {
     mempool?: { count: number; vsize: number };
     difficulty?: { difficultyChange: number };
   } | null;
+  // NEW: Exact indicator values from indicator-engine
+  indicators?: {
+    rsi: number;
+    macd: { line: number; signal: number; histogram: number };
+    stochRsi: { k: number; d: number };
+    atr: number;
+    atrPercent: number;
+  };
 }
 
 // Coin Intelligence Report Interface
@@ -973,6 +981,29 @@ export async function generateCoinIntelligenceReport(
     const socialScore = data.redditSentiment?.sentimentScore || 0;
     const socialSentiment = data.redditSentiment?.sentiment || 'neutral';
 
+    // NEW: Indicators section for AI
+    const hasIndicators = data.indicators && data.indicators.rsi !== undefined;
+    const indicatorsSection = hasIndicators
+      ? `
+TECHNISCHE INDIKATOREN (exakte Werte):
+- RSI(14): ${data.indicators!.rsi.toFixed(1)} ${data.indicators!.rsi > 70 ? '⚠️ ÜBERKAUFT - KEIN LONG!' : data.indicators!.rsi < 30 ? '⚠️ ÜBERVERKAUFT - KEIN SHORT!' : ''}
+- MACD: Line ${data.indicators!.macd.line.toFixed(4)}, Signal ${data.indicators!.macd.signal.toFixed(4)}, Histogram ${data.indicators!.macd.histogram > 0 ? '+' : ''}${data.indicators!.macd.histogram.toFixed(4)} (${data.indicators!.macd.histogram > 0 ? 'bullisch' : 'bärisch'})
+- StochRSI: K=${data.indicators!.stochRsi.k.toFixed(1)}, D=${data.indicators!.stochRsi.d.toFixed(1)} ${data.indicators!.stochRsi.k > 80 ? '⚠️ überkauft' : data.indicators!.stochRsi.k < 20 ? '⚠️ überverkauft' : ''}
+- ATR(14): ${data.indicators!.atr.toFixed(2)} (${data.indicators!.atrPercent.toFixed(2)}% vom Preis = Volatilität)`
+      : '';
+
+    // Veto rules string for AI
+    const vetoRulesSection = hasIndicators
+      ? `
+STRIKTE VETO-REGELN (MÜSSEN EINGEHALTEN WERDEN):
+1. RSI > 70: NIEMALS Long-Signal! Stattdessen "wait" oder Short erwägen.
+2. RSI < 30: NIEMALS Short-Signal! Stattdessen "wait" oder Long erwägen.
+3. StochRSI > 80: Warnung für Long - Markt überkauft.
+4. StochRSI < 20: Warnung für Short - Markt überverkauft.
+5. MACD Histogram negativ + RSI fallend: Bevorzuge Short oder Wait.
+6. MACD Histogram positiv + RSI steigend: Bevorzuge Long oder Wait.`
+      : '';
+
     const prompt = `Du bist ein erfahrener Crypto-Analyst. Erstelle einen detaillierten Analyse-Report für ${symbol}.
 
 TECHNISCHE DATEN:
@@ -983,12 +1014,14 @@ TECHNISCHE DATEN:
 - Key Resistance: $${resistance.toLocaleString()}
 - Confluence Zones: ${zonesStr}
 - EMA Signal: ${emaSignal}
+${indicatorsSection}
 
 SENTIMENT:
 - Reddit: ${socialSentiment} (Score: ${socialScore})
 - Fear & Greed (Markt): ${data.fearGreed || 50}/100
 ${fundingSection}
 ${onChainSection}
+${vetoRulesSection}
 
 Analysiere alle Daten und erstelle einen DEUTSCHEN Report. Antworte NUR mit diesem JSON:
 {

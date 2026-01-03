@@ -63,6 +63,9 @@ import { playAlertSound } from '@/lib/alert-sound';
 import { HelpProvider, Avatar, OnboardingTour } from '@/components/Help';
 import { useTheme } from '@/contexts/ThemeContext';
 import { validateSignal, adjustConfidence, type IndicatorValues } from '@/lib/trade-validation';
+// NEW: Signal Intelligence System imports
+import { calculateIndicatorSnapshot } from '@/lib/indicator-engine';
+import { saveSignal, type IndicatorSnapshot } from '@/lib/signal-storage';
 
 interface MarketResponse {
   success: boolean;
@@ -1186,7 +1189,20 @@ export default function Home() {
       // BTC On-Chain (nur für BTC)
       const onChain = symbol === 'BTC' ? bitcoinData : null;
 
-      // API Call
+      // NEW: Calculate indicator snapshot from current timeframe klines
+      let indicatorSnapshot: IndicatorSnapshot | null = null;
+      // Use 1h as fallback if current timeframe doesn't have klines
+      const validTimeframes = ['1m', '3m', '5m', '15m', '1h', '4h', '1d'] as const;
+      type ValidTimeframe = typeof validTimeframes[number];
+      const tfToUse: ValidTimeframe = validTimeframes.includes(chartTimeframe as ValidTimeframe)
+        ? (chartTimeframe as ValidTimeframe)
+        : '1h';
+      const currentTfKlines = multiTimeframe?.timeframes?.[tfToUse]?.klines;
+      if (currentTfKlines && currentTfKlines.length > 50) {
+        indicatorSnapshot = calculateIndicatorSnapshot({ klines: currentTfKlines });
+      }
+
+      // API Call - now includes indicator data
       const res = await fetch('/api/coin-intelligence', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1201,19 +1217,50 @@ export default function Home() {
           redditSentiment: redditData?.overall,
           fearGreed: marketData?.fearGreed?.value,
           bitcoinOnChain: onChain,
+          // NEW: Send indicator snapshot to AI
+          indicators: indicatorSnapshot ? {
+            rsi: indicatorSnapshot.rsi,
+            macd: indicatorSnapshot.macd,
+            stochRsi: indicatorSnapshot.stochRsi,
+            atr: indicatorSnapshot.atr,
+            atrPercent: indicatorSnapshot.atrPercent,
+          } : undefined,
         }),
       });
 
       const data = await res.json();
       if (data.success) {
         setCoinReport(data.report);
+
+        // NEW: Auto-save signal to historie if it's not a "wait" signal
+        const recommendation = data.report?.tradeRecommendation;
+        if (recommendation && recommendation.type !== 'wait') {
+          try {
+            saveSignal({
+              coin: symbol + 'USDT',
+              type: recommendation.type,
+              entry: recommendation.entry,
+              stopLoss: recommendation.stopLoss,
+              takeProfit: recommendation.takeProfit,
+              score: data.report.confidenceScore || 0,
+              confidence: recommendation.confidence,
+              timeframe: recommendation.bestTimeframe || chartTimeframe,
+              reasoning: recommendation.reasoning,
+              source: indicatorSnapshot ? 'AI_FUSION' : 'AI',
+              indicatorSnapshot: indicatorSnapshot || undefined,
+            });
+            console.log('[Signal Intelligence] Signal saved to historie:', recommendation.type, symbol);
+          } catch (saveErr) {
+            console.error('[Signal Intelligence] Failed to save signal:', saveErr);
+          }
+        }
       }
     } catch (err) {
       console.error('Coin report error:', err);
     } finally {
       setAnalyzingCoin(false);
     }
-  }, [multiTimeframe, allTimeframeLevels, futuresData, bitcoinData, confluenceZones, redditData, marketData]);
+  }, [multiTimeframe, allTimeframeLevels, futuresData, bitcoinData, confluenceZones, redditData, marketData, chartTimeframe]);
 
   const generateIntelligenceReport = async () => {
     // Rate limiting: Check cooldown

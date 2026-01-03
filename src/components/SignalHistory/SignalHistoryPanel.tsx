@@ -3,16 +3,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { History, Filter, Download, Trash2, ChevronDown, RefreshCw } from 'lucide-react';
-import { getSignals, getSignalStats, deleteSignal, clearAllSignals, exportSignals, type StoredSignal, type SignalStats } from '@/lib/signal-storage';
+import { getSignals, getSignalStats, deleteSignal, clearAllSignals, exportSignals, type StoredSignal, type SignalStats, type SignalSource } from '@/lib/signal-storage';
 import { SignalCard } from './SignalCard';
 import { SignalStatsPanel } from './SignalStats';
 
 type FilterType = 'all' | 'active' | 'closed' | 'win' | 'loss';
+type SourceFilter = 'all' | SignalSource;
 
 export function SignalHistoryPanel() {
     const [signals, setSignals] = useState<StoredSignal[]>([]);
     const [stats, setStats] = useState<SignalStats | null>(null);
     const [filter, setFilter] = useState<FilterType>('all');
+    const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
     const [showStats, setShowStats] = useState(true);
     const [loading, setLoading] = useState(true);
 
@@ -30,18 +32,30 @@ export function SignalHistoryPanel() {
     }, [loadData]);
 
     const filteredSignals = signals.filter(signal => {
+        // Status filter
+        let passesStatusFilter = true;
         switch (filter) {
             case 'active':
-                return signal.status === 'active';
+                passesStatusFilter = signal.status === 'active';
+                break;
             case 'closed':
-                return signal.status === 'closed';
+                passesStatusFilter = signal.status === 'closed';
+                break;
             case 'win':
-                return signal.result?.outcome === 'win';
+                passesStatusFilter = signal.result?.outcome === 'win';
+                break;
             case 'loss':
-                return signal.result?.outcome === 'loss';
-            default:
-                return true;
+                passesStatusFilter = signal.result?.outcome === 'loss';
+                break;
         }
+
+        // Source filter
+        let passesSourceFilter = true;
+        if (sourceFilter !== 'all') {
+            passesSourceFilter = (signal.source || 'AI') === sourceFilter;
+        }
+
+        return passesStatusFilter && passesSourceFilter;
     });
 
     const handleDelete = (id: string) => {
@@ -67,6 +81,26 @@ export function SignalHistoryPanel() {
         a.download = `crypto-intel-signals-${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
+    };
+
+    // Get source icon and label
+    const getSourceDisplay = (source: SourceFilter) => {
+        switch (source) {
+            case 'INDICATOR': return { icon: '🔢', label: 'Indikatoren' };
+            case 'AI': return { icon: '🤖', label: 'AI (Legacy)' };
+            case 'AI_FUSION': return { icon: '🧠', label: 'AI Fusion' };
+            case 'HYBRID': return { icon: '⚡', label: 'Hybrid' };
+            default: return { icon: '📊', label: 'Alle Quellen' };
+        }
+    };
+
+    // Count signals by source
+    const sourceCounts: Record<string, number> = {
+        all: signals.length,
+        INDICATOR: signals.filter(s => s.source === 'INDICATOR').length,
+        AI: signals.filter(s => !s.source || s.source === 'AI').length,
+        AI_FUSION: signals.filter(s => s.source === 'AI_FUSION').length,
+        HYBRID: signals.filter(s => s.source === 'HYBRID').length,
     };
 
     if (loading) {
@@ -148,15 +182,39 @@ export function SignalHistoryPanel() {
                 )}
             </AnimatePresence>
 
-            {/* Filter Buttons */}
+            {/* Source Filter - NEW */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                <span className="text-xs text-gray-500 whitespace-nowrap">Quelle:</span>
+                {(['all', 'AI_FUSION', 'AI', 'INDICATOR', 'HYBRID'] as SourceFilter[]).map((s) => {
+                    const display = getSourceDisplay(s);
+                    const count = sourceCounts[s] || 0;
+                    // Only show filters that have signals (except 'all')
+                    if (s !== 'all' && count === 0) return null;
+                    return (
+                        <button
+                            key={s}
+                            onClick={() => setSourceFilter(s)}
+                            className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${sourceFilter === s
+                                ? 'bg-purple-500 text-white'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                }`}
+                        >
+                            {display.icon} {s === 'all' ? 'Alle' : display.label} {count > 0 && `(${count})`}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* Status Filter Buttons */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                <span className="text-xs text-gray-500 whitespace-nowrap">Status:</span>
                 {(['all', 'active', 'closed', 'win', 'loss'] as FilterType[]).map((f) => (
                     <button
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${filter === f
-                                ? 'bg-blue-500 text-white'
-                                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                             }`}
                     >
                         {f === 'all' && 'Alle'}

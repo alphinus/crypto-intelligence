@@ -90,31 +90,46 @@ export function SignalCard({ signal, onClose, compact = false }: SignalCardProps
                 </div>
 
                 {/* Status Badge */}
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${isActive
+                <div className="flex items-center gap-2">
+                    {/* Source Badge - NEW */}
+                    {signal.source && (
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${signal.source === 'AI_FUSION' ? 'bg-purple-500/20 text-purple-400' :
+                                signal.source === 'INDICATOR' ? 'bg-blue-500/20 text-blue-400' :
+                                    signal.source === 'HYBRID' ? 'bg-amber-500/20 text-amber-400' :
+                                        'bg-gray-500/20 text-gray-400'
+                            }`}>
+                            {signal.source === 'AI_FUSION' ? '🧠 AI Fusion' :
+                                signal.source === 'INDICATOR' ? '🔢 Indikatoren' :
+                                    signal.source === 'HYBRID' ? '⚡ Hybrid' :
+                                        '🤖 AI'}
+                        </span>
+                    )}
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${isActive
                         ? 'bg-blue-500/20 text-blue-400'
                         : hasResult
                             ? signal.result!.outcome === 'win'
                                 ? 'bg-green-500/20 text-green-400'
                                 : 'bg-red-500/20 text-red-400'
                             : 'bg-gray-500/20 text-gray-400'
-                    }`}>
-                    {isActive ? (
-                        <>
-                            <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                            Aktiv
-                        </>
-                    ) : hasResult ? (
-                        <>
-                            {signal.result!.outcome === 'win' ? (
-                                <CheckCircle className="w-3 h-3" />
-                            ) : (
-                                <XCircle className="w-3 h-3" />
-                            )}
-                            {signal.result!.outcome === 'win' ? 'Gewinn' : 'Verlust'}
-                        </>
-                    ) : (
-                        'Abgelaufen'
-                    )}
+                        }`}>
+                        {isActive ? (
+                            <>
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                                Aktiv
+                            </>
+                        ) : hasResult ? (
+                            <>
+                                {signal.result!.outcome === 'win' ? (
+                                    <CheckCircle className="w-3 h-3" />
+                                ) : (
+                                    <XCircle className="w-3 h-3" />
+                                )}
+                                {signal.result!.outcome === 'win' ? 'Gewinn' : 'Verlust'}
+                            </>
+                        ) : (
+                            'Abgelaufen'
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -147,8 +162,8 @@ export function SignalCard({ signal, onClose, compact = false }: SignalCardProps
                     <span className="text-sm text-gray-500">Score</span>
                 </div>
                 <div className={`font-bold ${signal.score >= 70 ? 'text-green-400' :
-                        signal.score >= 50 ? 'text-yellow-400' :
-                            'text-red-400'
+                    signal.score >= 50 ? 'text-yellow-400' :
+                        'text-red-400'
                     }`}>
                     {signal.score}/100
                 </div>
