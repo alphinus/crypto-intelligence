@@ -269,8 +269,8 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                       return (
                         <div className="space-y-4">
                           <div className={`p-3 rounded-lg text-center ${setup.type === 'long' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
-                              setup.type === 'short' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                                'bg-gray-500/10 text-gray-400 border border-gray-500/20'
+                            setup.type === 'short' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                              'bg-gray-500/10 text-gray-400 border border-gray-500/20'
                             }`}>
                             <div className="text-xl font-black">{setup.type.toUpperCase()}</div>
                             <div className="text-[10px] font-bold tracking-widest mt-1">
@@ -332,11 +332,11 @@ export function CoinDetailModal({ coin, onClose, tradeRecommendations }: CoinDet
                       <div className="grid grid-cols-2 gap-2">
                         <div className="text-center p-2 bg-green-500/5 rounded border border-green-500/10">
                           <div className="text-[9px] text-green-500 uppercase font-bold mb-1">Support</div>
-                          <div className="text-sm font-mono font-bold text-green-400">${levels.keySupport.toLocaleString()}</div>
+                          <div className="text-sm font-mono font-bold text-green-400">${levels.keySupport?.toLocaleString() || '-'}</div>
                         </div>
                         <div className="text-center p-2 bg-red-500/5 rounded border border-red-500/10">
                           <div className="text-[9px] text-red-500 uppercase font-bold mb-1">Resistance</div>
-                          <div className="text-sm font-mono font-bold text-red-400">${levels.keyResistance.toLocaleString()}</div>
+                          <div className="text-sm font-mono font-bold text-red-400">${levels.keyResistance?.toLocaleString() || '-'}</div>
                         </div>
                       </div>
 
