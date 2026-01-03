@@ -106,7 +106,7 @@ function formatVolume(value: number): string {
 type TimeframeKey = '1H' | '24H' | '7D' | '30D' | '1Y';
 type TabType = 'tradingview' | 'levels' | 'trade';
 
-const INTERVALS: Interval[] = ['1m', '3m', '5m', '15m', '1h', '4h', '1d'];
+const INTERVALS: Interval[] = ['5m', '15m', '1h', '4h', '1d'];
 const INTERVAL_LABELS: Record<Interval, string> = {
   '1m': '1M', '3m': '3M', '5m': '5M', '15m': '15M', '30m': '30M',
   '1h': '1H', '4h': '4H', '1d': '1D', '1w': '1W',
