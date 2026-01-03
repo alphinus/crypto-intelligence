@@ -11,6 +11,7 @@ interface TrendingSidebarProps {
   onCoinDetailClick: (coin: MarketData) => void;
   onAddCustomCoin?: (symbol: string) => Promise<MarketData | null>;
   customCoins?: MarketData[];
+  expertiseLevel?: 'beginner' | 'standard' | 'expert' | 'intelligence';
 }
 
 export function TrendingSidebar({
@@ -21,6 +22,7 @@ export function TrendingSidebar({
   onCoinDetailClick,
   onAddCustomCoin,
   customCoins = [],
+  expertiseLevel = 'standard',
 }: TrendingSidebarProps) {
   const [showAddCoin, setShowAddCoin] = useState(false);
   const [customSymbol, setCustomSymbol] = useState('');
@@ -200,10 +202,10 @@ export function TrendingSidebar({
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            Top 20 Coins
+            {expertiseLevel === 'beginner' ? 'Top 10 Coins' : expertiseLevel === 'standard' ? 'Top 20 Coins' : 'Markt Übersicht'}
           </h3>
           <div className="space-y-1">
-            {coins.slice(0, 20).map((coin, index) => (
+            {coins.slice(0, expertiseLevel === 'beginner' ? 10 : expertiseLevel === 'standard' ? 20 : 25).map((coin, index) => (
               <div
                 key={coin.id || `coin-${coin.symbol}-${index}`}
                 className={`flex items-center gap-2 p-2 rounded-lg transition-all ${isSelected(coin)

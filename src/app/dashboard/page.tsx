@@ -164,6 +164,15 @@ export default function Home() {
   const [expertiseLevel, setExpertiseLevel] = useState<ExpertiseLevel>('standard');
   const [tradingPersona, setTradingPersona] = useState<TradingPersona>('daytrader');
 
+  // Sync Level with Layout & Expansion
+  useEffect(() => {
+    if (expertiseLevel === 'beginner') {
+      setTradeSignalsLayout('below');
+    } else if (['expert', 'intelligence'].includes(expertiseLevel)) {
+      setTradeSignalsLayout('sidebar');
+    }
+  }, [expertiseLevel]);
+
   // Sync Persona with Chart Timeframe
   const handlePersonaChange = useCallback((newPersona: TradingPersona) => {
     setTradingPersona(newPersona);
@@ -1591,6 +1600,7 @@ export default function Home() {
                   onCoinDetailClick={(coin) => setModalCoin(coin)}
                   onAddCustomCoin={handleAddCustomCoin}
                   customCoins={customCoins}
+                  expertiseLevel={expertiseLevel}
                 />
               )}
             </div>
@@ -1728,6 +1738,7 @@ export default function Home() {
                       defaultOpen={true}
                       badge={Object.values(tradeRecommendations).filter(r => r && r.type !== 'wait').length || undefined}
                       badgeColor="blue"
+                      key={`signals-${expertiseLevel}`}
                     >
                       <TradeRecommendations
                         recommendations={tradeRecommendations}
@@ -1750,9 +1761,10 @@ export default function Home() {
                     <CollapsibleSection
                       title="Liquidations"
                       icon={<Zap className="w-4 h-4 text-yellow-400" />}
-                      defaultOpen={false}
+                      defaultOpen={['expert', 'intelligence'].includes(expertiseLevel)}
                       badge={liquidationConnected ? 'Live' : undefined}
                       badgeColor="green"
+                      key={`liquidations-${expertiseLevel}`}
                     >
                       <div className="space-y-4">
                         <LiquidationStats stats={liquidationStats} isConnected={liquidationConnected} />
@@ -1777,9 +1789,10 @@ export default function Home() {
                     <CollapsibleSection
                       title="Preisalarme"
                       icon={<Bell className="w-4 h-4" />}
-                      defaultOpen={false}
+                      defaultOpen={['expert', 'intelligence'].includes(expertiseLevel)}
                       badge={alerts.filter(a => a.enabled).length || undefined}
                       badgeColor="yellow"
+                      key={`alerts-${expertiseLevel}`}
                     >
                       <AlertManager
                         alerts={alerts}
