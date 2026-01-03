@@ -1,16 +1,17 @@
-import { useState } from 'react';
-import { TrendingUp, TrendingDown, ChevronRight, Plus, X, Loader2 } from 'lucide-react';
-import { FearGreedCompact } from './FearGreedCompact';
-import type { MarketData, FearGreedIndex } from '@/types/news';
+import { Flag, ChevronDown, Settings2, Search } from 'lucide-react';
+
+export type WatchlistCategory = 'FAVORITEN' | 'LISTE_1' | 'LISTE_2';
 
 interface TrendingSidebarProps {
   coins: MarketData[];
-  fearGreed: FearGreedIndex | null;
+  fearGreed: MarketData['fearGreed'] | null;
   selectedCoin: MarketData | null;
   onCoinSelect: (coin: MarketData) => void;
   onCoinDetailClick: (coin: MarketData) => void;
   onAddCustomCoin?: (symbol: string) => Promise<MarketData | null>;
   customCoins?: MarketData[];
+  watchlistData?: Record<string, WatchlistCategory | null>;
+  onToggleWatchlist?: (symbol: string, category: WatchlistCategory) => void;
   expertiseLevel?: 'beginner' | 'standard' | 'expert' | 'intelligence';
 }
 
@@ -22,19 +23,33 @@ export function TrendingSidebar({
   onCoinDetailClick,
   onAddCustomCoin,
   customCoins = [],
+  watchlistData = {},
+  onToggleWatchlist,
   expertiseLevel = 'standard',
 }: TrendingSidebarProps) {
   const [showAddCoin, setShowAddCoin] = useState(false);
   const [customSymbol, setCustomSymbol] = useState('');
   const [addingCoin, setAddingCoin] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    FAVORITEN: true,
+    LISTE_1: true,
+    LISTE_2: true,
+    MARKET: true
+  });
+
+  const categories: { id: WatchlistCategory | 'MARKET'; label: string; color?: string }[] = [
+    { id: 'FAVORITEN', label: 'FAVORITEN', color: 'text-red-500' },
+    { id: 'LISTE_1', label: 'LISTE 1 (GELB)', color: 'text-yellow-500' },
+    { id: 'LISTE_2', label: 'LISTE 2 (VIOLETT)', color: 'text-purple-500' },
+    { id: 'MARKET', label: 'MARKT ÜBERSICHT', color: 'text-gray-400' }
+  ];
 
   const handleAddCoin = async () => {
     if (!customSymbol.trim() || !onAddCustomCoin) return;
-
     setAddingCoin(true);
     setAddError(null);
-
     try {
       const result = await onAddCustomCoin(customSymbol.trim().toUpperCase());
       if (result) {
@@ -51,259 +66,140 @@ export function TrendingSidebar({
   };
 
   const formatPrice = (price: number) => {
-    if (price >= 1000) {
-      return `$${price.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
-    } else if (price >= 1) {
-      return `$${price.toFixed(2)}`;
+    if (price >= 1000) return price.toLocaleString('en-US', { maximumFractionDigits: 1 });
+    if (price >= 1) return price.toFixed(2);
+    return price.toFixed(4);
+  };
+
+  const isSelected = (coin: MarketData) => selectedCoin?.symbol === coin.symbol;
+
+  const getFilteredCoins = (catId: WatchlistCategory | 'MARKET') => {
+    const allAvailable = [...coins, ...customCoins];
+    const unique = Array.from(new Map(allAvailable.map(c => [c.symbol, c])).values());
+
+    let filtered = unique;
+    if (catId === 'MARKET') {
+      filtered = unique.filter(c => !watchlistData[c.symbol]);
     } else {
-      return `$${price.toFixed(4)}`;
+      filtered = unique.filter(c => watchlistData[c.symbol] === catId);
     }
-  };
 
-  const formatChange = (change: number) => {
-    const prefix = change >= 0 ? '+' : '';
-    return `${prefix}${change.toFixed(2)}%`;
-  };
-
-  const isSelected = (coin: MarketData) => {
-    return selectedCoin?.symbol.toLowerCase() === coin.symbol.toLowerCase();
+    if (searchQuery) {
+      filtered = filtered.filter(c =>
+        c.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    return filtered;
   };
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-800 z-20">
-      {/* Fear & Greed Section - Compact Premium */}
-      {fearGreed && (
-        <FearGreedCompact
-          value={fearGreed.value}
-          classification={fearGreed.label}
-        />
-      )}
+    <div className="h-full flex flex-col bg-[#0c0d10] text-[#d1d4dc] border-r border-[#2a2e39] font-sans overflow-hidden select-none">
+      {/* Search & Header */}
+      <div className="p-2 border-b border-[#2a2e39] flex flex-col gap-2">
+        <div className="flex items-center justify-between text-xs px-1">
+          <span className="font-bold flex items-center gap-2">
+            WATCHLIST <ChevronDown className="w-3 h-3" />
+          </span>
+          <div className="flex items-center gap-3">
+            <Plus className="w-4 h-4 cursor-pointer hover:text-white" onClick={() => setShowAddCoin(!showAddCoin)} />
+            <Settings2 className="w-4 h-4 cursor-pointer hover:text-white" />
+          </div>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Suchen..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#1e222d] border border-transparent focus:border-blue-500 rounded px-7 py-1 text-xs outline-none transition-all"
+          />
+        </div>
+      </div>
 
-      {/* Add Custom Coin Section */}
-      <div className="p-3 border-b border-gray-200 dark:border-gray-800">
-        {showAddCoin ? (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={customSymbol}
-                onChange={(e) => setCustomSymbol(e.target.value.toUpperCase())}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddCoin()}
-                placeholder="z.B. PEPE, WIF..."
-                className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-2 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-                autoFocus
-              />
-              <button
-                onClick={handleAddCoin}
-                disabled={addingCoin || !customSymbol.trim()}
-                className="p-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded text-white"
+      {/* Table Header */}
+      <div className="flex items-center px-4 py-2 text-[10px] text-gray-500 font-bold border-b border-[#2a2e39] uppercase tracking-wider">
+        <div className="flex-1">Symbol</div>
+        <div className="w-20 text-right">Zuletzt</div>
+        <div className="w-16 text-right">Änd %</div>
+      </div>
+
+      {/* Watchlist Content */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        {categories.map((cat) => {
+          const catCoins = getFilteredCoins(cat.id);
+          if (catCoins.length === 0 && cat.id !== 'MARKET') return null;
+
+          return (
+            <div key={cat.id} className="mb-1">
+              <div
+                className="flex items-center gap-2 px-3 py-1 bg-[#1e222d]/30 hover:bg-[#1e222d] cursor-pointer"
+                onClick={() => setExpandedSections(prev => ({ ...prev, [cat.id]: !prev[cat.id] }))}
               >
-                {addingCoin ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              </button>
-              <button
-                onClick={() => { setShowAddCoin(false); setAddError(null); }}
-                className="p-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded text-gray-700 dark:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
+                <ChevronDown className={`w-3 h-3 transition-transform ${!expandedSections[cat.id] ? '-rotate-90' : ''}`} />
+                <span className={`text-[10px] font-bold tracking-widest ${cat.color || 'text-gray-400'}`}>
+                  {cat.label}
+                </span>
+                <span className="text-[10px] text-gray-600 ml-auto">{catCoins.length}</span>
+              </div>
+
+              {expandedSections[cat.id] && catCoins.map((coin) => (
+                <div
+                  key={coin.symbol}
+                  className={`group flex items-center px-3 py-1.5 hover:bg-[#1e222d] cursor-pointer transition-colors border-l-2 ${isSelected(coin) ? 'border-blue-500 bg-blue-500/5' : 'border-transparent'}`}
+                  onClick={() => onCoinSelect(coin)}
+                >
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="relative">
+                      {watchlistData[coin.symbol] === 'FAVORITEN' && <Flag className="w-3 h-3 text-red-500 fill-red-500" />}
+                      {watchlistData[coin.symbol] === 'LISTE_1' && <Flag className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
+                      {watchlistData[coin.symbol] === 'LISTE_2' && <Flag className="w-3 h-3 text-purple-500 fill-purple-500" />}
+                      {!watchlistData[coin.symbol] && <Flag className="w-3 h-3 text-gray-800 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleWatchlist?.(coin.symbol, 'FAVORITEN');
+                      }} />}
+                    </div>
+                    <img src={coin.image} className="w-5 h-5 rounded-full" alt="" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-bold text-gray-200">{coin.symbol.toUpperCase()}</span>
+                      <span className="text-[10px] text-gray-500 truncate">{coin.name}</span>
+                    </div>
+                  </div>
+                  <div className="w-20 text-right text-xs font-mono text-gray-300">
+                    {formatPrice(coin.price)}
+                  </div>
+                  <div className={`w-16 text-right text-xs font-mono font-bold ${coin.change24h >= 0 ? 'text-[#089981]' : 'text-[#f23645]'}`}>
+                    {(coin.change24h >= 0 ? '+' : '') + coin.change24h.toFixed(2)}%
+                  </div>
+
+                  {/* Quick Detail View Button */}
+                  <div className="hidden group-hover:flex items-center pl-2">
+                    <ChevronRight
+                      className="w-4 h-4 text-gray-500 hover:text-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onCoinDetailClick(coin);
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
-            {addError && (
-              <p className="text-[10px] text-red-400">{addError}</p>
-            )}
+          );
+        })}
+      </div>
+
+      {/* Fear Greed Overlay */}
+      <div className="p-2 border-t border-[#2a2e39]">
+        {fearGreed && (
+          <div className="bg-[#1e222d] rounded-lg p-2 flex items-center justify-between">
+            <span className="text-[10px] font-bold text-gray-500 uppercase">Fear & Greed</span>
+            <span className={`text-[11px] font-bold ${fearGreed.value > 50 ? 'text-green-500' : 'text-orange-500'}`}>
+              {fearGreed.value} - {fearGreed.label}
+            </span>
           </div>
-        ) : (
-          <button
-            onClick={() => setShowAddCoin(true)}
-            className="flex items-center gap-2 w-full px-3 py-2 bg-gray-100 dark:bg-gray-800/50 hover:bg-gray-200 dark:hover:bg-gray-700/50 border border-gray-300 dark:border-gray-700 border-dashed rounded-lg text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Eigenen Coin hinzufügen
-          </button>
         )}
-      </div>
-
-      {/* Custom Coins Section */}
-      {customCoins.length > 0 && (
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-          <h3 className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-3">
-            Eigene Coins
-          </h3>
-          <div className="space-y-1">
-            {customCoins.map((coin) => (
-              <div
-                key={`custom-${coin.symbol}`}
-                className={`flex items-center gap-2 p-2 rounded-lg transition-all ${isSelected(coin)
-                  ? 'bg-purple-600/20 border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.3)]'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-800/50 border border-transparent'
-                  }`}
-              >
-                <button
-                  onClick={() => onCoinSelect(coin)}
-                  className="flex-1 flex items-center gap-3 text-left min-w-0"
-                >
-
-
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="relative flex-shrink-0">
-                      {coin.image ? (
-                        <img
-                          src={coin.image}
-                          alt=""
-                          className="w-9 h-9 rounded-full bg-gray-800 border-2 border-gray-700/50 object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            const parent = target.parentElement;
-                            if (parent && !parent.querySelector('.coin-fallback')) {
-                              const fallback = document.createElement('div');
-                              fallback.className = 'coin-fallback w-9 h-9 rounded-full bg-purple-600/20 border-2 border-purple-500/30 flex items-center justify-center text-[11px] text-purple-400 font-bold';
-                              fallback.innerText = coin.symbol.slice(0, 2).toUpperCase();
-                              parent.appendChild(fallback);
-                            }
-                          }}
-                        />
-                      ) : (
-                        <div className="w-9 h-9 rounded-full bg-gray-800 border-2 border-gray-700/50 flex items-center justify-center text-[11px] text-gray-400 font-bold">
-                          {coin.symbol.slice(0, 2).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col min-w-0 space-y-0.5">
-                      <span className="font-bold text-white text-[13px] truncate tracking-tight leading-none overflow-hidden">
-                        {coin.name}
-                      </span>
-                      <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest leading-none">
-                        {coin.symbol}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-xs font-mono text-gray-900 dark:text-white tracking-tight">{formatPrice(coin.price)}</div>
-                    <div className={`text-[10px] font-medium ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {formatChange(coin.change24h)}
-                    </div>
-                  </div>
-                </button>
-                <button
-                  onClick={() => onCoinDetailClick(coin)}
-                  className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700/50 text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Trending Coins */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4">
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            {expertiseLevel === 'beginner' ? 'Top 10 Coins' : expertiseLevel === 'standard' ? 'Top 20 Coins' : 'Markt Übersicht'}
-          </h3>
-          <div className="space-y-1">
-            {coins.slice(0, expertiseLevel === 'beginner' ? 10 : expertiseLevel === 'standard' ? 20 : 25).map((coin, index) => (
-              <div
-                key={coin.id || `coin-${coin.symbol}-${index}`}
-                className={`flex items-center gap-2 p-2 rounded-lg transition-all ${isSelected(coin)
-                  ? 'bg-blue-600/20 border border-blue-500/50'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-800/50 border border-transparent'
-                  }`}
-              >
-                {/* Main clickable area - selects coin for analysis */}
-                <button
-                  onClick={() => onCoinSelect(coin)}
-                  className="flex-1 flex items-center gap-3 text-left min-w-0"
-                  title={`${coin.name} für Trade-Empfehlungen auswählen`}
-                >
-
-
-                  {/* Coin Icon & Info */}
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="relative flex-shrink-0">
-                      {coin.image ? (
-                        <img
-                          src={coin.image}
-                          alt="" // Leave empty to prevent text overlap on error
-                          className="w-9 h-9 rounded-full bg-gray-800 border-2 border-gray-700/50 object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            const parent = target.parentElement;
-                            if (parent && !parent.querySelector('.coin-fallback')) {
-                              const fallback = document.createElement('div');
-                              fallback.className = 'coin-fallback w-9 h-9 rounded-full bg-blue-600/20 border-2 border-blue-500/30 flex items-center justify-center text-[11px] text-blue-400 font-bold';
-                              fallback.innerText = coin.symbol.slice(0, 2).toUpperCase();
-                              parent.appendChild(fallback);
-                            }
-                          }}
-                        />
-                      ) : (
-                        <div className="w-9 h-9 rounded-full bg-gray-800 border-2 border-gray-700/50 flex items-center justify-center text-[11px] text-gray-400 font-bold">
-                          {coin.symbol.slice(0, 2).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col min-w-0 space-y-0.5">
-                      <span className="font-bold text-white text-[13px] truncate tracking-tight leading-none overflow-hidden">
-                        {coin.name}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest leading-none">
-                          {coin.symbol}
-                        </span>
-                        {coin.change24h >= 0 ? (
-                          <div className="flex items-center text-green-400/60">
-                            <TrendingUp className="w-2.5 h-2.5" />
-                          </div>
-                        ) : (
-                          <div className="flex items-center text-red-400/60">
-                            <TrendingDown className="w-2.5 h-2.5" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Price & Change */}
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-xs font-mono text-gray-900 dark:text-white tracking-tight">{formatPrice(coin.price)}</div>
-                    <div
-                      className={`text-[10px] font-medium ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'
-                        }`}
-                    >
-                      {formatChange(coin.change24h)}
-                    </div>
-                  </div>
-                </button>
-
-                {/* Detail button - opens modal with charts */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCoinDetailClick(coin);
-                  }}
-                  className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700/50 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex-shrink-0"
-                  title="Chart & Details öffnen"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="p-3 border-t border-gray-200 dark:border-gray-800 space-y-1">
-        <div className="flex items-center gap-2 text-[10px] text-gray-500">
-          <ChevronRight className="w-3 h-3" />
-          <span>= Chart & Setup öffnen</span>
-        </div>
       </div>
     </div>
   );

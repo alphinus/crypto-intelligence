@@ -3,8 +3,10 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Brain, AlertCircle, Sparkles, TrendingUp, Zap, Bell, Activity, Shield, GraduationCap, User } from 'lucide-react';
-import { NewsTicker } from '@/components/NewsTicker';
-import { TrendingSidebar } from '@/components/TrendingSidebar';
+import { TrendingSidebar, type WatchlistCategory } from '@/components/TrendingSidebar';
+import { supabase } from '@/lib/supabase';
+import { LogOut, ChevronDown, User, GraduationCap } from 'lucide-react';
+import { AuthModal } from '@/components/Auth/AuthModal';
 import { TradeRecommendations } from '@/components/TradeRecommendations';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { MiniWidgets } from '@/components/MiniWidgets';
@@ -160,9 +162,80 @@ export default function Home() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [tradeSignalsLayout, setTradeSignalsLayout] = useState<'below' | 'sidebar'>('sidebar');
 
-  // NEW: Global Perspective Context
   const [expertiseLevel, setExpertiseLevel] = useState<ExpertiseLevel>('standard');
   const [tradingPersona, setTradingPersona] = useState<TradingPersona>('daytrader');
+  const [watchlistData, setWatchlistData] = useState<Record<string, WatchlistCategory | null>>({});
+  const [session, setSession] = useState<any>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Supabase Session Logic
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Load User Settings from Supabase
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const loadSettings = async () => {
+      const { data, error } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (data) {
+        if (data.expertise_level) setExpertiseLevel(data.expertise_level);
+        if (data.trading_persona) setTradingPersona(data.trading_persona);
+        if (data.watchlist) setWatchlistData(data.watchlist);
+      }
+    };
+
+    loadSettings();
+  }, [session]);
+
+  // Save User Settings to Supabase (Debounced)
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const saveSettings = async () => {
+      await supabase
+        .from('user_settings')
+        .upsert({
+          user_id: session.user.id,
+          expertise_level: expertiseLevel,
+          trading_persona: tradingPersona,
+          watchlist: watchlistData,
+          updated_at: new Date().toISOString(),
+        });
+    };
+
+    const timer = setTimeout(saveSettings, 2000);
+    return () => clearTimeout(timer);
+  }, [expertiseLevel, tradingPersona, watchlistData, session]);
+
+  // Watchlist Toggle Logic
+  const handleToggleWatchlist = useCallback((symbol: string, category: WatchlistCategory) => {
+    setWatchlistData(prev => {
+      const current = prev[symbol];
+      if (current === category) {
+        const next = { ...prev };
+        delete next[symbol];
+        return next;
+      }
+      return { ...prev, [symbol]: category };
+    });
+  }, []);
 
   // Sync Level with Layout & Expansion
   useEffect(() => {
@@ -1552,6 +1625,9 @@ export default function Home() {
           fetchData={fetchData}
           fetchTradeRecommendations={() => selectedAnalysisCoin && fetchTradeRecommendations(selectedAnalysisCoin.symbol)}
           setLastUpdated={setLastUpdated}
+          user={session?.user}
+          onLogin={() => setShowAuthModal(true)}
+          onLogout={() => supabase.auth.signOut()}
         />
 
         {/* News Ticker */}
@@ -1601,6 +1677,8 @@ export default function Home() {
                   onAddCustomCoin={handleAddCustomCoin}
                   customCoins={customCoins}
                   expertiseLevel={expertiseLevel}
+                  watchlistData={watchlistData}
+                  onToggleWatchlist={handleToggleWatchlist}
                 />
               )}
             </div>
@@ -1624,36 +1702,12 @@ export default function Home() {
 
               {/* TAB 1: Trading */}
               <TabPanel id="trading" activeTab={activeTab}>
-                {/* Coin Selector Bar - Desktop only (mobile uses drawer) */}
-                <div className="hidden lg:block mb-4">
-                  <CoinSelectorBar
-                    coins={[
-                      ...(marketData?.coins.slice(0, 6).map(c => ({
-                        symbol: c.symbol.toUpperCase() + 'USDT',
-                        name: c.name,
-                        price: c.price,
-                        change24h: c.change24h,
-                      })) || []),
-                      ...customCoins.map(c => ({
-                        symbol: c.symbol.toUpperCase() + 'USDT',
-                        name: c.name,
-                        price: c.price,
-                        change24h: c.change24h,
-                      })),
-                    ]}
-                    selectedSymbol={(selectedAnalysisCoin?.symbol?.toUpperCase() || 'BTC') + 'USDT'}
-                    onSelect={(symbol) => {
-                      const baseSymbol = symbol.replace('USDT', '').toLowerCase();
-                      const coin = marketData?.coins.find(c => c.symbol.toLowerCase() === baseSymbol) ||
-                        customCoins.find(c => c.symbol.toLowerCase() === baseSymbol);
-                      if (coin) handleCoinSelect(coin);
-                    }}
-                    onAddCustom={(symbol) => handleAddCustomCoin(symbol.replace('USDT', ''))}
-                    onRemove={(symbol) => {
-                      const baseSymbol = symbol.replace('USDT', '').toLowerCase();
-                      setCustomCoins(prev => prev.filter(c => c.symbol.toLowerCase() !== baseSymbol));
-                    }}
-                  />
+                {/* Tab Content Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-blue-500" />
+                    Markt Analyse & Signale
+                  </h2>
                 </div>
 
                 {/* Chart Segment */}
@@ -2082,7 +2136,9 @@ export default function Home() {
           modalCoin && (
             <CoinDetailModal
               coin={modalCoin}
+              isOpen={!!modalCoin}
               onClose={() => setModalCoin(null)}
+              expertiseLevel={expertiseLevel}
               initialPersona={tradingPersona}
               tradeRecommendations={
                 modalCoin.symbol === selectedAnalysisCoin?.symbol

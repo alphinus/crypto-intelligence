@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
-import { Brain } from "lucide-react";
+import { Brain, LogOut, User } from "lucide-react";
 import { SessionTimer } from "@/components/SessionTimer";
 import { HeaderMenu } from "@/components/HeaderMenu";
 import { SystemClock } from "@/components/SystemClock";
@@ -24,6 +24,9 @@ interface HeaderProps {
     fetchData: () => void;
     fetchTradeRecommendations: () => void;
     setLastUpdated: (date: Date) => void;
+    user?: any;
+    onLogin?: () => void;
+    onLogout?: () => void;
 }
 
 export function Header({
@@ -38,6 +41,9 @@ export function Header({
     fetchData,
     fetchTradeRecommendations,
     setLastUpdated,
+    user,
+    onLogin,
+    onLogout,
 }: HeaderProps) {
     const { scrollY } = useScroll();
     const [hidden, setHidden] = useState(false);
@@ -170,6 +176,32 @@ export function Header({
                                 {analyzing ? "Analysiere..." : "Report"}
                             </span>
                         </button>
+
+                        {/* User Auth Section */}
+                        {user ? (
+                            <div className="flex items-center gap-2 p-1 pl-2 bg-gray-100 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div className="flex flex-col text-right hidden lg:block">
+                                    <span className="text-[10px] font-bold text-gray-900 dark:text-white truncate max-w-[100px]">
+                                        {user.email}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={onLogout}
+                                    title="Abmelden"
+                                    className="p-1.5 hover:bg-red-500/10 hover:text-red-500 text-gray-500 rounded-md transition-colors"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={onLogin}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-[11px] font-bold text-gray-700 dark:text-gray-300 transition-colors border border-gray-200 dark:border-gray-700"
+                            >
+                                <User className="w-3.5 h-3.5" />
+                                Login
+                            </button>
+                        )}
 
                         {/* Header Menu - Consolidates Refresh, Theme, Settings */}
                         <div data-tour="header-menu">
