@@ -473,6 +473,7 @@ Antworte NUR mit diesem JSON-Format auf DEUTSCH:
       model: 'llama-3.3-70b-versatile',
       temperature: 0.4,
       max_tokens: 1500,
+      response_format: { type: 'json_object' },
     });
 
     const responseText = completion.choices[0]?.message?.content || '';
@@ -1035,60 +1036,53 @@ Berücksichtige dabei die 4 Signal-Generation-Setups:
 - AI_FUSION: Kombination aus AI und technischen Snapshots
 - HYBRID: Bestätigung durch mehrere unabhängige Quellen
 
-Antworte NUR mit diesem JSON:
+Antworte NUR mit diesem JSON-Format (kein Markdown drumherum!):
 {
-  "symbol": "${symbol}",
+  "symbol": string,
   "overallSentiment": "bullish" | "bearish" | "neutral",
-  "confidenceScore": <0-100>,
-  "summary": "<3-4 Sätze Coin-spezifische Analyse auf Deutsch>",
+  "confidenceScore": number (0-100),
+  "summary": string (Zusammenfassung),
   "technicalAnalysis": {
     "currentTrend": "bullish" | "bearish" | "neutral",
-    "trendStrength": <0-100>,
-    "keySupport": ${support},
-    "keyResistance": ${resistance},
-    "confluenceZones": [{"price": <Preis>, "type": "support"|"resistance", "strength": <1-3>}],
+    "trendStrength": number (0-100),
+    "keySupport": number,
+    "keyResistance": number,
+    "confluenceZones": [{"price": number, "type": "support"|"resistance", "strength": number (1-3)}],
     "emaSignal": "bullish" | "bearish" | "neutral"
   },
   "timeframeAnalysis": {
-    "shortTerm": "<1m-15m Outlook>",
-    "mediumTerm": "<1h-4h Outlook>",
-    "longTerm": "<Daily Outlook>",
-    "confluence": "<Wo stimmen Timeframes überein?>"
+    "shortTerm": string,
+    "mediumTerm": string,
+    "longTerm": string,
+    "confluence": string
   },
   "sentimentAnalysis": {
-    "socialScore": ${socialScore},
-    "redditMentions": <geschätzte Zahl>,
+    "socialScore": number,
+    "redditMentions": number,
     "guruConsensus": "bullish" | "bearish" | "mixed" | "neutral"
   },
-  ${hasFunding ? `"derivativesAnalysis": {
-    "fundingRate": ${data.fundingRate},
-    "fundingSignal": "overleveraged_long" | "overleveraged_short" | "neutral",
-    "interpretation": "<Was bedeutet die Funding Rate?>"
-  },` : ''}
-  ${isBTC && data.bitcoinOnChain ? `"onChainAnalysis": {
-    "networkHealth": "<Gut/Mittel/Schlecht + Begründung>",
-    "mempoolStatus": "<Überlastet/Normal/Leer>",
-    "feeLevel": "<Hoch/Mittel/Niedrig>"
-  },` : ''}
   "tradeRecommendation": {
     "type": "long" | "short" | "wait",
     "confidence": "high" | "medium" | "low",
-    "entry": <Preis oder "market">,
-    "stopLoss": <Preis>,
-    "takeProfit": [<TP1>, <TP2>, <TP3>],
-    "riskReward": <Ratio>,
-    "reasoning": "<Warum dieses Setup? Beziehe dich auf INDICATOR vs AI Sicht wenn möglich.>",
-    "bestTimeframe": "<Optimaler TF für den Trade>"
+    "entry": number | "market",
+    "stopLoss": number,
+    "takeProfit": [number],
+    "riskReward": number,
+    "reasoning": string,
+    "bestTimeframe": string
   },
-  "riskFactors": ["<2-4 Risiken für diesen Coin>"],
-  "catalysts": ["<2-4 potenzielle positive Trigger>"]
-}`;
+  "riskFactors": [string],
+  "catalysts": [string]
+}
+
+Befülle die optionalen Felder derivativesAnalysis (fundingRate, fundingSignal, interpretation) und onChainAnalysis (networkHealth, mempoolStatus, feeLevel) nur, wenn entsprechende Daten oben vorliegen.`;
 
     const completion = await getGroqClient().chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
       model: 'llama-3.3-70b-versatile',
       temperature: 0.4,
       max_tokens: 2500,
+      response_format: { type: 'json_object' },
     });
 
     const responseText = completion.choices[0]?.message?.content || '';
@@ -1104,8 +1098,11 @@ Antworte NUR mit diesem JSON:
       timestamp: new Date().toISOString(),
       ...result,
     };
-  } catch (error) {
-    console.error('Coin Intelligence Report error:', error);
+  } catch (error: any) {
+    console.error(`[Signal Intelligence] Error for ${data.symbol}:`, error.message);
+    if (error.response) {
+      console.error(`[Signal Intelligence] API Response:`, error.response.status, error.response.statusText);
+    }
 
     // Fallback
     return {
@@ -1113,7 +1110,7 @@ Antworte NUR mit diesem JSON:
       timestamp: new Date().toISOString(),
       overallSentiment: 'neutral',
       confidenceScore: 0,
-      summary: `Analyse für ${data.symbol.toUpperCase()} konnte nicht erstellt werden. Bitte versuche es später erneut.`,
+      summary: `Analyse für ${data.symbol.toUpperCase()} konnte nicht erstellt werden. Ursache: ${error.message || 'KI-Fehler'}`,
       technicalAnalysis: {
         currentTrend: 'neutral',
         trendStrength: 50,
@@ -1140,11 +1137,11 @@ Antworte NUR mit diesem JSON:
         stopLoss: data.currentPrice * 0.95,
         takeProfit: [data.currentPrice * 1.05],
         riskReward: 1,
-        reasoning: 'Analyse nicht verfügbar - warte auf besseres Setup',
+        reasoning: `Analyse-Fehler: ${error.message || 'Unbekannt'}`,
         bestTimeframe: '1h',
       },
-      riskFactors: ['Analyse nicht verfügbar'],
-      catalysts: ['Analyse nicht verfügbar'],
+      riskFactors: ['Fehler bei der Analyse'],
+      catalysts: ['Warte auf System-Fix'],
     };
   }
 }
