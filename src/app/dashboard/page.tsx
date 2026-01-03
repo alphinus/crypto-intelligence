@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Brain, AlertCircle, Sparkles, TrendingUp, Zap, Bell, Activity, Shield, GraduationCap, User } from 'lucide-react';
+import { Brain, AlertCircle, Sparkles, TrendingUp, Zap, Bell, Activity, Shield, GraduationCap, User, LogOut, ChevronDown } from 'lucide-react';
+import { NewsTicker } from '@/components/NewsTicker';
 import { TrendingSidebar, type WatchlistCategory } from '@/components/TrendingSidebar';
 import { supabase } from '@/lib/supabase';
-import { LogOut, ChevronDown, User, GraduationCap } from 'lucide-react';
 import { AuthModal } from '@/components/Auth/AuthModal';
 import { TradeRecommendations } from '@/components/TradeRecommendations';
 import { CollapsibleSection } from '@/components/CollapsibleSection';

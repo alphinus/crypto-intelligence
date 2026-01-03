@@ -22,9 +22,11 @@ import type { TimeframeTradeSetup, MultiTimeframeRecommendations } from '@/lib/g
 
 interface CoinDetailModalProps {
   coin: MarketData;
+  isOpen: boolean;
   onClose: () => void;
   tradeRecommendations?: Record<string, TimeframeTradeSetup | null>;
   initialPersona?: string;
+  expertiseLevel?: 'beginner' | 'standard' | 'expert' | 'intelligence';
 }
 
 
@@ -82,7 +84,10 @@ const TRADING_STYLE_LABELS: Record<string, string> = {
   position: 'Position',
 };
 
-export function CoinDetailModal({ coin, onClose, tradeRecommendations, initialPersona }: CoinDetailModalProps) {
+export function CoinDetailModal({ coin, isOpen, onClose, tradeRecommendations, initialPersona, expertiseLevel = 'standard' }: CoinDetailModalProps) {
+  // Use isOpen for conditional logic if needed, although parent handles it
+  if (!isOpen) return null;
+
   const [selectedPersonaId, setSelectedPersonaId] = useState(initialPersona || 'daytrader');
   const activePersona = PERSONAS.find(p => p.id === selectedPersonaId) || PERSONAS[1];
   const selectedInterval = activePersona.interval;

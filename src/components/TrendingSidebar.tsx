@@ -1,10 +1,12 @@
-import { Flag, ChevronDown, Settings2, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Flag, ChevronDown, Settings2, Search, Plus, ChevronRight } from 'lucide-react';
+import type { MarketData, FearGreedIndex } from '@/types/news';
 
 export type WatchlistCategory = 'FAVORITEN' | 'LISTE_1' | 'LISTE_2';
 
 interface TrendingSidebarProps {
   coins: MarketData[];
-  fearGreed: MarketData['fearGreed'] | null;
+  fearGreed: FearGreedIndex | null;
   selectedCoin: MarketData | null;
   onCoinSelect: (coin: MarketData) => void;
   onCoinDetailClick: (coin: MarketData) => void;
