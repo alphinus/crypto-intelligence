@@ -1,8 +1,10 @@
 import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 import type { AnalysisResult } from '@/types/news';
 
 // Lazy initialization - wird nur bei Bedarf erstellt
 let groqClient: Groq | null = null;
+let openaiClient: OpenAI | null = null;
 
 function getGroqClient(): Groq {
   if (!groqClient) {
@@ -11,6 +13,15 @@ function getGroqClient(): Groq {
     });
   }
   return groqClient;
+}
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openaiClient;
 }
 
 export async function analyzeArticle(
@@ -468,19 +479,38 @@ Antworte NUR mit diesem JSON-Format auf DEUTSCH:
   "actionItems": ["Handlung 1", "Handlung 2"]
 }`;
 
-    const completion = await getGroqClient().chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.4,
-      max_tokens: 1500,
-      response_format: { type: 'json_object' },
-    });
+    let completion;
+    let usedModel = 'llama-3.3-70b-versatile';
+    let usedProvider = 'Groq';
+
+    try {
+      completion = await getGroqClient().chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: usedModel,
+        temperature: 0.4,
+        max_tokens: 1500,
+        response_format: { type: 'json_object' },
+      });
+    } catch (groqError: any) {
+      console.error('[Market Intelligence] Groq failed:', groqError.message);
+      usedProvider = 'OpenAI';
+      usedModel = 'gpt-4o-mini';
+      console.log(`[Market Intelligence] Switching to ${usedProvider} fallback...`);
+
+      completion = await getOpenAIClient().chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: usedModel,
+        temperature: 0.4,
+        max_tokens: 1500,
+        response_format: { type: 'json_object' },
+      });
+    }
 
     const responseText = completion.choices[0]?.message?.content || '';
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
-      throw new Error('No JSON found in response');
+      throw new Error(`No JSON found in ${usedProvider} response`);
     }
 
     const result = JSON.parse(jsonMatch[0]);
@@ -488,8 +518,9 @@ Antworte NUR mit diesem JSON-Format auf DEUTSCH:
     return {
       timestamp: new Date().toISOString(),
       ...result,
+      summary: `${result.summary || ''} (Source: ${usedProvider})`,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Market Intelligence error:', error);
 
     return {
@@ -497,11 +528,11 @@ Antworte NUR mit diesem JSON-Format auf DEUTSCH:
       overallSentiment: 'neutral',
       confidenceScore: 0,
       marketPhase: 'Unbekannt',
-      summary: 'Marktanalyse konnte nicht erstellt werden. Bitte versuche es später erneut.',
+      summary: `Marktanalyse konnte nicht erstellt werden. Ursache: ${error.message}`,
       signals: [],
       topNarratives: [],
       riskLevel: 'medium',
-      actionItems: ['Warte auf aktualisierte Daten'],
+      actionItems: ['Warte auf System-Fix'],
     };
   }
 }
@@ -636,18 +667,36 @@ Antworte NUR mit diesem JSON-Format auf DEUTSCH:
   "actionItems": ["Action 1", "Action 2"]
 }`;
 
-    const completion = await getGroqClient().chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.4,
-      max_tokens: 2000,
-    });
+    let completion;
+    let usedModel = 'llama-3.3-70b-versatile';
+    let usedProvider = 'Groq';
+
+    try {
+      completion = await getGroqClient().chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: usedModel,
+        temperature: 0.4,
+        max_tokens: 2000,
+      });
+    } catch (groqError: any) {
+      console.error('[Enhanced Report] Groq failed:', groqError.message);
+      usedProvider = 'OpenAI';
+      usedModel = 'gpt-4o'; // GPT-4o für den großen Report
+      console.log(`[Enhanced Report] Switching to ${usedProvider} fallback...`);
+
+      completion = await getOpenAIClient().chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: usedModel,
+        temperature: 0.4,
+        max_tokens: 2000,
+      });
+    }
 
     const responseText = completion.choices[0]?.message?.content || '';
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
-      throw new Error('No JSON found in response');
+      throw new Error(`No JSON found in ${usedProvider} response`);
     }
 
     const result = JSON.parse(jsonMatch[0]);
@@ -655,8 +704,9 @@ Antworte NUR mit diesem JSON-Format auf DEUTSCH:
     return {
       timestamp: new Date().toISOString(),
       ...result,
+      summary: `${result.summary || ''} (Powered by ${usedProvider})`,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Enhanced Report error:', error);
 
     // Fallback
@@ -665,11 +715,11 @@ Antworte NUR mit diesem JSON-Format auf DEUTSCH:
       overallSentiment: 'neutral',
       confidenceScore: 0,
       marketPhase: 'Unbekannt',
-      summary: 'Erweiterte Analyse konnte nicht erstellt werden.',
+      summary: `Erweiterte Analyse konnte nicht erstellt werden. Ursache: ${error.message}`,
       signals: [],
       topNarratives: [],
       riskLevel: 'medium',
-      actionItems: ['Warte auf aktualisierte Daten'],
+      actionItems: ['Warte auf System-Fix'],
     };
   }
 }
@@ -1077,19 +1127,40 @@ Antworte NUR mit diesem JSON-Format (kein Markdown drumherum!):
 
 Befülle die optionalen Felder derivativesAnalysis (fundingRate, fundingSignal, interpretation) und onChainAnalysis (networkHealth, mempoolStatus, feeLevel) nur, wenn entsprechende Daten oben vorliegen.`;
 
-    const completion = await getGroqClient().chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.4,
-      max_tokens: 2500,
-      response_format: { type: 'json_object' },
-    });
+    let completion;
+    let usedModel = 'llama-3.3-70b-versatile';
+    let usedProvider = 'Groq';
+
+    try {
+      completion = await getGroqClient().chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: usedModel,
+        temperature: 0.4,
+        max_tokens: 2500,
+        response_format: { type: 'json_object' },
+      });
+    } catch (groqError: any) {
+      console.error(`[Signal Intelligence] Groq failed for ${data.symbol}:`, groqError.message);
+
+      // Fallback zu OpenAI
+      usedProvider = 'OpenAI';
+      usedModel = 'gpt-4o-mini';
+      console.log(`[Signal Intelligence] Switching to ${usedProvider} fallback...`);
+
+      completion = await getOpenAIClient().chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: usedModel,
+        temperature: 0.4,
+        max_tokens: 2500,
+        response_format: { type: 'json_object' },
+      });
+    }
 
     const responseText = completion.choices[0]?.message?.content || '';
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
-      throw new Error('No JSON found in response');
+      throw new Error(`No JSON found in ${usedProvider} response`);
     }
 
     const result = JSON.parse(jsonMatch[0]);
@@ -1097,9 +1168,10 @@ Befülle die optionalen Felder derivativesAnalysis (fundingRate, fundingSignal, 
     return {
       timestamp: new Date().toISOString(),
       ...result,
+      summary: `${result.summary || ''}\n\n(Analyse von ${usedProvider} erstellt)`,
     };
   } catch (error: any) {
-    console.error(`[Signal Intelligence] Error for ${data.symbol}:`, error.message);
+    console.error(`[Signal Intelligence] Critical error for ${data.symbol}:`, error.message);
     if (error.response) {
       console.error(`[Signal Intelligence] API Response:`, error.response.status, error.response.statusText);
     }
